@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "JenisKekerasan" ADD COLUMN     "dibuatOlehId" TEXT,
+ADD COLUMN     "dibuatPada" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "diubahPada" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+ALTER TABLE "JenisKekerasan" ADD CONSTRAINT "JenisKekerasan_dibuatOlehId_fkey" FOREIGN KEY ("dibuatOlehId") REFERENCES "Pengguna"("id") ON DELETE SET NULL ON UPDATE CASCADE;

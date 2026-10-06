@@ -1,20 +1,25 @@
+import { Menu } from "lucide-react";
+import { cookies } from "next/headers";
 import { KepalaArea } from "@/components/kepala-area";
 import { wajibPeran } from "@/lib/auth";
 import { NavigasiAdmin } from "./navigasi-admin";
+import { COOKIE_SIDEBAR, SidebarAdmin } from "./sidebar-admin";
 
 export default async function LayoutAdmin({ children }: { children: React.ReactNode }) {
   const pengguna = await wajibPeran("ADMIN");
+  const awalKolaps = (await cookies()).get(COOKIE_SIDEBAR)?.value === "kolaps";
   return (
-    <div className="min-h-screen bg-[#F7F6FB]">
+    <div className="min-h-screen bg-canvas">
       <KepalaArea nama={pengguna.nama} peran="Admin" />
-      <details className="border-b border-[#DEDBE8] bg-white md:hidden">
-        <summary className="flex h-12 cursor-pointer items-center px-4 font-bold">Menu</summary>
+      <details className="sticky top-[4.5rem] z-20 bg-navy-900 md:hidden">
+        <summary className="flex h-12 cursor-pointer list-none items-center gap-2 px-4 font-bold text-surface">
+          <Menu size={20} aria-hidden="true" />
+          Menu
+        </summary>
         <NavigasiAdmin />
       </details>
       <div className="flex min-h-[calc(100vh-4.5rem)]">
-        <aside className="hidden w-[248px] shrink-0 border-r border-[#DEDBE8] bg-white md:block">
-          <NavigasiAdmin />
-        </aside>
+        <SidebarAdmin awalKolaps={awalKolaps} />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>

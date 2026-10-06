@@ -39,3 +39,7 @@ docker run -d -p 3000:3000 -e DATABASE_URL=... -e SESSION_SECRET=... siap-ppa
 ## CI
 
 GitHub Actions (`.github/workflows/ci.yml`) berjalan pada setiap push dan PR: validasi skema, migrasi dari nol di PostgreSQL, ERD sesuai skema, lint, cek tipe, uji, dan build. Lockfile harus lengkap untuk Linux; bila `npm ci` gagal karena `package-lock.json`, hasilkan ulang di Linux (mis. container `node:22`).
+
+## Penamaan basis data
+
+Di basis data semua nama memakai `snake_case` dan tabel berbentuk tunggal (`jenis_kekerasan`, kolom `dibuat_pada`). Di kode TypeScript nama tetap `PascalCase` untuk model dan `camelCase` untuk field (`db.jenisKekerasan`, `dibuatPada`). Pemetaannya lewat `@@map` dan `@map` di `prisma/schema.prisma`; setiap model, field, dan enum baru wajib diberi pemetaan. ERD (`npm run erd`) menampilkan nama di basis data.
