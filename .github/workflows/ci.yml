@@ -2,11 +2,15 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   uji:
@@ -65,6 +69,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Build image Docker
+        run: docker build --pull -t uji-ci:${{ github.sha }} .
+
       # Setelah build: tipe LayoutProps/PageProps dihasilkan oleh Next.
       - name: Cek tipe
         run: npx tsc --noEmit
+
+      - name: Audit dependensi (informasi, tidak memblokir)
+        run: npm audit --audit-level=high
+        continue-on-error: true
