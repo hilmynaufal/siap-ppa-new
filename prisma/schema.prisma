@@ -14,6 +14,8 @@ datasource db {
 enum Peran {
   ADMIN
   PENDAMPING
+
+  @@map("peran")
 }
 
 /// Status laporan sekaligus status kasus (dilacak satu kolom).
@@ -23,6 +25,8 @@ enum StatusLaporan {
   TERVERIFIKASI
   DALAM_PENDAMPINGAN
   DITUTUP
+
+  @@map("status_laporan")
 }
 
 enum StatusSesi {
@@ -31,6 +35,8 @@ enum StatusSesi {
   SELESAI
   TIDAK_HADIR
   DIBATALKAN
+
+  @@map("status_sesi")
 }
 
 /// Status antrean; hanya berlaku setelah check-in (Tiket.checkInPada terisi).
@@ -40,17 +46,23 @@ enum StatusAntrean {
   BERLANGSUNG
   SELESAI
   DILEWATI
+
+  @@map("status_antrean")
 }
 
 enum StatusUsulan {
   MENUNGGU
   DISETUJUI
   DITOLAK
+
+  @@map("status_usulan")
 }
 
 enum PenerimaNotifikasi {
   PELAPOR
   PENDAMPING
+
+  @@map("penerima_notifikasi")
 }
 
 // ============ Master ============
@@ -59,13 +71,13 @@ model Pengguna {
   id                String   @id @default(cuid())
   nama              String
   email             String   @unique
-  kataSandiHash     String
+  kataSandiHash     String   @map("kata_sandi_hash")
   peran             Peran
   aktif             Boolean  @default(true)
   /// Hanya untuk Pendamping: bidang pendampingannya.
-  jenisPendampingId String?
-  dibuatPada        DateTime @default(now())
-  diubahPada        DateTime @updatedAt
+  jenisPendampingId String?  @map("jenis_pendamping_id")
+  dibuatPada        DateTime @default(now()) @map("dibuat_pada")
+  diubahPada        DateTime @updatedAt @map("diubah_pada")
 
   jenisPendamping      JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
   laporanDiverifikasi  Laporan[]                   @relation("VerifikatorLaporan")
@@ -76,19 +88,23 @@ model Pengguna {
   keputusanUsulan      UsulanSesi[]
   jenisKekerasanDibuat JenisKekerasan[]            @relation("PembuatJenisKekerasan")
   logAudit             LogAudit[]
+
+  @@map("pengguna")
 }
 
 model JenisKekerasan {
   id           String    @id @default(cuid())
   nama         String    @unique
   aktif        Boolean   @default(true)
-  dibuatPada   DateTime  @default(now())
+  dibuatPada   DateTime  @default(now()) @map("dibuat_pada")
   /// Diisi otomatis oleh Prisma setiap kali baris diubah; default now() untuk baris yang sudah ada.
-  diubahPada   DateTime  @default(now()) @updatedAt
+  diubahPada   DateTime  @default(now()) @updatedAt @map("diubah_pada")
   /// Admin yang membuat; kosong untuk data lama sebelum kolom ini ada.
-  dibuatOlehId String?
+  dibuatOlehId String?   @map("dibuat_oleh_id")
   dibuatOleh   Pengguna? @relation("PembuatJenisKekerasan", fields: [dibuatOlehId], references: [id])
   laporan      Laporan[]
+
+  @@map("jenis_kekerasan")
 }
 
 /// Bidang pendampingan; `kode` menjadi awalan nomor antrean (PSI, HKM).
@@ -100,6 +116,8 @@ model JenisPendampingan {
   pengguna Pengguna[]
   sesi     Sesi[]
   tiket    Tiket[]
+
+  @@map("jenis_pendampingan")
 }
 
 model Kecamatan {
@@ -107,6 +125,8 @@ model Kecamatan {
   nama    String          @unique
   laporan Laporan[]
   kontak  KontakDarurat[]
+
+  @@map("kecamatan")
 }
 
 /// Tempat layanan (mis. UPTD PPA); antrean dihitung per lokasi.
@@ -117,6 +137,8 @@ model Lokasi {
   aktif  Boolean @default(true)
   sesi   Sesi[]
   tiket  Tiket[]
+
+  @@map("lokasi")
 }
 
 model KontakDarurat {
@@ -124,33 +146,35 @@ model KontakDarurat {
   instansi    String
   telepon     String
   alamat      String
-  kecamatanId String?
+  kecamatanId String?    @map("kecamatan_id")
   aktif       Boolean    @default(true)
   kecamatan   Kecamatan? @relation(fields: [kecamatanId], references: [id])
+
+  @@map("kontak_darurat")
 }
 
 // ============ Pelaporan ============
 
 model Laporan {
   id                 String        @id @default(cuid())
-  kodePendaftaran    String        @unique
-  namaPelapor        String
-  kontakPelapor      String
-  namaKorban         String
-  usiaKorban         Int?
-  jenisKelaminKorban String?
-  jenisKekerasanId   String
-  kecamatanId        String?
-  tanggalKejadian    DateTime?
+  kodePendaftaran    String        @unique @map("kode_pendaftaran")
+  namaPelapor        String        @map("nama_pelapor")
+  kontakPelapor      String        @map("kontak_pelapor")
+  namaKorban         String        @map("nama_korban")
+  usiaKorban         Int?          @map("usia_korban")
+  jenisKelaminKorban String?       @map("jenis_kelamin_korban")
+  jenisKekerasanId   String        @map("jenis_kekerasan_id")
+  kecamatanId        String?       @map("kecamatan_id")
+  tanggalKejadian    DateTime?     @map("tanggal_kejadian")
   kronologi          String
-  persetujuanData    Boolean
-  persetujuanPada    DateTime
+  persetujuanData    Boolean       @map("persetujuan_data")
+  persetujuanPada    DateTime      @map("persetujuan_pada")
   status             StatusLaporan @default(BARU)
-  alasanPenolakan    String?
-  verifikatorId      String?
-  diverifikasiPada   DateTime?
-  ditutupPada        DateTime?
-  dibuatPada         DateTime      @default(now())
+  alasanPenolakan    String?       @map("alasan_penolakan")
+  verifikatorId      String?       @map("verifikator_id")
+  diverifikasiPada   DateTime?     @map("diverifikasi_pada")
+  ditutupPada        DateTime?     @map("ditutup_pada")
+  dibuatPada         DateTime      @default(now()) @map("dibuat_pada")
 
   jenisKekerasan JenisKekerasan   @relation(fields: [jenisKekerasanId], references: [id])
   kecamatan      Kecamatan?       @relation(fields: [kecamatanId], references: [id])
@@ -159,16 +183,19 @@ model Laporan {
   sesi           Sesi[]
 
   @@index([status, dibuatPada])
+  @@map("laporan")
 }
 
 model DokumenLaporan {
   id          String  @id @default(cuid())
-  laporanId   String
-  namaBerkas  String
-  jalurBerkas String
-  tipeMime    String
+  laporanId   String  @map("laporan_id")
+  namaBerkas  String  @map("nama_berkas")
+  jalurBerkas String  @map("jalur_berkas")
+  tipeMime    String  @map("tipe_mime")
   ukuran      Int
   laporan     Laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+
+  @@map("dokumen_laporan")
 }
 
 // ============ Pendampingan, tiket, antrean ============
@@ -176,15 +203,15 @@ model DokumenLaporan {
 /// Satu laporan dapat memiliki banyak sesi pendampingan.
 model Sesi {
   id                String     @id @default(cuid())
-  laporanId         String
+  laporanId         String     @map("laporan_id")
   urutan            Int
-  jenisPendampingId String
-  pendampingId      String
-  lokasiId          String
+  jenisPendampingId String     @map("jenis_pendamping_id")
+  pendampingId      String     @map("pendamping_id")
+  lokasiId          String     @map("lokasi_id")
   mulai             DateTime
   selesai           DateTime
   status            StatusSesi @default(TERJADWAL)
-  dibuatPada        DateTime   @default(now())
+  dibuatPada        DateTime   @default(now()) @map("dibuat_pada")
 
   laporan             Laporan              @relation(fields: [laporanId], references: [id])
   jenisPendamping     JenisPendampingan    @relation(fields: [jenisPendampingId], references: [id])
@@ -198,24 +225,25 @@ model Sesi {
 
   @@unique([laporanId, urutan])
   @@index([pendampingId, mulai])
+  @@map("sesi")
 }
 
 /// Tiket per sesi. Nomor antrean: {kode}-{YYYYMMDD}-{urutan}, urut per lokasi per jenis per hari.
 model Tiket {
   id                String        @id @default(cuid())
-  sesiId            String        @unique
-  nomorAntrean      String        @unique
+  sesiId            String        @unique @map("sesi_id")
+  nomorAntrean      String        @unique @map("nomor_antrean")
   tanggal           DateTime      @db.Date
   urutan            Int
-  lokasiId          String
-  jenisPendampingId String
+  lokasiId          String        @map("lokasi_id")
+  jenisPendampingId String        @map("jenis_pendamping_id")
   /// Isi QR; dipindai petugas untuk check-in.
-  kodeCheckIn       String        @unique
-  statusAntrean     StatusAntrean @default(MENUNGGU)
-  checkInPada       DateTime?
-  dipanggilPada     DateTime?
-  selesaiPada       DateTime?
-  diterbitkanPada   DateTime      @default(now())
+  kodeCheckIn       String        @unique @map("kode_check_in")
+  statusAntrean     StatusAntrean @default(MENUNGGU) @map("status_antrean")
+  checkInPada       DateTime?     @map("check_in_pada")
+  dipanggilPada     DateTime?     @map("dipanggil_pada")
+  selesaiPada       DateTime?     @map("selesai_pada")
+  diterbitkanPada   DateTime      @default(now()) @map("diterbitkan_pada")
 
   sesi            Sesi              @relation(fields: [sesiId], references: [id])
   lokasi          Lokasi            @relation(fields: [lokasiId], references: [id])
@@ -223,29 +251,34 @@ model Tiket {
 
   @@unique([lokasiId, jenisPendampingId, tanggal, urutan])
   @@index([lokasiId, tanggal, statusAntrean])
+  @@map("tiket")
 }
 
 model RiwayatJadwal {
   id         String   @id @default(cuid())
-  sesiId     String
-  pengubahId String
+  sesiId     String   @map("sesi_id")
+  pengubahId String   @map("pengubah_id")
   /// Nilai sebelum dan sesudah, mis. {"mulai": {"dari": "...", "ke": "..."}}.
   perubahan  Json
   alasan     String?
-  dibuatPada DateTime @default(now())
+  dibuatPada DateTime @default(now()) @map("dibuat_pada")
   sesi       Sesi     @relation(fields: [sesiId], references: [id])
   pengubah   Pengguna @relation(fields: [pengubahId], references: [id])
+
+  @@map("riwayat_jadwal")
 }
 
 model Notifikasi {
   id          String             @id @default(cuid())
-  sesiId      String
+  sesiId      String             @map("sesi_id")
   penerima    PenerimaNotifikasi
   kanal       String
   pesan       String
-  dikirimPada DateTime?
-  dibuatPada  DateTime           @default(now())
+  dikirimPada DateTime?          @map("dikirim_pada")
+  dibuatPada  DateTime           @default(now()) @map("dibuat_pada")
   sesi        Sesi               @relation(fields: [sesiId], references: [id])
+
+  @@map("notifikasi")
 }
 
 // ============ Laporan pendampingan ============
@@ -253,74 +286,82 @@ model Notifikasi {
 /// Terkunci setelah `dikirimPada` terisi; koreksi lewat RevisiLaporanPendampingan.
 model LaporanPendampingan {
   id                 String    @id @default(cuid())
-  sesiId             String    @unique
-  penulisId          String
-  jenisPendampingan  String
+  sesiId             String    @unique @map("sesi_id")
+  penulisId          String    @map("penulis_id")
+  jenisPendampingan  String    @map("jenis_pendampingan")
   keterangan         String
   rekomendasi        String
-  ajukanSesiLanjutan Boolean   @default(false)
+  ajukanSesiLanjutan Boolean   @default(false) @map("ajukan_sesi_lanjutan")
   versi              Int       @default(1)
-  dikirimPada        DateTime?
-  dibuatPada         DateTime  @default(now())
-  diubahPada         DateTime  @updatedAt
+  dikirimPada        DateTime? @map("dikirim_pada")
+  dibuatPada         DateTime  @default(now()) @map("dibuat_pada")
+  diubahPada         DateTime  @updatedAt @map("diubah_pada")
 
   sesi    Sesi                        @relation(fields: [sesiId], references: [id])
   penulis Pengguna                    @relation(fields: [penulisId], references: [id])
   foto    FotoPendampingan[]
   revisi  RevisiLaporanPendampingan[]
   usulan  UsulanSesi?
+
+  @@map("laporan_pendampingan")
 }
 
 model FotoPendampingan {
   id                    String              @id @default(cuid())
-  laporanPendampinganId String
-  namaBerkas            String
-  jalurBerkas           String
-  tipeMime              String
+  laporanPendampinganId String              @map("laporan_pendampingan_id")
+  namaBerkas            String              @map("nama_berkas")
+  jalurBerkas           String              @map("jalur_berkas")
+  tipeMime              String              @map("tipe_mime")
   ukuran                Int
   laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id], onDelete: Cascade)
+
+  @@map("foto_pendampingan")
 }
 
 model RevisiLaporanPendampingan {
   id                    String              @id @default(cuid())
-  laporanPendampinganId String
+  laporanPendampinganId String              @map("laporan_pendampingan_id")
   versi                 Int
   /// Salinan isi laporan sebelum direvisi.
-  isiSebelumnya         Json
+  isiSebelumnya         Json                @map("isi_sebelumnya")
   alasan                String
-  pengubahId            String
-  dibuatPada            DateTime            @default(now())
+  pengubahId            String              @map("pengubah_id")
+  dibuatPada            DateTime            @default(now()) @map("dibuat_pada")
   laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id])
   pengubah              Pengguna            @relation(fields: [pengubahId], references: [id])
 
   @@unique([laporanPendampinganId, versi])
+  @@map("revisi_laporan_pendampingan")
 }
 
 /// Usulan sesi lanjutan dari rekomendasi Pendamping; Admin menyetujui dan menjadwalkan.
 model UsulanSesi {
   id                    String              @id @default(cuid())
-  laporanPendampinganId String              @unique
+  laporanPendampinganId String              @unique @map("laporan_pendampingan_id")
   status                StatusUsulan        @default(MENUNGGU)
-  keputusanOlehId       String?
-  diputuskanPada        DateTime?
-  sesiHasilId           String?             @unique
-  dibuatPada            DateTime            @default(now())
+  keputusanOlehId       String?             @map("keputusan_oleh_id")
+  diputuskanPada        DateTime?           @map("diputuskan_pada")
+  sesiHasilId           String?             @unique @map("sesi_hasil_id")
+  dibuatPada            DateTime            @default(now()) @map("dibuat_pada")
   laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id])
   keputusanOleh         Pengguna?           @relation(fields: [keputusanOlehId], references: [id])
   sesiHasil             Sesi?               @relation("SesiHasilUsulan", fields: [sesiHasilId], references: [id])
+
+  @@map("usulan_sesi")
 }
 
 // ============ Audit ============
 
 model LogAudit {
   id         String    @id @default(cuid())
-  penggunaId String?
+  penggunaId String?   @map("pengguna_id")
   aksi       String
   entitas    String
-  entitasId  String
+  entitasId  String    @map("entitas_id")
   rincian    Json?
-  dibuatPada DateTime  @default(now())
+  dibuatPada DateTime  @default(now()) @map("dibuat_pada")
   pengguna   Pengguna? @relation(fields: [penggunaId], references: [id])
 
   @@index([entitas, entitasId])
+  @@map("log_audit")
 }
