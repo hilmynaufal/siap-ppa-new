@@ -43,3 +43,7 @@ GitHub Actions (`.github/workflows/ci.yml`) berjalan pada setiap push dan PR: va
 ## Penamaan basis data
 
 Di basis data semua nama memakai `snake_case` dan tabel berbentuk tunggal (`jenis_kekerasan`, kolom `dibuat_pada`). Di kode TypeScript nama tetap `PascalCase` untuk model dan `camelCase` untuk field (`db.jenisKekerasan`, `dibuatPada`). Pemetaannya lewat `@@map` dan `@map` di `prisma/schema.prisma`; setiap model, field, dan enum baru wajib diberi pemetaan. ERD (`npm run erd`) menampilkan nama di basis data.
+
+## Berkas unggahan
+
+Dokumen pendukung laporan disimpan di luar akar web, di direktori `UPLOAD_DIR` (lokal: `uploads/`, Docker: volume `/data/uploads`), dengan nama acak. Hanya JPG, PNG, dan PDF (dicek dari isi berkas), maksimal 5 MB per berkas dan 3 berkas per laporan. Batas badan permintaan Server Action diatur 16 MB di `next.config.ts`. Data referensi 31 kecamatan Kabupaten Bandung ditanam lewat migrasi `data_kecamatan`; `npx prisma db seed` menambahkan contoh jenis kekerasan untuk pengembangan.

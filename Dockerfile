@@ -28,7 +28,8 @@ FROM dasar AS aplikasi
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    UPLOAD_DIR=/data/uploads
 RUN groupadd --system --gid 1001 app && useradd --system --uid 1001 --gid app app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
