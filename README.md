@@ -24,3 +24,18 @@ npx prisma db seed            # akun uji lokal (lihat prisma/seed.ts)
 | Migrasi basis data | `npx prisma migrate deploy` |
 | Lint | `npm run lint` |
 | ERD (Mermaid, dari skema Prisma) | `npm run erd` -> `docs/erd.mmd` |
+
+## Docker (staging)
+
+```bash
+docker build -t siap-ppa .                                # image aplikasi
+docker build --target migrasi -t siap-ppa-migrasi .       # image migrasi
+docker run --rm -e DATABASE_URL=... siap-ppa-migrasi      # jalankan migrasi dahulu
+docker run -d -p 3000:3000 -e DATABASE_URL=... -e SESSION_SECRET=... siap-ppa
+```
+
+`SESSION_SECRET` wajib acak (min. 32 karakter). Berkas unggahan: pasang volume pada `/data/uploads`.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) berjalan pada setiap push dan PR: validasi skema, migrasi dari nol di PostgreSQL, ERD sesuai skema, lint, cek tipe, uji, dan build. Lockfile harus lengkap untuk Linux; bila `npm ci` gagal karena `package-lock.json`, hasilkan ulang di Linux (mis. container `node:22`).
