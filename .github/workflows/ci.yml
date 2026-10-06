@@ -59,11 +59,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Cek tipe
-        run: npx tsc --noEmit
-
       - name: Uji
         run: npm test
 
       - name: Build
         run: npm run build
+
+      # Setelah build: tipe LayoutProps/PageProps dihasilkan oleh Next.
+      - name: Cek tipe
+        run: npx tsc --noEmit
