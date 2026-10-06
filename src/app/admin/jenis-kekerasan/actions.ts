@@ -23,7 +23,7 @@ async function selesai(
 export async function tambah(_s: AksiState, formData: FormData): Promise<AksiState> {
   const admin = await wajibPeran("ADMIN");
   const nama = String(formData.get("nama") ?? "");
-  return selesai(await tambahJenis(db, nama), admin.id, "TAMBAH_JENIS_KEKERASAN", nama.trim(), nama);
+  return selesai(await tambahJenis(db, nama, admin.id), admin.id, "TAMBAH_JENIS_KEKERASAN", nama.trim(), nama);
 }
 
 export async function ubah(_s: AksiState, formData: FormData): Promise<AksiState> {

@@ -14,6 +14,9 @@ erDiagram
     String id PK
     String nama UK
     Boolean aktif
+    DateTime dibuatPada
+    DateTime diubahPada
+    String dibuatOlehId FK "opsional"
   }
   JenisPendampingan {
     String id PK
@@ -161,6 +164,7 @@ erDiagram
     DateTime dibuatPada
   }
   JenisPendampingan |o--o{ Pengguna : "jenisPendamping"
+  Pengguna |o--o{ JenisKekerasan : "dibuatOleh"
   Kecamatan |o--o{ KontakDarurat : "kecamatan"
   JenisKekerasan ||--o{ Laporan : "jenisKekerasan"
   Kecamatan |o--o{ Laporan : "kecamatan"

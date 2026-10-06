@@ -67,21 +67,28 @@ model Pengguna {
   dibuatPada        DateTime @default(now())
   diubahPada        DateTime @updatedAt
 
-  jenisPendamping     JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
-  laporanDiverifikasi Laporan[]                   @relation("VerifikatorLaporan")
-  sesi                Sesi[]
-  laporanPendampingan LaporanPendampingan[]
-  revisi              RevisiLaporanPendampingan[]
-  perubahanJadwal     RiwayatJadwal[]
-  keputusanUsulan     UsulanSesi[]
-  logAudit            LogAudit[]
+  jenisPendamping      JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
+  laporanDiverifikasi  Laporan[]                   @relation("VerifikatorLaporan")
+  sesi                 Sesi[]
+  laporanPendampingan  LaporanPendampingan[]
+  revisi               RevisiLaporanPendampingan[]
+  perubahanJadwal      RiwayatJadwal[]
+  keputusanUsulan      UsulanSesi[]
+  jenisKekerasanDibuat JenisKekerasan[]            @relation("PembuatJenisKekerasan")
+  logAudit             LogAudit[]
 }
 
 model JenisKekerasan {
-  id      String    @id @default(cuid())
-  nama    String    @unique
-  aktif   Boolean   @default(true)
-  laporan Laporan[]
+  id           String    @id @default(cuid())
+  nama         String    @unique
+  aktif        Boolean   @default(true)
+  dibuatPada   DateTime  @default(now())
+  /// Diisi otomatis oleh Prisma setiap kali baris diubah; default now() untuk baris yang sudah ada.
+  diubahPada   DateTime  @default(now()) @updatedAt
+  /// Admin yang membuat; kosong untuk data lama sebelum kolom ini ada.
+  dibuatOlehId String?
+  dibuatOleh   Pengguna? @relation("PembuatJenisKekerasan", fields: [dibuatOlehId], references: [id])
+  laporan      Laporan[]
 }
 
 /// Bidang pendampingan; `kode` menjadi awalan nomor antrean (PSI, HKM).
