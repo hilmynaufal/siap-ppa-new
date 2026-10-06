@@ -16,6 +16,7 @@ colors:
   emergency: "#C8102E"
   emergency-hover: "#A50D26"
   teal-500: "#0E9F8E"
+  teal-700: "#0B7F72"
   green-500: "#1E9E5A"
   amber-400: "#F5B014"
   violet-500: "#7A4FD6"
@@ -144,7 +145,7 @@ Palet penuh dengan peran jelas: biru membawa identitas, magenta mengajak bertind
 - **Merah Darurat** (#C8102E, `emergency`): hanya tombol kontak darurat. Hover (#A50D26).
 
 ### Tertiary
-Warna kategori untuk kotak ikon, tiap menu satu warna tetap: **Teal** (#0E9F8E), **Hijau** (#1E9E5A), **Kuning** (#F5B014, ikon gelap), **Ungu** (#7A4FD6), **Biru Langit** (#1E9BE0), **Koral** (#F26A4B). Kotak ikon adalah grafik dekoratif bernilai 3:1; teks selalu mendampingi.
+Warna kategori untuk kotak ikon, tiap menu satu warna tetap: **Teal** (#0E9F8E; untuk teks di atas permukaan terang pakai varian gelap #0B7F72, 5,0:1), **Hijau** (#1E9E5A), **Kuning** (#F5B014, ikon gelap), **Ungu** (#7A4FD6), **Biru Langit** (#1E9BE0), **Koral** (#F26A4B). Kotak ikon adalah grafik dekoratif bernilai 3:1; teks selalu mendampingi.
 
 ### Neutral
 - **Tinta** (#1B2540, `ink`): teks utama. **Tinta Lembut** (#46506B) dan **Tinta Redup** (#5B6682, 5,0:1 di atas `canvas`) untuk teks sekunder.
@@ -221,6 +222,9 @@ Satu permukaan bersekat (celah 1 px di atas `line-soft`), bukan deretan kartu id
 - **Cari (BilahCari):** ikon kaca pembesar, tombol X untuk menghapus isian, label tersembunyi untuk pembaca layar.
 - **Filter chip (FilterChip):** tinggi 36 px, sudut 12 px, teks 13 px (700), jumlah di dalam chip. Terpilih: tepi `blue-600`, latar `blue-50`, tanda centang. `aria-pressed` pada tiap chip dalam `role="group"`.
 - **Filter pilihan (FilterPilihan):** `<select>` bawaan peramban dengan ikon filter dan panah, tinggi 40 px, agar nyaman di tablet dan ponsel. Tombol "Atur ulang" muncul hanya saat ada filter aktif.
+
+### Switch (Saklar)
+Untuk status aktif atau nonaktif yang berlaku langsung dari tabel (mis. kontak darurat). Lebar 48 px, tinggi 28 px, sudut 12 px; hidup berlatar `success`, mati berlatar `line-strong`, kenop 24 px dengan transisi 200 ms. Berupa `<button role="switch" aria-checked>` dengan label tersembunyi yang menyebut aksi dan nama baris ("Nonaktifkan Satgas PPA ..."). Perubahan lain (nama, alamat) tetap lewat modal Ubah.
 
 ### Pagination (Paginasi)
 Kiri: "Menampilkan 11-20 dari 26 jenis" dan "Baris per halaman" (10, 25, 50). Kanan: pertama, sebelumnya, nomor halaman (elipsis bila banyak), berikutnya, terakhir; tombol 40 px, sudut 12 px. Halaman aktif `blue-600` dengan teks putih dan `aria-current="page"`; tombol di batas menjadi nonaktif.

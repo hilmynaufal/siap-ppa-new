@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Shapes, type LucideIcon } from "lucide-react";
+import { ContactRound, Home, Shapes, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +9,13 @@ type Item = { href: string; label: string; ikon: LucideIcon };
 // Hanya menu yang halamannya sudah ada; menu lain ditambahkan di kartu fitur masing-masing.
 const GRUP: { judul?: string; item: Item[] }[] = [
   { item: [{ href: "/admin", label: "Beranda", ikon: Home }] },
-  { judul: "Data master", item: [{ href: "/admin/jenis-kekerasan", label: "Jenis Kekerasan", ikon: Shapes }] },
+  {
+    judul: "Data master",
+    item: [
+      { href: "/admin/jenis-kekerasan", label: "Jenis Kekerasan", ikon: Shapes },
+      { href: "/admin/kontak-darurat", label: "Kontak Darurat", ikon: ContactRound },
+    ],
+  },
 ];
 
 /** Menu Admin. Bila `kolaps`, hanya ikon yang tampak (rail); label tetap ada untuk pembaca layar dan tooltip. */

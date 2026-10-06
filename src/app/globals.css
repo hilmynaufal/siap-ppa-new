@@ -28,6 +28,7 @@
 
   /* Warna kategori (kotak ikon) */
   --color-teal-500: #0e9f8e;
+  --color-teal-700: #0b7f72; /* teks di atas permukaan terang (kontras 5,0:1) */
   --color-green-500: #1e9e5a;
   --color-amber-400: #f5b014;
   --color-violet-500: #7a4fd6;

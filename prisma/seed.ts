@@ -11,6 +11,25 @@ const AKUN_UJI = [
   { nama: "Pendamping Uji", email: "pendamping@contoh.test", kataSandi: "Pendamping-Uji-123!", peran: "PENDAMPING" as const },
 ];
 
+// Contoh jenis kekerasan agar formulir pelaporan dapat dicoba. Daftar resmi dikelola Admin di halaman Jenis Kekerasan.
+const JENIS_UJI = [
+  "Kekerasan fisik",
+  "Kekerasan psikis",
+  "Kekerasan seksual",
+  "Penelantaran",
+  "Eksploitasi",
+  "Perdagangan orang",
+  "Lainnya",
+];
+
+// Contoh kontak darurat (nomor FIKTIF) agar halaman Pelapor dapat dicoba. Data resmi diisi Admin di halaman Kontak Darurat.
+const KONTAK_UJI = [
+  { instansi: "UPTD PPA Kabupaten Bandung", telepon: "(022) 5890 0000", alamat: "Jl. Raya Soreang-Banjaran, Soreang", kecamatan: null },
+  { instansi: "Satgas PPA Kecamatan Soreang", telepon: "(022) 5891 0000", alamat: "Kantor Kecamatan Soreang", kecamatan: "Soreang" },
+  { instansi: "Satgas PPA Kecamatan Baleendah", telepon: "(022) 5940 0000", alamat: "Kantor Kecamatan Baleendah, Jl. Adipati Agung No. 1", kecamatan: "Baleendah" },
+  { instansi: "Satgas PPA Kecamatan Banjaran", telepon: "(022) 5941 0000", alamat: "Kantor Kecamatan Banjaran", kecamatan: "Banjaran" },
+];
+
 async function main() {
   for (const a of AKUN_UJI) {
     await db.pengguna.upsert({
@@ -19,7 +38,15 @@ async function main() {
       create: { nama: a.nama, email: a.email, kataSandiHash: await hashPassword(a.kataSandi), peran: a.peran },
     });
   }
-  console.log(`Seed: ${AKUN_UJI.length} akun uji.`);
+  for (const nama of JENIS_UJI) {
+    await db.jenisKekerasan.upsert({ where: { nama }, update: {}, create: { nama } });
+  }
+  for (const k of KONTAK_UJI) {
+    const kec = k.kecamatan ? await db.kecamatan.findUnique({ where: { nama: k.kecamatan } }) : null;
+    const ada = await db.kontakDarurat.findFirst({ where: { instansi: k.instansi } });
+    if (!ada) await db.kontakDarurat.create({ data: { instansi: k.instansi, telepon: k.telepon, alamat: k.alamat, kecamatanId: kec?.id ?? null } });
+  }
+  console.log(`Seed: ${AKUN_UJI.length} akun uji, ${JENIS_UJI.length} jenis kekerasan, ${KONTAK_UJI.length} kontak darurat contoh.`);
 }
 
 main().finally(() => db.$disconnect());
