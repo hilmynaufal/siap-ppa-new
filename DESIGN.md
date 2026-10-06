@@ -128,7 +128,7 @@ Sistem ini menolak tiga hal, mengikuti PRODUCT.md: **kaku dan birokratis** (tabe
 - Bentuk membulat sedang: kartu 16 px, kontrol 12 px, lencana 8 px.
 - Tema terang saja; tidak ada mode gelap.
 - Gerak hanya transisi singkat (150 sampai 200 ms) dan dimatikan oleh `prefers-reduced-motion`.
-- Ringan untuk ponsel lemah: ikon SVG inline, font dimuat lewat `next/font`, tanpa gambar berat.
+- Ringan untuk ponsel lemah: ikon SVG inline, font dihosting sendiri (paket npm), tanpa gambar berat.
 
 ## 2. Colors
 
@@ -165,7 +165,7 @@ Warna kategori untuk kotak ikon, tiap menu satu warna tetap: **Teal** (#0E9F8E),
 **Body Font:** Plus Jakarta Sans
 **Label/Mono Font:** Plus Jakarta Sans; monospace hanya untuk kode teknis.
 
-**Character:** Satu keluarga geometris yang bersahabat dan jelas dibaca di layar kecil. Hierarki dibangun dari bobot (400, 600, 700, 800) dan ukuran, bukan dari pasangan huruf. Dimuat lewat `next/font/google` (bobot 400 sampai 800) sehingga tidak memanggil server font saat dipakai.
+**Character:** Satu keluarga geometris yang bersahabat dan jelas dibaca di layar kecil. Hierarki dibangun dari bobot (400, 600, 700, 800) dan ukuran, bukan dari pasangan huruf. Dihosting sendiri lewat paket `@fontsource-variable/plus-jakarta-sans` (varian variabel, bobot 400 sampai 800), jadi tidak ada panggilan ke Google saat build maupun saat dipakai.
 
 ### Hierarchy
 - **Display** (800, 2.25rem, 1.2): judul hero halaman masuk dan beranda Pelapor.

@@ -5,7 +5,7 @@
  * Netral bernuansa biru, tanpa hitam atau putih murni.
  */
 @theme {
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
 
   /* Identitas */
   --color-navy-950: #0a1b44;
