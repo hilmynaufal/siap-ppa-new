@@ -54,6 +54,7 @@ export function FilterPilihan({
   pilihan,
   nilai,
   onUbah,
+  besar = false,
 }: {
   id: string;
   label: string;
@@ -62,6 +63,8 @@ export function FilterPilihan({
   pilihan: string[];
   nilai: string;
   onUbah: (v: string) => void;
+  /** Ukuran sentuh untuk halaman Pelapor (mobile). */
+  besar?: boolean;
 }) {
   return (
     <div className="relative">
@@ -73,7 +76,7 @@ export function FilterPilihan({
         id={id}
         value={nilai}
         onChange={(e) => onUbah(e.target.value)}
-        className="h-10 w-full min-w-[10.5rem] appearance-none rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-sm font-medium text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
+        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full min-w-[10.5rem] appearance-none rounded-xl border border-line-strong bg-surface pl-10 pr-10 font-medium text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"}
       >
         <option value="">{semua}</option>
         {pilihan.map((p) => (

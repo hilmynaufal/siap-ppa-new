@@ -6,11 +6,14 @@ export function BilahCari({
   onUbah,
   placeholder,
   label = "Cari",
+  besar = false,
 }: {
   nilai: string;
   onUbah: (v: string) => void;
   placeholder: string;
   label?: string;
+  /** Ukuran sentuh untuk halaman Pelapor (mobile): tinggi 48 px dan teks 16 px. */
+  besar?: boolean;
 }) {
   return (
     <div role="search" className="relative min-w-[14rem] flex-1">
@@ -25,7 +28,7 @@ export function BilahCari({
         onChange={(e) => onUbah(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-10 w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-sm text-ink placeholder:text-ink-mute focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
+        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-ink placeholder:text-ink-mute focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"}
       />
       {nilai && (
         <button

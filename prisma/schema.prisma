@@ -87,6 +87,7 @@ model Pengguna {
   perubahanJadwal      RiwayatJadwal[]
   keputusanUsulan      UsulanSesi[]
   jenisKekerasanDibuat JenisKekerasan[]            @relation("PembuatJenisKekerasan")
+  kontakDaruratDibuat  KontakDarurat[]             @relation("PembuatKontakDarurat")
   logAudit             LogAudit[]
 
   @@map("pengguna")
@@ -142,13 +143,18 @@ model Lokasi {
 }
 
 model KontakDarurat {
-  id          String     @id @default(cuid())
-  instansi    String
-  telepon     String
-  alamat      String
-  kecamatanId String?    @map("kecamatan_id")
-  aktif       Boolean    @default(true)
-  kecamatan   Kecamatan? @relation(fields: [kecamatanId], references: [id])
+  id           String     @id @default(cuid())
+  instansi     String
+  telepon      String
+  alamat       String
+  kecamatanId  String?    @map("kecamatan_id")
+  aktif        Boolean    @default(true)
+  dibuatPada   DateTime   @default(now()) @map("dibuat_pada")
+  diubahPada   DateTime   @default(now()) @updatedAt @map("diubah_pada")
+  /// Admin yang membuat; kosong untuk data lama atau skrip.
+  dibuatOlehId String?    @map("dibuat_oleh_id")
+  kecamatan    Kecamatan? @relation(fields: [kecamatanId], references: [id])
+  dibuatOleh   Pengguna?  @relation("PembuatKontakDarurat", fields: [dibuatOlehId], references: [id])
 
   @@map("kontak_darurat")
 }

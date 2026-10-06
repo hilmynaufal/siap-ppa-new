@@ -43,9 +43,14 @@ export default async function BerandaPelapor() {
 
         {kontak.length > 0 && (
           <section aria-labelledby="judul-kontak" className="px-4 pb-10 pt-6">
-            <h2 id="judul-kontak" className="mb-4 text-xl font-extrabold text-navy-900">
-              Kontak darurat aktif
-            </h2>
+            <div className="mb-4 flex items-baseline justify-between gap-3">
+              <h2 id="judul-kontak" className="text-xl font-extrabold text-navy-900">
+                Kontak darurat aktif
+              </h2>
+              <Link href="/kontak-darurat" className="rounded-lg text-sm font-bold text-blue-600 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+                Lihat semua
+              </Link>
+            </div>
             <ul className="flex flex-col gap-4">
               {kontak.map((k) => (
                 <li key={k.id} className="rounded-2xl border border-line bg-surface p-4 shadow-card">

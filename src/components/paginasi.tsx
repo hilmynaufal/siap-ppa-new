@@ -26,12 +26,15 @@ export function Paginasi({
   total,
   onHalaman,
   onUkuran,
+  satuan = "jenis",
 }: {
   halaman: number;
   ukuran: number;
   total: number;
   onHalaman: (h: number) => void;
   onUkuran: (u: number) => void;
+  /** Kata benda untuk ringkasan, mis. "jenis" atau "kontak". */
+  satuan?: string;
 }) {
   const jumlahHalaman = Math.max(1, Math.ceil(total / ukuran));
   const dari = total === 0 ? 0 : (halaman - 1) * ukuran + 1;
@@ -55,7 +58,7 @@ export function Paginasi({
     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line-soft px-5 py-4">
       <div className="flex flex-wrap items-center gap-4 text-sm text-ink-soft">
         <p aria-live="polite">
-          Menampilkan <strong className="text-ink">{dari}-{sampai}</strong> dari <strong className="text-ink">{total}</strong> jenis
+          Menampilkan <strong className="text-ink">{dari}-{sampai}</strong> dari <strong className="text-ink">{total}</strong> {satuan}
         </p>
         <label className="flex items-center gap-2">
           Baris per halaman

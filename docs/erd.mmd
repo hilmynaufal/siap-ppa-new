@@ -41,6 +41,9 @@ erDiagram
     String alamat
     String kecamatan_id FK "opsional"
     Boolean aktif
+    DateTime dibuat_pada
+    DateTime diubah_pada
+    String dibuat_oleh_id FK "opsional"
   }
   laporan {
     String id PK
@@ -166,6 +169,7 @@ erDiagram
   jenis_pendampingan |o--o{ pengguna : "jenisPendamping"
   pengguna |o--o{ jenis_kekerasan : "dibuatOleh"
   kecamatan |o--o{ kontak_darurat : "kecamatan"
+  pengguna |o--o{ kontak_darurat : "dibuatOleh"
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"
   kecamatan |o--o{ laporan : "kecamatan"
   pengguna |o--o{ laporan : "verifikator"

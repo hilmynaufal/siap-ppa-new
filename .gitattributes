@@ -1,0 +1,2 @@
+# Migrasi SQL harus selalu LF agar checksum Prisma sama di Windows dan Linux.
+prisma/migrations/** text eol=lf
