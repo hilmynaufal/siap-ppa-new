@@ -8,9 +8,10 @@ Stack: TypeScript, Next.js (App Router), PostgreSQL, Prisma, zod, vitest. Lihat 
 
 ```bash
 npm install
-cp .env.example .env   # DATABASE_URL untuk PostgreSQL lokal (lihat docker-compose.yml)
+cp .env.example .env   # isi juga SESSION_SECRET (acak, min. 32 karakter); DATABASE_URL untuk PostgreSQL lokal (lihat docker-compose.yml)
 docker compose up -d --wait   # PostgreSQL lokal di port 5439
 npx prisma migrate dev        # terapkan migrasi
+npx prisma db seed            # akun uji lokal (lihat prisma/seed.ts)
 ```
 
 ## Perintah
