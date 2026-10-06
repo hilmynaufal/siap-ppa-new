@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Skema data SIAP PPA New. ERD dihasilkan dari berkas ini: npm run erd
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +7,313 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============ Enum ============
+
+enum Peran {
+  ADMIN
+  PENDAMPING
+}
+
+/// Status laporan sekaligus status kasus (dilacak satu kolom).
+enum StatusLaporan {
+  BARU
+  DITOLAK
+  TERVERIFIKASI
+  DALAM_PENDAMPINGAN
+  DITUTUP
+}
+
+enum StatusSesi {
+  TERJADWAL
+  BERLANGSUNG
+  SELESAI
+  TIDAK_HADIR
+  DIBATALKAN
+}
+
+/// Status antrean; hanya berlaku setelah check-in (Tiket.checkInPada terisi).
+enum StatusAntrean {
+  MENUNGGU
+  DIPANGGIL
+  BERLANGSUNG
+  SELESAI
+  DILEWATI
+}
+
+enum StatusUsulan {
+  MENUNGGU
+  DISETUJUI
+  DITOLAK
+}
+
+enum PenerimaNotifikasi {
+  PELAPOR
+  PENDAMPING
+}
+
+// ============ Master ============
+
+model Pengguna {
+  id                String   @id @default(cuid())
+  nama              String
+  email             String   @unique
+  kataSandiHash     String
+  peran             Peran
+  aktif             Boolean  @default(true)
+  /// Hanya untuk Pendamping: bidang pendampingannya.
+  jenisPendampingId String?
+  dibuatPada        DateTime @default(now())
+  diubahPada        DateTime @updatedAt
+
+  jenisPendamping     JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
+  laporanDiverifikasi Laporan[]                   @relation("VerifikatorLaporan")
+  sesi                Sesi[]
+  laporanPendampingan LaporanPendampingan[]
+  revisi              RevisiLaporanPendampingan[]
+  perubahanJadwal     RiwayatJadwal[]
+  keputusanUsulan     UsulanSesi[]
+  logAudit            LogAudit[]
+}
+
+model JenisKekerasan {
+  id      String    @id @default(cuid())
+  nama    String    @unique
+  aktif   Boolean   @default(true)
+  laporan Laporan[]
+}
+
+/// Bidang pendampingan; `kode` menjadi awalan nomor antrean (PSI, HKM).
+model JenisPendampingan {
+  id       String     @id @default(cuid())
+  kode     String     @unique
+  nama     String     @unique
+  aktif    Boolean    @default(true)
+  pengguna Pengguna[]
+  sesi     Sesi[]
+  tiket    Tiket[]
+}
+
+model Kecamatan {
+  id      String          @id @default(cuid())
+  nama    String          @unique
+  laporan Laporan[]
+  kontak  KontakDarurat[]
+}
+
+/// Tempat layanan (mis. UPTD PPA); antrean dihitung per lokasi.
+model Lokasi {
+  id     String  @id @default(cuid())
+  nama   String  @unique
+  alamat String
+  aktif  Boolean @default(true)
+  sesi   Sesi[]
+  tiket  Tiket[]
+}
+
+model KontakDarurat {
+  id          String     @id @default(cuid())
+  instansi    String
+  telepon     String
+  alamat      String
+  kecamatanId String?
+  aktif       Boolean    @default(true)
+  kecamatan   Kecamatan? @relation(fields: [kecamatanId], references: [id])
+}
+
+// ============ Pelaporan ============
+
+model Laporan {
+  id                 String        @id @default(cuid())
+  kodePendaftaran    String        @unique
+  namaPelapor        String
+  kontakPelapor      String
+  namaKorban         String
+  usiaKorban         Int?
+  jenisKelaminKorban String?
+  jenisKekerasanId   String
+  kecamatanId        String?
+  tanggalKejadian    DateTime?
+  kronologi          String
+  persetujuanData    Boolean
+  persetujuanPada    DateTime
+  status             StatusLaporan @default(BARU)
+  alasanPenolakan    String?
+  verifikatorId      String?
+  diverifikasiPada   DateTime?
+  ditutupPada        DateTime?
+  dibuatPada         DateTime      @default(now())
+
+  jenisKekerasan JenisKekerasan   @relation(fields: [jenisKekerasanId], references: [id])
+  kecamatan      Kecamatan?       @relation(fields: [kecamatanId], references: [id])
+  verifikator    Pengguna?        @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
+  dokumen        DokumenLaporan[]
+  sesi           Sesi[]
+
+  @@index([status, dibuatPada])
+}
+
+model DokumenLaporan {
+  id          String  @id @default(cuid())
+  laporanId   String
+  namaBerkas  String
+  jalurBerkas String
+  tipeMime    String
+  ukuran      Int
+  laporan     Laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+}
+
+// ============ Pendampingan, tiket, antrean ============
+
+/// Satu laporan dapat memiliki banyak sesi pendampingan.
+model Sesi {
+  id                String     @id @default(cuid())
+  laporanId         String
+  urutan            Int
+  jenisPendampingId String
+  pendampingId      String
+  lokasiId          String
+  mulai             DateTime
+  selesai           DateTime
+  status            StatusSesi @default(TERJADWAL)
+  dibuatPada        DateTime   @default(now())
+
+  laporan             Laporan              @relation(fields: [laporanId], references: [id])
+  jenisPendamping     JenisPendampingan    @relation(fields: [jenisPendampingId], references: [id])
+  pendamping          Pengguna             @relation(fields: [pendampingId], references: [id])
+  lokasi              Lokasi               @relation(fields: [lokasiId], references: [id])
+  tiket               Tiket?
+  laporanPendampingan LaporanPendampingan?
+  riwayat             RiwayatJadwal[]
+  notifikasi          Notifikasi[]
+  usulanSumber        UsulanSesi?          @relation("SesiHasilUsulan")
+
+  @@unique([laporanId, urutan])
+  @@index([pendampingId, mulai])
+}
+
+/// Tiket per sesi. Nomor antrean: {kode}-{YYYYMMDD}-{urutan}, urut per lokasi per jenis per hari.
+model Tiket {
+  id                String        @id @default(cuid())
+  sesiId            String        @unique
+  nomorAntrean      String        @unique
+  tanggal           DateTime      @db.Date
+  urutan            Int
+  lokasiId          String
+  jenisPendampingId String
+  /// Isi QR; dipindai petugas untuk check-in.
+  kodeCheckIn       String        @unique
+  statusAntrean     StatusAntrean @default(MENUNGGU)
+  checkInPada       DateTime?
+  dipanggilPada     DateTime?
+  selesaiPada       DateTime?
+  diterbitkanPada   DateTime      @default(now())
+
+  sesi            Sesi              @relation(fields: [sesiId], references: [id])
+  lokasi          Lokasi            @relation(fields: [lokasiId], references: [id])
+  jenisPendamping JenisPendampingan @relation(fields: [jenisPendampingId], references: [id])
+
+  @@unique([lokasiId, jenisPendampingId, tanggal, urutan])
+  @@index([lokasiId, tanggal, statusAntrean])
+}
+
+model RiwayatJadwal {
+  id         String   @id @default(cuid())
+  sesiId     String
+  pengubahId String
+  /// Nilai sebelum dan sesudah, mis. {"mulai": {"dari": "...", "ke": "..."}}.
+  perubahan  Json
+  alasan     String?
+  dibuatPada DateTime @default(now())
+  sesi       Sesi     @relation(fields: [sesiId], references: [id])
+  pengubah   Pengguna @relation(fields: [pengubahId], references: [id])
+}
+
+model Notifikasi {
+  id          String             @id @default(cuid())
+  sesiId      String
+  penerima    PenerimaNotifikasi
+  kanal       String
+  pesan       String
+  dikirimPada DateTime?
+  dibuatPada  DateTime           @default(now())
+  sesi        Sesi               @relation(fields: [sesiId], references: [id])
+}
+
+// ============ Laporan pendampingan ============
+
+/// Terkunci setelah `dikirimPada` terisi; koreksi lewat RevisiLaporanPendampingan.
+model LaporanPendampingan {
+  id                 String    @id @default(cuid())
+  sesiId             String    @unique
+  penulisId          String
+  jenisPendampingan  String
+  keterangan         String
+  rekomendasi        String
+  ajukanSesiLanjutan Boolean   @default(false)
+  versi              Int       @default(1)
+  dikirimPada        DateTime?
+  dibuatPada         DateTime  @default(now())
+  diubahPada         DateTime  @updatedAt
+
+  sesi    Sesi                        @relation(fields: [sesiId], references: [id])
+  penulis Pengguna                    @relation(fields: [penulisId], references: [id])
+  foto    FotoPendampingan[]
+  revisi  RevisiLaporanPendampingan[]
+  usulan  UsulanSesi?
+}
+
+model FotoPendampingan {
+  id                    String              @id @default(cuid())
+  laporanPendampinganId String
+  namaBerkas            String
+  jalurBerkas           String
+  tipeMime              String
+  ukuran                Int
+  laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id], onDelete: Cascade)
+}
+
+model RevisiLaporanPendampingan {
+  id                    String              @id @default(cuid())
+  laporanPendampinganId String
+  versi                 Int
+  /// Salinan isi laporan sebelum direvisi.
+  isiSebelumnya         Json
+  alasan                String
+  pengubahId            String
+  dibuatPada            DateTime            @default(now())
+  laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id])
+  pengubah              Pengguna            @relation(fields: [pengubahId], references: [id])
+
+  @@unique([laporanPendampinganId, versi])
+}
+
+/// Usulan sesi lanjutan dari rekomendasi Pendamping; Admin menyetujui dan menjadwalkan.
+model UsulanSesi {
+  id                    String              @id @default(cuid())
+  laporanPendampinganId String              @unique
+  status                StatusUsulan        @default(MENUNGGU)
+  keputusanOlehId       String?
+  diputuskanPada        DateTime?
+  sesiHasilId           String?             @unique
+  dibuatPada            DateTime            @default(now())
+  laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id])
+  keputusanOleh         Pengguna?           @relation(fields: [keputusanOlehId], references: [id])
+  sesiHasil             Sesi?               @relation("SesiHasilUsulan", fields: [sesiHasilId], references: [id])
+}
+
+// ============ Audit ============
+
+model LogAudit {
+  id         String    @id @default(cuid())
+  penggunaId String?
+  aksi       String
+  entitas    String
+  entitasId  String
+  rincian    Json?
+  dibuatPada DateTime  @default(now())
+  pengguna   Pengguna? @relation(fields: [penggunaId], references: [id])
+
+  @@index([entitas, entitasId])
 }

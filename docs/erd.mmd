@@ -1,0 +1,187 @@
+erDiagram
+  Pengguna {
+    String id PK
+    String nama
+    String email UK
+    String kataSandiHash
+    enum_Peran peran
+    Boolean aktif
+    String jenisPendampingId FK "opsional"
+    DateTime dibuatPada
+    DateTime diubahPada
+  }
+  JenisKekerasan {
+    String id PK
+    String nama UK
+    Boolean aktif
+  }
+  JenisPendampingan {
+    String id PK
+    String kode UK
+    String nama UK
+    Boolean aktif
+  }
+  Kecamatan {
+    String id PK
+    String nama UK
+  }
+  Lokasi {
+    String id PK
+    String nama UK
+    String alamat
+    Boolean aktif
+  }
+  KontakDarurat {
+    String id PK
+    String instansi
+    String telepon
+    String alamat
+    String kecamatanId FK "opsional"
+    Boolean aktif
+  }
+  Laporan {
+    String id PK
+    String kodePendaftaran UK
+    String namaPelapor
+    String kontakPelapor
+    String namaKorban
+    Int usiaKorban "opsional"
+    String jenisKelaminKorban "opsional"
+    String jenisKekerasanId FK
+    String kecamatanId FK "opsional"
+    DateTime tanggalKejadian "opsional"
+    String kronologi
+    Boolean persetujuanData
+    DateTime persetujuanPada
+    enum_StatusLaporan status
+    String alasanPenolakan "opsional"
+    String verifikatorId FK "opsional"
+    DateTime diverifikasiPada "opsional"
+    DateTime ditutupPada "opsional"
+    DateTime dibuatPada
+  }
+  DokumenLaporan {
+    String id PK
+    String laporanId FK
+    String namaBerkas
+    String jalurBerkas
+    String tipeMime
+    Int ukuran
+  }
+  Sesi {
+    String id PK
+    String laporanId FK
+    Int urutan
+    String jenisPendampingId FK
+    String pendampingId FK
+    String lokasiId FK
+    DateTime mulai
+    DateTime selesai
+    enum_StatusSesi status
+    DateTime dibuatPada
+  }
+  Tiket {
+    String id PK
+    String sesiId FK,UK
+    String nomorAntrean UK
+    DateTime tanggal
+    Int urutan
+    String lokasiId FK
+    String jenisPendampingId FK
+    String kodeCheckIn UK
+    enum_StatusAntrean statusAntrean
+    DateTime checkInPada "opsional"
+    DateTime dipanggilPada "opsional"
+    DateTime selesaiPada "opsional"
+    DateTime diterbitkanPada
+  }
+  RiwayatJadwal {
+    String id PK
+    String sesiId FK
+    String pengubahId FK
+    Json perubahan
+    String alasan "opsional"
+    DateTime dibuatPada
+  }
+  Notifikasi {
+    String id PK
+    String sesiId FK
+    enum_PenerimaNotifikasi penerima
+    String kanal
+    String pesan
+    DateTime dikirimPada "opsional"
+    DateTime dibuatPada
+  }
+  LaporanPendampingan {
+    String id PK
+    String sesiId FK,UK
+    String penulisId FK
+    String jenisPendampingan
+    String keterangan
+    String rekomendasi
+    Boolean ajukanSesiLanjutan
+    Int versi
+    DateTime dikirimPada "opsional"
+    DateTime dibuatPada
+    DateTime diubahPada
+  }
+  FotoPendampingan {
+    String id PK
+    String laporanPendampinganId FK
+    String namaBerkas
+    String jalurBerkas
+    String tipeMime
+    Int ukuran
+  }
+  RevisiLaporanPendampingan {
+    String id PK
+    String laporanPendampinganId FK
+    Int versi
+    Json isiSebelumnya
+    String alasan
+    String pengubahId FK
+    DateTime dibuatPada
+  }
+  UsulanSesi {
+    String id PK
+    String laporanPendampinganId FK,UK
+    enum_StatusUsulan status
+    String keputusanOlehId FK "opsional"
+    DateTime diputuskanPada "opsional"
+    String sesiHasilId FK,UK "opsional"
+    DateTime dibuatPada
+  }
+  LogAudit {
+    String id PK
+    String penggunaId FK "opsional"
+    String aksi
+    String entitas
+    String entitasId
+    Json rincian "opsional"
+    DateTime dibuatPada
+  }
+  JenisPendampingan |o--o{ Pengguna : "jenisPendamping"
+  Kecamatan |o--o{ KontakDarurat : "kecamatan"
+  JenisKekerasan ||--o{ Laporan : "jenisKekerasan"
+  Kecamatan |o--o{ Laporan : "kecamatan"
+  Pengguna |o--o{ Laporan : "verifikator"
+  Laporan ||--o{ DokumenLaporan : "laporan"
+  Laporan ||--o{ Sesi : "laporan"
+  JenisPendampingan ||--o{ Sesi : "jenisPendamping"
+  Pengguna ||--o{ Sesi : "pendamping"
+  Lokasi ||--o{ Sesi : "lokasi"
+  Sesi ||--o| Tiket : "sesi"
+  Lokasi ||--o{ Tiket : "lokasi"
+  JenisPendampingan ||--o{ Tiket : "jenisPendamping"
+  Sesi ||--o{ RiwayatJadwal : "sesi"
+  Pengguna ||--o{ RiwayatJadwal : "pengubah"
+  Sesi ||--o{ Notifikasi : "sesi"
+  Sesi ||--o| LaporanPendampingan : "sesi"
+  Pengguna ||--o{ LaporanPendampingan : "penulis"
+  LaporanPendampingan ||--o{ FotoPendampingan : "laporanPendampingan"
+  LaporanPendampingan ||--o{ RevisiLaporanPendampingan : "laporanPendampingan"
+  Pengguna ||--o{ RevisiLaporanPendampingan : "pengubah"
+  LaporanPendampingan ||--o| UsulanSesi : "laporanPendampingan"
+  Pengguna |o--o{ UsulanSesi : "keputusanOleh"
+  Sesi |o--o| UsulanSesi : "sesiHasil"
+  Pengguna |o--o{ LogAudit : "pengguna"
