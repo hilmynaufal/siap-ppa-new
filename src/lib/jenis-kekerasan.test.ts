@@ -13,21 +13,46 @@ async function idDari(n: string) {
   return (await db.jenisKekerasan.findFirstOrThrow({ where: { nama: n } })).id;
 }
 
+let penggunaId = "";
+
 beforeAll(async () => {
   await db.jenisKekerasan.deleteMany({ where: { nama: { startsWith: awalan } } });
+  const u = await db.pengguna.create({
+    data: { nama: "Penguji K7", email: `${awalan.toLowerCase()}@contoh.test`, kataSandiHash: "x", peran: "ADMIN" },
+  });
+  penggunaId = u.id;
 });
 
 afterAll(async () => {
   await db.laporan.deleteMany({ where: { kodePendaftaran: { startsWith: awalan } } });
   await db.jenisKekerasan.deleteMany({ where: { nama: { startsWith: awalan } } });
+  await db.pengguna.deleteMany({ where: { id: penggunaId } });
   await db.$disconnect();
 });
 
 describe("master jenis kekerasan", () => {
   it("menambah jenis dan menampilkannya di daftar", async () => {
-    expect(await tambahJenis(db, `  ${nama("Fisik")}  `)).toEqual({ ok: true });
+    expect(await tambahJenis(db, `  ${nama("Fisik")}  `, penggunaId)).toEqual({ ok: true });
     const baris = (await daftarJenis(db)).find((j) => j.nama === nama("Fisik"));
     expect(baris).toMatchObject({ aktif: true, jumlahLaporan: 0 });
+  });
+
+  it("mencatat pembuat dan waktu dibuat; waktu diubah bergeser setelah ubah", async () => {
+    const sebelum = (await daftarJenis(db)).find((j) => j.nama === nama("Fisik"))!;
+    expect(sebelum.dibuatOleh).toBe("Penguji K7");
+    expect(new Date(sebelum.dibuatPada).getTime()).toBeGreaterThan(Date.now() - 60_000);
+    await new Promise((r) => setTimeout(r, 20));
+    await ubahJenis(db, sebelum.id, nama("Fisik"), true);
+    const sesudah = (await daftarJenis(db)).find((j) => j.id === sebelum.id)!;
+    expect(new Date(sesudah.diubahPada).getTime()).toBeGreaterThan(new Date(sebelum.diubahPada).getTime());
+    expect(sesudah.dibuatPada).toBe(sebelum.dibuatPada);
+    expect(sesudah.dibuatOleh).toBe("Penguji K7");
+  });
+
+  it("menerima pembuat kosong (data lama atau skrip)", async () => {
+    expect(await tambahJenis(db, nama("Tanpa pembuat"))).toEqual({ ok: true });
+    const baris = (await daftarJenis(db)).find((j) => j.nama === nama("Tanpa pembuat"));
+    expect(baris?.dibuatOleh).toBeNull();
   });
 
   it("menolak nama yang sudah terdaftar, tanpa membedakan huruf besar/kecil", async () => {

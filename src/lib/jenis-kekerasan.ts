@@ -12,9 +12,18 @@ export type Hasil = { ok: true } | { ok: false; pesan: string };
 export async function daftarJenis(db: PrismaClient) {
   const rows = await db.jenisKekerasan.findMany({
     orderBy: { nama: "asc" },
-    include: { _count: { select: { laporan: true } } },
+    include: { _count: { select: { laporan: true } }, dibuatOleh: { select: { nama: true } } },
   });
-  return rows.map((r) => ({ id: r.id, nama: r.nama, aktif: r.aktif, jumlahLaporan: r._count.laporan }));
+  return rows.map((r) => ({
+    id: r.id,
+    nama: r.nama,
+    aktif: r.aktif,
+    jumlahLaporan: r._count.laporan,
+    // Tanggal dikirim sebagai teks ISO agar aman melintasi batas server dan klien.
+    dibuatPada: r.dibuatPada.toISOString(),
+    diubahPada: r.diubahPada.toISOString(),
+    dibuatOleh: r.dibuatOleh?.nama ?? null,
+  }));
 }
 
 async function namaSudahAda(db: PrismaClient, nama: string, kecualiId?: string) {
@@ -31,12 +40,16 @@ function adalahPelanggaranUnik(e: unknown) {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002";
 }
 
-export async function tambahJenis(db: PrismaClient, namaMentah: string): Promise<Hasil> {
+export async function tambahJenis(
+  db: PrismaClient,
+  namaMentah: string,
+  dibuatOlehId: string | null = null,
+): Promise<Hasil> {
   const nama = NamaSchema.safeParse(namaMentah);
   if (!nama.success) return { ok: false, pesan: nama.error.issues[0].message };
   if (await namaSudahAda(db, nama.data)) return { ok: false, pesan: pesanDuplikat(nama.data) };
   try {
-    await db.jenisKekerasan.create({ data: { nama: nama.data } });
+    await db.jenisKekerasan.create({ data: { nama: nama.data, dibuatOlehId } });
   } catch (e) {
     if (adalahPelanggaranUnik(e)) return { ok: false, pesan: pesanDuplikat(nama.data) };
     throw e;

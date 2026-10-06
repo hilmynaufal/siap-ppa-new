@@ -1,110 +1,236 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  AlertCircle,
+  CalendarClock,
+  CalendarPlus,
+  EyeOff,
+  FileText,
+  Inbox,
+  Info,
+  Pencil,
+  Plus,
+  Save,
+  Shapes,
+  Trash2,
+  TriangleAlert,
+  User,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
+import { IkonKotak, type WarnaIkon } from "@/components/ikon-kotak";
+import { LencanaStatus } from "@/components/lencana-status";
 import { hapus, tambah, ubah } from "./actions";
 
-type Jenis = { id: string; nama: string; aktif: boolean; jumlahLaporan: number };
+type Jenis = {
+  id: string;
+  nama: string;
+  aktif: boolean;
+  jumlahLaporan: number;
+  dibuatPada: string;
+  diubahPada: string;
+  dibuatOleh: string | null;
+};
 
+function tanggal(iso: string) {
+  return new Date(iso).toLocaleString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
+}
+
+const fokus = "focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100";
 const input =
-  "h-11 w-full rounded-[10px] border border-[#CFCBDD] px-3 text-base focus:border-2 focus:border-[#5847C2] focus:outline-none focus:ring-[3px] focus:ring-[#D9D3F7] aria-[invalid=true]:border-2 aria-[invalid=true]:border-[#B42318]";
-const tombolUtama =
-  "h-11 rounded-[10px] bg-[#5847C2] px-5 font-bold text-white hover:bg-[#46379E] focus:outline-none focus:ring-[3px] focus:ring-[#D9D3F7] disabled:bg-[#CFCBDD]";
-const tombolNetral =
-  "h-11 rounded-[10px] border border-[#CFCBDD] px-4 font-bold hover:bg-[#F7F6FB] focus:outline-none focus:ring-[3px] focus:ring-[#D9D3F7]";
+  "h-12 w-full rounded-xl border border-line-strong bg-surface px-4 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
+const tombolUtama = `inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-magenta-600 px-6 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 disabled:bg-line-strong disabled:shadow-none ${fokus}`;
+const tombolNetral = `inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-5 font-bold text-ink transition-colors hover:bg-blue-50 ${fokus}`;
+const tombolKecil = `inline-flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-bold transition-colors ${fokus}`;
 
 function Galat({ id, pesan }: { id: string; pesan?: string }) {
   if (!pesan) return null;
   return (
-    <p id={id} role="alert" className="flex items-center gap-2 text-sm text-[#B42318]">
-      <span aria-hidden="true">!</span>
+    <p id={id} role="alert" className="flex items-center gap-2 text-sm font-medium text-error">
+      <AlertCircle size={16} aria-hidden="true" className="shrink-0" />
       {pesan}
     </p>
   );
 }
 
-function FormTambah({ onTutup }: { onTutup: () => void }) {
-  const [state, action, pending] = useActionState(tambah, undefined);
-  const form = useRef<HTMLFormElement>(null);
+function useTutupDenganEsc(onTutup: () => void) {
   useEffect(() => {
-    if (state?.ok) {
-      form.current?.reset();
-      onTutup();
-    }
-  }, [state, onTutup]);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && onTutup();
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [onTutup]);
+}
 
+/** Kerangka modal: ikon, judul, subjudul, tombol tutup; Esc menutup. */
+function Modal({
+  idJudul,
+  idSubjudul,
+  ikon,
+  warna,
+  judul,
+  subjudul,
+  onTutup,
+  children,
+}: {
+  idJudul: string;
+  idSubjudul: string;
+  ikon: LucideIcon;
+  warna: WarnaIkon;
+  judul: string;
+  subjudul: string;
+  onTutup: () => void;
+  children: ReactNode;
+}) {
+  useTutupDenganEsc(onTutup);
   return (
-    <form
-      ref={form}
-      action={action}
-      className="mb-6 rounded-2xl border border-[#DEDBE8] bg-white p-5"
-      aria-labelledby="judul-tambah"
-    >
-      <h2 id="judul-tambah" className="mb-4 text-lg font-bold">
-        Tambah jenis kekerasan
-      </h2>
-      <label htmlFor="nama-baru" className="mb-2 block text-sm font-semibold">
-        Nama jenis <span className="text-[#B42318]">*</span>
-      </label>
-      <div className="flex gap-3">
-        <input
-          id="nama-baru"
-          name="nama"
-          autoFocus
-          defaultValue={state?.nilai}
-          aria-invalid={!!state?.pesan}
-          aria-describedby={state?.pesan ? "galat-baru" : undefined}
-          className={input}
-        />
-        <button type="button" onClick={onTutup} className={tombolNetral}>
-          Batal
-        </button>
-        <button type="submit" disabled={pending} className={tombolUtama}>
-          Simpan
-        </button>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={idJudul}
+        aria-describedby={idSubjudul}
+        className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal"
+      >
+        <div className="flex items-start gap-4">
+          <IkonKotak ikon={ikon} warna={warna} ukuran="lg" />
+          <div className="min-w-0 flex-1">
+            <h2 id={idJudul} className="text-lg font-bold text-navy-900">
+              {judul}
+            </h2>
+            <p id={idSubjudul} className="mt-0.5 text-sm text-ink-soft">
+              {subjudul}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onTutup}
+            aria-label="Tutup"
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-blue-50 ${fokus}`}
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+        {children}
       </div>
-      <div className="mt-2">
-        <Galat id="galat-baru" pesan={state?.pesan} />
-      </div>
-    </form>
+    </div>
   );
 }
 
-function BarisUbah({ j, onSelesai }: { j: Jenis; onSelesai: () => void }) {
-  const [state, action, pending] = useActionState(ubah, undefined);
+function BidangNama({
+  state,
+  defaultValue,
+}: {
+  state: { pesan?: string; nilai?: string } | undefined;
+  defaultValue?: string;
+}) {
+  return (
+    <>
+      <label htmlFor="nama-jenis" className="mb-2 block text-sm font-bold">
+        Nama jenis <span className="text-error">*</span>
+      </label>
+      <input
+        id="nama-jenis"
+        name="nama"
+        autoFocus
+        autoComplete="off"
+        placeholder="Contoh: Kekerasan psikis"
+        defaultValue={state?.nilai ?? defaultValue}
+        aria-invalid={!!state?.pesan}
+        aria-describedby={state?.pesan ? "galat-jenis" : "petunjuk-jenis"}
+        className={input}
+      />
+      <div className="mt-2 min-h-5">
+        {state?.pesan ? (
+          <Galat id="galat-jenis" pesan={state.pesan} />
+        ) : (
+          <p id="petunjuk-jenis" className="flex items-center gap-2 text-sm text-ink-mute">
+            <Info size={16} aria-hidden="true" className="shrink-0" />
+            Gunakan nama singkat dan jelas. Nama tidak boleh sama dengan yang sudah ada.
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+function TombolModal({ onTutup, pending }: { onTutup: () => void; pending: boolean }) {
+  return (
+    <div className="mt-5 flex flex-wrap justify-end gap-3">
+      <button type="button" onClick={onTutup} className={tombolNetral}>
+        <X size={18} aria-hidden="true" />
+        Batal
+      </button>
+      <button type="submit" disabled={pending} className={tombolUtama}>
+        <Save size={18} aria-hidden="true" />
+        Simpan
+      </button>
+    </div>
+  );
+}
+
+function ModalTambah({ onTutup }: { onTutup: () => void }) {
+  const [state, action, pending] = useActionState(tambah, undefined);
   useEffect(() => {
-    if (state?.ok) onSelesai();
-  }, [state, onSelesai]);
+    if (state?.ok) onTutup();
+  }, [state, onTutup]);
 
   return (
-    <td colSpan={3} className="px-5 py-3">
-      <form action={action} className="flex flex-wrap items-center gap-3">
-        <input type="hidden" name="id" value={j.id} />
-        <label htmlFor={`nama-${j.id}`} className="sr-only">
-          Nama jenis
-        </label>
-        <input
-          id={`nama-${j.id}`}
-          name="nama"
-          defaultValue={state?.nilai ?? j.nama}
-          aria-invalid={!!state?.pesan}
-          aria-describedby={state?.pesan ? `galat-${j.id}` : undefined}
-          className={input + " max-w-md"}
-        />
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-5 w-5 accent-[#5847C2]" />
-          Tampil di formulir
-        </label>
-        <button type="button" onClick={onSelesai} className={tombolNetral}>
-          Batal
-        </button>
-        <button type="submit" disabled={pending} className={tombolUtama}>
-          Simpan
-        </button>
-        <div className="w-full">
-          <Galat id={`galat-${j.id}`} pesan={state?.pesan} />
-        </div>
+    <Modal
+      idJudul="judul-tambah"
+      idSubjudul="subjudul-tambah"
+      ikon={Plus}
+      warna="green"
+      judul="Tambah jenis kekerasan"
+      subjudul="Jenis ini akan tampil sebagai pilihan pada formulir pelaporan."
+      onTutup={onTutup}
+    >
+      <form action={action} className="mt-5">
+        <BidangNama state={state} />
+        <TombolModal onTutup={onTutup} pending={pending} />
       </form>
-    </td>
+    </Modal>
+  );
+}
+
+function ModalUbah({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
+  const [state, action, pending] = useActionState(ubah, undefined);
+  useEffect(() => {
+    if (state?.ok) onTutup();
+  }, [state, onTutup]);
+
+  return (
+    <Modal
+      idJudul="judul-ubah"
+      idSubjudul="subjudul-ubah"
+      ikon={Pencil}
+      warna="sky"
+      judul="Ubah jenis kekerasan"
+      subjudul="Perubahan nama langsung berlaku pada formulir pelaporan."
+      onTutup={onTutup}
+    >
+      <form action={action} className="mt-5">
+        <input type="hidden" name="id" value={j.id} />
+        <BidangNama state={state} defaultValue={j.nama} />
+        <label className="mt-3 flex min-h-11 items-center gap-3 text-sm font-semibold">
+          <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-6 w-6 rounded-md accent-magenta-600" />
+          <span>
+            Tampil di formulir
+            <span className="block text-xs font-normal text-ink-mute">
+              Matikan untuk menyembunyikan jenis ini tanpa menghapusnya.
+            </span>
+          </span>
+        </label>
+        <TombolModal onTutup={onTutup} pending={pending} />
+      </form>
+    </Modal>
   );
 }
 
@@ -113,31 +239,43 @@ function ModalHapus({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
   useEffect(() => {
     if (state?.ok) onTutup();
   }, [state, onTutup]);
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onTutup();
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onTutup]);
+  useTutupDenganEsc(onTutup);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#1F1D2B]/50 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="judul-hapus" className="w-full max-w-[520px] rounded-2xl bg-white p-6 shadow-[0_24px_64px_rgba(31,29,43,.30)]">
-        <h2 id="judul-hapus" className="text-lg font-bold">
-          Hapus &quot;{j.nama}&quot;?
-        </h2>
-        <p className="mt-2 text-[#4A4859]">Jenis ini akan hilang dari daftar dan formulir pelaporan. Tindakan ini tidak dapat dibatalkan.</p>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="judul-hapus"
+        className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal"
+      >
+        <div className="flex items-start gap-4">
+          <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-error-50 text-error">
+            <TriangleAlert size={26} />
+          </span>
+          <div>
+            <h2 id="judul-hapus" className="text-lg font-bold text-navy-900">
+              Hapus &quot;{j.nama}&quot;?
+            </h2>
+            <p className="mt-1 text-ink-soft">
+              Jenis ini akan hilang dari daftar dan formulir pelaporan. Tindakan ini tidak dapat dibatalkan.
+            </p>
+          </div>
+        </div>
         <form action={action} className="mt-5">
           <input type="hidden" name="id" value={j.id} />
           <Galat id="galat-hapus" pesan={state?.pesan} />
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="mt-4 flex flex-wrap justify-end gap-3">
             <button type="button" onClick={onTutup} className={tombolNetral} autoFocus>
+              <X size={18} aria-hidden="true" />
               Batal
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="h-11 rounded-[10px] bg-[#B42318] px-5 font-bold text-white hover:bg-[#8F1C13] focus:outline-none focus:ring-[3px] focus:ring-[#F6C9C4] disabled:bg-[#CFCBDD]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-error px-6 font-bold text-white transition-colors hover:bg-[#8f1c13] focus:outline-none focus-visible:ring-4 focus-visible:ring-error-50 disabled:bg-line-strong"
             >
+              <Trash2 size={18} aria-hidden="true" />
               Hapus
             </button>
           </div>
@@ -149,85 +287,114 @@ function ModalHapus({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
 
 export function DaftarJenis({ jenis }: { jenis: Jenis[] }) {
   const [tambahBuka, setTambahBuka] = useState(false);
-  const [ubahId, setUbahId] = useState<string | null>(null);
+  const [ubahJ, setUbahJ] = useState<Jenis | null>(null);
   const [hapusJ, setHapusJ] = useState<Jenis | null>(null);
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">Jenis Kekerasan</h1>
-        {!tambahBuka && (
-          <button type="button" onClick={() => setTambahBuka(true)} className={tombolUtama}>
-            + Tambah jenis
-          </button>
-        )}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <IkonKotak ikon={Shapes} warna="violet" ukuran="lg" />
+          <div>
+            <h1 className="text-2xl font-extrabold text-navy-900">Jenis Kekerasan</h1>
+            <p className="mt-0.5 text-sm text-ink-soft">
+              Kelola kategori kekerasan yang menjadi pilihan pada formulir pelaporan.
+            </p>
+          </div>
+        </div>
+        <button type="button" onClick={() => setTambahBuka(true)} className={tombolUtama}>
+          <Plus size={20} aria-hidden="true" />
+          Tambah jenis
+        </button>
       </div>
 
-      {tambahBuka && <FormTambah onTutup={() => setTambahBuka(false)} />}
-
-      <div className="overflow-x-auto rounded-2xl border border-[#DEDBE8] bg-white">
-        <table className="w-full text-left text-[15px]">
-          <thead className="bg-[#F7F6FB] text-sm font-semibold text-[#4A4859]">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-card">
+        <table className="w-full min-w-[1000px] text-left text-[15px] [&_td]:whitespace-nowrap">
+          <thead className="bg-blue-50 text-sm font-bold text-navy-900">
             <tr>
-              <th scope="col" className="px-5 py-3">No.</th>
-              <th scope="col" className="px-5 py-3">Nama jenis kekerasan</th>
-              <th scope="col" className="px-5 py-3">Dipakai di laporan</th>
-              <th scope="col" className="px-5 py-3 text-right">Aksi</th>
+              <th scope="col" className="px-5 py-4">No.</th>
+              <th scope="col" className="px-5 py-4">Nama jenis kekerasan</th>
+              <th scope="col" className="px-5 py-4">Status</th>
+              <th scope="col" className="px-5 py-4">Dipakai di laporan</th>
+              <th scope="col" className="px-5 py-4">Dibuat</th>
+              <th scope="col" className="px-5 py-4">Diperbarui</th>
+              <th scope="col" className="px-5 py-4 text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {jenis.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-[#66637A]">
+                <td colSpan={7} className="px-5 py-12 text-center text-ink-mute">
+                  <Inbox size={40} aria-hidden="true" className="mx-auto mb-3 text-line-strong" />
                   Belum ada jenis kekerasan. Pilih &quot;Tambah jenis&quot; untuk memulai.
                 </td>
               </tr>
             )}
             {jenis.map((j, i) => (
-              <tr key={j.id} className="border-t border-[#ECEAF3]">
-                {ubahId === j.id ? (
-                  <>
-                    <td className="px-5 py-3 text-[#66637A]">{i + 1}</td>
-                    <BarisUbah j={j} onSelesai={() => setUbahId(null)} />
-                  </>
-                ) : (
-                  <>
-                    <td className="px-5 py-3 text-[#66637A]">{i + 1}</td>
-                    <td className="px-5 py-3 font-semibold">
-                      {j.nama}
-                      {!j.aktif && (
-                        <span className="ml-3 rounded-full bg-[#F1EFF6] px-2.5 py-0.5 text-xs font-bold text-[#4A4859]">
-                          Nonaktif
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-[#4A4859]">{j.jumlahLaporan} laporan</td>
-                    <td className="px-5 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setUbahId(j.id)}
-                          className="h-10 rounded-[10px] border border-[#CFCBDD] px-4 text-sm font-bold text-[#46379E] hover:bg-[#EEEBFB] focus:outline-none focus:ring-[3px] focus:ring-[#D9D3F7]"
-                        >
-                          Ubah
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setHapusJ(j)}
-                          className="h-10 rounded-[10px] border border-[#F6C9C4] px-4 text-sm font-bold text-[#B42318] hover:bg-[#FDECEA] focus:outline-none focus:ring-[3px] focus:ring-[#F6C9C4]"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    </td>
-                  </>
-                )}
+              <tr key={j.id} className="border-t border-line-soft">
+                <td className="px-5 py-3 text-ink-mute">{i + 1}</td>
+                <td className="px-5 py-3 font-semibold text-ink">
+                  {j.nama}
+                </td>
+                <td className="px-5 py-3">
+                  {j.aktif ? (
+                    <LencanaStatus nada="sukses">Aktif</LencanaStatus>
+                  ) : (
+                    <LencanaStatus nada="netral" ikon={EyeOff}>
+                      Nonaktif
+                    </LencanaStatus>
+                  )}
+                </td>
+                <td className="px-5 py-3 text-ink-soft">
+                  <span className="inline-flex items-center gap-2">
+                    <FileText size={16} aria-hidden="true" className="text-ink-mute" />
+                    {j.jumlahLaporan} laporan
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-ink-soft">
+                  <span className="flex items-center gap-2">
+                    <CalendarPlus size={16} aria-hidden="true" className="text-ink-mute" />
+                    {tanggal(j.dibuatPada)}
+                  </span>
+                  <span className="mt-0.5 flex items-center gap-2 text-xs text-ink-mute">
+                    <User size={14} aria-hidden="true" />
+                    {j.dibuatOleh ? `oleh ${j.dibuatOleh}` : "pembuat tidak tercatat"}
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-ink-soft">
+                  <span className="flex items-center gap-2">
+                    <CalendarClock size={16} aria-hidden="true" className="text-ink-mute" />
+                    {tanggal(j.diubahPada)}
+                  </span>
+                </td>
+                <td className="px-5 py-3">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUbahJ(j)}
+                      className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
+                    >
+                      <Pencil size={16} aria-hidden="true" />
+                      Ubah
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHapusJ(j)}
+                      className={`${tombolKecil} border-error-50 bg-error-50 text-error hover:bg-[#f9d7d3]`}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                      Hapus
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
+      {tambahBuka && <ModalTambah onTutup={() => setTambahBuka(false)} />}
+      {ubahJ && <ModalUbah j={ubahJ} onTutup={() => setUbahJ(null)} />}
       {hapusJ && <ModalHapus j={hapusJ} onTutup={() => setHapusJ(null)} />}
     </>
   );
