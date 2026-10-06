@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  uji:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: siap_ppa
+          POSTGRES_PASSWORD: siap_ppa_ci
+          POSTGRES_DB: siap_ppa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U siap_ppa"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://siap_ppa:siap_ppa_ci@localhost:5432/siap_ppa?schema=public
+      # Nilai khusus CI, bukan rahasia.
+      SESSION_SECRET: ci-session-secret-tidak-untuk-produksi-0123456789
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Skema Prisma valid dan klien dibuat
+        run: |
+          npx prisma validate
+          npx prisma generate
+
+      - name: Migrasi basis data berjalan dari nol
+        run: npx prisma migrate deploy
+
+      - name: ERD sesuai skema
+        run: |
+          npm run erd
+          git diff --exit-code docs/erd.mmd
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Uji
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Setelah build: tipe LayoutProps/PageProps dihasilkan oleh Next.
+      - name: Cek tipe
+        run: npx tsc --noEmit
