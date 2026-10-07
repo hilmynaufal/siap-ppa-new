@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, ContactRound, Home, Inbox, Shapes, type LucideIcon } from "lucide-react";
+import { CalendarDays, ContactRound, HeartHandshake, Home, Inbox, MapPinned, Shapes, UserRoundCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,6 +21,9 @@ const GRUP: { judul?: string; item: Item[] }[] = [
     item: [
       { href: "/admin/jenis-kekerasan", label: "Jenis Kekerasan", ikon: Shapes },
       { href: "/admin/kontak-darurat", label: "Kontak Darurat", ikon: ContactRound },
+      { href: "/admin/jenis-pendampingan", label: "Jenis Pendampingan", ikon: HeartHandshake },
+      { href: "/admin/lokasi", label: "Lokasi Layanan", ikon: MapPinned },
+      { href: "/admin/pendamping", label: "Akun Pendamping", ikon: UserRoundCog },
     ],
   },
 ];

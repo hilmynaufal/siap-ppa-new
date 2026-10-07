@@ -47,3 +47,18 @@ Di basis data semua nama memakai `snake_case` dan tabel berbentuk tunggal (`jeni
 ## Berkas unggahan
 
 Dokumen pendukung laporan disimpan di luar akar web, di direktori `UPLOAD_DIR` (lokal: `uploads/`, Docker: volume `/data/uploads`), dengan nama acak. Hanya JPG, PNG, dan PDF (dicek dari isi berkas), maksimal 5 MB per berkas dan 3 berkas per laporan. Batas badan permintaan Server Action diatur 16 MB di `next.config.ts`. Data referensi 31 kecamatan Kabupaten Bandung ditanam lewat migrasi `data_kecamatan`; `npx prisma db seed` menambahkan contoh jenis kekerasan untuk pengembangan.
+
+## Data awal produksi
+
+Data nyata tidak disimpan di repositori. Isi lewat aplikasi atau perintah berikut.
+
+1. **Akun Admin pertama** (dijalankan di server, kata sandi tidak dicetak dan tidak disimpan di berkas):
+
+   ```bash
+   ADMIN_NAMA="Nama Admin" ADMIN_EMAIL=admin@instansi.go.id ADMIN_PASSWORD="<minimal 12 karakter>" npm run admin:buat
+   ```
+
+   Menjalankan ulang dengan email yang sama memperbarui nama dan kata sandi.
+2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, dan Akun Pendamping (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang).
+3. **Kontak darurat** dapat diketik satu per satu atau diimpor dari CSV (menu Kontak Darurat, tombol Impor CSV; templat dapat diunduh di sana). Berkas diperiksa dulu dan hanya disimpan bila semua baris benar.
+4. `npx prisma db seed` hanya untuk lingkungan lokal: berisi akun dan data contoh fiktif.

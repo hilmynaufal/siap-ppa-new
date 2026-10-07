@@ -18,6 +18,7 @@ import {
   useTutupDenganEsc,
 } from "@/components/ui-form";
 import { alihkan, hapus, tambah, ubah, type AksiKontak } from "./actions";
+import { ImporKontak } from "./impor-kontak";
 
 type Kontak = {
   id: string;
@@ -254,10 +255,13 @@ export function DaftarKontak({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
             </p>
           </div>
         </div>
-        <button type="button" onClick={() => setForm({ kontak: null })} className={tombolUtama}>
-          <Plus size={20} aria-hidden="true" />
-          Tambah kontak
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <ImporKontak />
+          <button type="button" onClick={() => setForm({ kontak: null })} className={tombolUtama}>
+            <Plus size={20} aria-hidden="true" />
+            Tambah kontak
+          </button>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-col gap-3">
