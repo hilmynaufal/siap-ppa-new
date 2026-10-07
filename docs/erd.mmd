@@ -113,9 +113,11 @@ erDiagram
     String id PK
     String sesi_id FK
     enum_penerima_notifikasi penerima
+    String penerima_id FK "opsional"
     String kanal
     String pesan
     DateTime dikirim_pada "opsional"
+    DateTime dibaca_pada "opsional"
     DateTime dibuat_pada
   }
   laporan_pendampingan {
@@ -184,6 +186,7 @@ erDiagram
   sesi ||--o{ riwayat_jadwal : "sesi"
   pengguna ||--o{ riwayat_jadwal : "pengubah"
   sesi ||--o{ notifikasi : "sesi"
+  pengguna |o--o{ notifikasi : "penerimaPengguna"
   sesi ||--o| laporan_pendampingan : "sesi"
   pengguna ||--o{ laporan_pendampingan : "penulis"
   laporan_pendampingan ||--o{ foto_pendampingan : "laporanPendampingan"

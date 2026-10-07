@@ -1,10 +1,12 @@
-import { CalendarCheck, CalendarClock, CalendarDays, ClipboardList, Clock, MapPin, Ticket } from "lucide-react";
+import { BellRing, CalendarCheck, CalendarClock, CalendarDays, CheckCheck, ClipboardList, Clock, MapPin, Ticket } from "lucide-react";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaStatus } from "@/components/lencana-status";
 import { StripKpi } from "@/components/strip-kpi";
 import { wajibPeran } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { notifikasiPendamping } from "@/lib/jadwal";
 import { hariJakarta, jadwalPendamping } from "@/lib/tiket";
+import { tandaiSemuaDibaca } from "./actions";
 
 export const metadata = { title: "Jadwal Pendampingan | SIAP PPA" };
 export const dynamic = "force-dynamic";
@@ -90,7 +92,8 @@ function Daftar({ judul, id, sesi, kosong }: { judul: string; id: string; sesi: 
 
 export default async function BerandaPendamping() {
   const pengguna = await wajibPeran("PENDAMPING");
-  const semua = await jadwalPendamping(db, pengguna.id);
+  const [semua, notif] = await Promise.all([jadwalPendamping(db, pengguna.id), notifikasiPendamping(db, pengguna.id, 5)]);
+  const belumDibaca = notif.filter((n) => !n.dibaca).length;
   const hariIni = hariJakarta(new Date());
   const tanggalSesi = (s: Sesi) => hariJakarta(new Date(s.mulai));
   const aktif = (s: Sesi) => s.status === "TERJADWAL" || s.status === "BERLANGSUNG";
@@ -116,6 +119,38 @@ export default async function BerandaPendamping() {
           { label: "Semua sesi", nilai: semua.length, keterangan: "Yang pernah ditugaskan", ikon: ClipboardList, warna: "violet" },
         ]}
       />
+
+      {notif.length > 0 && (
+        <section aria-labelledby="h-notif" className="mt-8">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="h-notif" className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <BellRing size={20} aria-hidden="true" className="text-magenta-600" />
+              Pemberitahuan
+              {belumDibaca > 0 && (
+                <span className="rounded-lg bg-magenta-600 px-2 py-0.5 text-xs font-bold text-white">{belumDibaca} baru</span>
+              )}
+            </h2>
+            {belumDibaca > 0 && (
+              <form action={tandaiSemuaDibaca}>
+                <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-blue-600 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+                  <CheckCheck size={16} aria-hidden="true" />
+                  Tandai sudah dibaca
+                </button>
+              </form>
+            )}
+          </div>
+          <ul className="flex flex-col gap-2">
+            {notif.map((n) => (
+              <li key={n.id} className={"rounded-xl border p-4 " + (n.dibaca ? "border-line bg-surface" : "border-magenta-100 bg-magenta-100/10")}>
+                <p className="break-words text-ink">{n.pesan}</p>
+                <p className="mt-1 text-xs text-ink-mute">
+                  {new Date(n.pada).toLocaleString("id-ID", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <Daftar judul="Hari ini" id="h-hari-ini" sesi={hariIniList} kosong="Tidak ada sesi hari ini." />
       <Daftar judul="Mendatang" id="h-mendatang" sesi={mendatang} kosong="Belum ada sesi mendatang." />

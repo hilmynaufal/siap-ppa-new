@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactRound, Home, Inbox, Shapes, type LucideIcon } from "lucide-react";
+import { CalendarDays, ContactRound, Home, Inbox, Shapes, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +9,13 @@ type Item = { href: string; label: string; ikon: LucideIcon };
 // Hanya menu yang halamannya sudah ada; menu lain ditambahkan di kartu fitur masing-masing.
 const GRUP: { judul?: string; item: Item[] }[] = [
   { item: [{ href: "/admin", label: "Beranda", ikon: Home }] },
-  { judul: "Layanan", item: [{ href: "/admin/laporan", label: "Laporan masuk", ikon: Inbox }] },
+  {
+    judul: "Layanan",
+    item: [
+      { href: "/admin/laporan", label: "Laporan masuk", ikon: Inbox },
+      { href: "/admin/jadwal", label: "Jadwal pendampingan", ikon: CalendarDays },
+    ],
+  },
   {
     judul: "Data master",
     item: [

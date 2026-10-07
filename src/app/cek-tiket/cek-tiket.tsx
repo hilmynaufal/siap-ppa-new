@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Clock, Hourglass, MapPin, Phone, Printer, Search, Ticket, UserRound, Users } from "lucide-react";
+import { BellRing, CalendarDays, Clock, Hourglass, MapPin, Phone, Printer, Search, Ticket, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { IkonKotak } from "@/components/ikon-kotak";
@@ -27,6 +27,19 @@ function KartuTiket({ t }: { t: TiketDenganQr }) {
           <h3 className="font-bold text-navy-900">{t.jenis}</h3>
         </div>
       </div>
+
+      {t.pembaruan.length > 0 && (
+        <div role="status" className="mt-4 flex items-start gap-3 rounded-xl bg-info-50 p-3 text-sm text-info">
+          <BellRing size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-bold">Jadwal diperbarui</p>
+            <p className="mt-0.5 break-words text-ink">{t.pembaruan[0].pesan}</p>
+            <p className="mt-1 text-xs text-ink-soft">
+              {new Date(t.pembaruan[0].pada).toLocaleString("id-ID", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 rounded-xl bg-blue-50 p-4 text-center">
         <p className="text-sm font-semibold text-ink-soft">Nomor antrean</p>

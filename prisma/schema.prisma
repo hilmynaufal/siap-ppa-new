@@ -85,6 +85,7 @@ model Pengguna {
   laporanPendampingan  LaporanPendampingan[]
   revisi               RevisiLaporanPendampingan[]
   perubahanJadwal      RiwayatJadwal[]
+  notifikasiDiterima   Notifikasi[]                @relation("PenerimaNotifikasi")
   keputusanUsulan      UsulanSesi[]
   jenisKekerasanDibuat JenisKekerasan[]            @relation("PembuatJenisKekerasan")
   kontakDaruratDibuat  KontakDarurat[]             @relation("PembuatKontakDarurat")
@@ -274,16 +275,22 @@ model RiwayatJadwal {
   @@map("riwayat_jadwal")
 }
 
+/// Pemberitahuan pembaruan jadwal. Kanal "APLIKASI" tampil di aplikasi (Cek Tiket untuk Pelapor, halaman Pendamping).
+/// Pelapor tidak punya akun, maka `penerimaId` hanya terisi untuk Pendamping; Pelapor dikenali lewat sesi dan laporannya.
 model Notifikasi {
-  id          String             @id @default(cuid())
-  sesiId      String             @map("sesi_id")
-  penerima    PenerimaNotifikasi
-  kanal       String
-  pesan       String
-  dikirimPada DateTime?          @map("dikirim_pada")
-  dibuatPada  DateTime           @default(now()) @map("dibuat_pada")
-  sesi        Sesi               @relation(fields: [sesiId], references: [id])
+  id               String             @id @default(cuid())
+  sesiId           String             @map("sesi_id")
+  penerima         PenerimaNotifikasi
+  penerimaId       String?            @map("penerima_id")
+  kanal            String
+  pesan            String
+  dikirimPada      DateTime?          @map("dikirim_pada")
+  dibacaPada       DateTime?          @map("dibaca_pada")
+  dibuatPada       DateTime           @default(now()) @map("dibuat_pada")
+  sesi             Sesi               @relation(fields: [sesiId], references: [id])
+  penerimaPengguna Pengguna?          @relation("PenerimaNotifikasi", fields: [penerimaId], references: [id])
 
+  @@index([penerimaId, dibacaPada])
   @@map("notifikasi")
 }
 
