@@ -7,7 +7,8 @@ import { cekTiket, formatNomorAntrean, hariJakarta, jadwalPendamping, normalisas
 import { tolakLaporan, verifikasiLaporan } from "./verifikasi";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
-const sufiks = Date.now().toString(36).toUpperCase().slice(-6).replace(/[01OIL]/g, "X");
+// Acak (bukan dari jam) agar berkas uji yang berjalan paralel tidak menghasilkan kode pendaftaran yang sama.
+const sufiks = Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
 const awalan = `UJIT${sufiks}`;
 let adminId = "";
 let jenisId = "";

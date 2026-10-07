@@ -139,6 +139,8 @@ export type TiketPelapor = {
   sudahCheckIn: boolean;
   statusAntrean: "MENUNGGU" | "DIPANGGIL" | "BERLANGSUNG" | "SELESAI" | "DILEWATI";
   statusSesi: "TERJADWAL" | "BERLANGSUNG" | "SELESAI" | "TIDAK_HADIR" | "DIBATALKAN";
+  /** Pemberitahuan pembaruan jadwal untuk Pelapor, terbaru dulu. */
+  pembaruan: { pesan: string; pada: string }[];
   /** Hanya terisi pada hari layanan: nomor yang sedang dilayani dan jumlah antrean di depan. */
   antrean: { nomorSaatIni: string | null; sisaDidepan: number } | null;
 };
@@ -180,6 +182,7 @@ export async function cekTiket(db: PrismaClient, kodeMentah: string, sekarang = 
           lokasi: { select: { nama: true, alamat: true } },
           pendamping: { select: { nama: true } },
           tiket: true,
+          notifikasi: { where: { penerima: "PELAPOR" }, orderBy: { dibuatPada: "desc" }, take: 3, select: { pesan: true, dibuatPada: true } },
         },
       },
     },
@@ -222,6 +225,7 @@ export async function cekTiket(db: PrismaClient, kodeMentah: string, sekarang = 
       sudahCheckIn: t.checkInPada !== null,
       statusAntrean: t.statusAntrean,
       statusSesi: s.status,
+      pembaruan: s.notifikasi.map((n) => ({ pesan: n.pesan, pada: n.dibuatPada.toISOString() })),
       antrean,
     });
   }
