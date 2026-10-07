@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { BilahCari } from "@/components/bilah-cari";
 import { FilterChip, FilterPilihan, TombolAturUlang } from "@/components/filter";
+import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan, type StatusLaporanUi } from "@/components/lencana-laporan";
 import { Paginasi } from "@/components/paginasi";
 import { StripKpi } from "@/components/strip-kpi";
@@ -80,9 +81,12 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-navy-900">Laporan masuk</h1>
-        <p className="mt-1 text-ink-soft">Periksa isi laporan dari Pelapor, lalu verifikasi atau tolak dengan alasan.</p>
+      <div className="mb-6 flex items-center gap-4">
+        <IkonKotak ikon={Inbox} warna="blue" ukuran="lg" />
+        <div>
+          <h1 className="text-2xl font-extrabold text-navy-900">Laporan masuk</h1>
+          <p className="mt-0.5 text-sm text-ink-soft">Periksa isi laporan dari Pelapor, lalu verifikasi atau tolak dengan alasan.</p>
+        </div>
       </div>
 
       <StripKpi

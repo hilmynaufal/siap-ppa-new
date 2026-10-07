@@ -1,4 +1,4 @@
-import { FileImage, FileText, MapPin, Phone, ShieldAlert, User } from "lucide-react";
+import { FileImage, FileSearch, FileText, MapPin, Phone, ShieldAlert, User } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
@@ -42,9 +42,12 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
       />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold text-navy-900">Laporan {l.kode}</h1>
-          <p className="mt-1 text-ink-soft">Masuk {fmt(l.dibuatPada)}</p>
+        <div className="flex items-center gap-4">
+          <IkonKotak ikon={FileSearch} warna="blue" ukuran="lg" />
+          <div>
+            <h1 className="text-2xl font-extrabold text-navy-900">Laporan {l.kode}</h1>
+            <p className="mt-0.5 text-sm text-ink-soft">Masuk {fmt(l.dibuatPada)}</p>
+          </div>
         </div>
         <LencanaLaporan status={l.status} />
       </div>
