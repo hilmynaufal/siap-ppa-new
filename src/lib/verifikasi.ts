@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { terbitkanTiket, validasiJadwal, type GalatJadwal } from "./tiket";
 
 export const ALASAN_MIN = 10;
 export const ALASAN_MAKS = 500;
@@ -12,7 +13,9 @@ export const SkemaPenolakan = z.object({
     .max(ALASAN_MAKS, { error: `Alasan terlalu panjang (maksimal ${ALASAN_MAKS} huruf).` }),
 });
 
-export type HasilVerifikasi = { ok: true } | { ok: false; pesan: string };
+export type HasilVerifikasi =
+  | { ok: true; nomorAntrean?: string }
+  | { ok: false; pesan: string; galat?: GalatJadwal };
 
 const PESAN_SUDAH_DIPROSES = "Laporan ini sudah diproses. Muat ulang halaman untuk melihat status terbaru.";
 
@@ -68,6 +71,10 @@ export async function detailLaporan(db: PrismaClient, id: string) {
   };
 }
 
+function adaBentrokUnik(e: unknown) {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002";
+}
+
 /**
  * Mengubah status BARU menjadi hasil verifikasi dan mencatat audit dalam satu transaksi.
  * `updateMany` dengan syarat status BARU membuat dua Admin yang menekan tombol bersamaan tidak saling menimpa.
@@ -78,6 +85,7 @@ async function putuskan(
   adminId: string,
   status: "TERVERIFIKASI" | "DITOLAK",
   alasan: string | null,
+  jadwal?: Awaited<ReturnType<typeof validasiJadwal>> & { ok: true },
 ): Promise<HasilVerifikasi> {
   return db.$transaction(async (tx) => {
     const { count } = await tx.laporan.updateMany({
@@ -88,21 +96,39 @@ async function putuskan(
       const ada = await tx.laporan.findUnique({ where: { id }, select: { id: true } });
       return { ok: false as const, pesan: ada ? PESAN_SUDAH_DIPROSES : "Laporan tidak ditemukan." };
     }
+    // Tiket diterbitkan otomatis pada transaksi yang sama: laporan terverifikasi selalu punya jadwal dan tiket.
+    const tiket = jadwal ? await terbitkanTiket(tx, id, jadwal.jadwal) : null;
     await tx.logAudit.create({
       data: {
         penggunaId: adminId,
         aksi: status === "TERVERIFIKASI" ? "VERIFIKASI_LAPORAN" : "TOLAK_LAPORAN",
         entitas: "Laporan",
         entitasId: id,
-        rincian: alasan ? { alasan } : undefined,
+        rincian: tiket ? { sesiId: tiket.sesiId, nomorAntrean: tiket.nomorAntrean } : alasan ? { alasan } : undefined,
       },
     });
-    return { ok: true as const };
+    return { ok: true as const, nomorAntrean: tiket?.nomorAntrean };
   });
 }
 
-export function verifikasiLaporan(db: PrismaClient, id: string, adminId: string) {
-  return putuskan(db, id, adminId, "TERVERIFIKASI", null);
+/** Memverifikasi laporan sekaligus menunjuk pendamping dan jadwal; tiket terbit otomatis. */
+export async function verifikasiLaporan(
+  db: PrismaClient,
+  id: string,
+  adminId: string,
+  jadwalMentah: unknown,
+  sekarang = new Date(),
+): Promise<HasilVerifikasi> {
+  const j = await validasiJadwal(db, jadwalMentah, sekarang);
+  if (!j.ok) return { ok: false, pesan: "Lengkapi pendamping dan jadwal terlebih dahulu.", galat: j.galat };
+  // Dua Admin yang menerbitkan nomor antrean bersamaan bisa berbenturan pada batasan unik; ulangi transaksinya.
+  for (let percobaan = 1; ; percobaan++) {
+    try {
+      return await putuskan(db, id, adminId, "TERVERIFIKASI", null, j);
+    } catch (e) {
+      if (!adaBentrokUnik(e) || percobaan >= 4) throw e;
+    }
+  }
 }
 
 export async function tolakLaporan(db: PrismaClient, id: string, adminId: string, alasanMentah: string) {
