@@ -30,6 +30,14 @@ const KONTAK_UJI = [
   { instansi: "Satgas PPA Kecamatan Banjaran", telepon: "(022) 5941 0000", alamat: "Kantor Kecamatan Banjaran", kecamatan: "Banjaran" },
 ];
 
+// Contoh jenis pendampingan dan lokasi (FIKTIF) agar jadwal dan tiket dapat dicoba. Data resmi dikelola oleh pengelola data master.
+const PENDAMPINGAN_UJI = [
+  { kode: "PSI", nama: "Pendampingan psikologis" },
+  { kode: "HUK", nama: "Pendampingan hukum" },
+  { kode: "MED", nama: "Pendampingan medis" },
+];
+const LOKASI_UJI = [{ nama: "Kantor UPTD PPA (contoh)", alamat: "Jl. Raya Soreang-Banjaran, Soreang" }];
+
 async function main() {
   for (const a of AKUN_UJI) {
     await db.pengguna.upsert({
@@ -38,6 +46,14 @@ async function main() {
       create: { nama: a.nama, email: a.email, kataSandiHash: await hashPassword(a.kataSandi), peran: a.peran },
     });
   }
+  for (const j of PENDAMPINGAN_UJI) {
+    await db.jenisPendampingan.upsert({ where: { kode: j.kode }, update: {}, create: j });
+  }
+  for (const l of LOKASI_UJI) {
+    await db.lokasi.upsert({ where: { nama: l.nama }, update: {}, create: l });
+  }
+  const psi = await db.jenisPendampingan.findUniqueOrThrow({ where: { kode: "PSI" } });
+  await db.pengguna.updateMany({ where: { email: "pendamping@contoh.test", jenisPendampingId: null }, data: { jenisPendampingId: psi.id } });
   for (const nama of JENIS_UJI) {
     await db.jenisKekerasan.upsert({ where: { nama }, update: {}, create: { nama } });
   }
@@ -46,7 +62,7 @@ async function main() {
     const ada = await db.kontakDarurat.findFirst({ where: { instansi: k.instansi } });
     if (!ada) await db.kontakDarurat.create({ data: { instansi: k.instansi, telepon: k.telepon, alamat: k.alamat, kecamatanId: kec?.id ?? null } });
   }
-  console.log(`Seed: ${AKUN_UJI.length} akun uji, ${JENIS_UJI.length} jenis kekerasan, ${KONTAK_UJI.length} kontak darurat contoh.`);
+  console.log(`Seed: ${AKUN_UJI.length} akun uji, ${JENIS_UJI.length} jenis kekerasan, ${KONTAK_UJI.length} kontak darurat, ${PENDAMPINGAN_UJI.length} jenis pendampingan, ${LOKASI_UJI.length} lokasi contoh.`);
 }
 
 main().finally(() => db.$disconnect());

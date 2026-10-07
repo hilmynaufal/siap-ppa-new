@@ -1,9 +1,10 @@
-import { FileImage, FileSearch, FileText, MapPin, Phone, ShieldAlert, User } from "lucide-react";
+import { CalendarClock, FileImage, FileSearch, FileText, MapPin, Phone, ShieldAlert, Ticket, User } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
+import { jadwalLaporan } from "@/lib/tiket";
 import { detailLaporan } from "@/lib/verifikasi";
 import { PanelVerifikasi } from "./panel-verifikasi";
 
@@ -34,6 +35,16 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   const { id } = await params;
   const l = await detailLaporan(db, id);
   if (!l) notFound();
+  const [sesi, jenis, pendamping, lokasi] = await Promise.all([
+    jadwalLaporan(db, id),
+    db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
+    db.pengguna.findMany({
+      where: { peran: "PENDAMPING", aktif: true },
+      orderBy: { nama: "asc" },
+      select: { id: true, nama: true, jenisPendampingId: true },
+    }),
+    db.lokasi.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
+  ]);
 
   return (
     <main className="px-4 py-6 md:px-8 md:py-8">
@@ -93,6 +104,36 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             </dl>
           </section>
 
+          {sesi.length > 0 && (
+            <section aria-labelledby="h-jadwal" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
+              <div className="mb-3 flex items-center gap-3">
+                <IkonKotak ikon={CalendarClock} warna="teal" />
+                <h2 id="h-jadwal" className="text-lg font-bold text-navy-900">Jadwal dan tiket</h2>
+              </div>
+              <ul className="flex flex-col gap-3">
+                {sesi.map((x) => (
+                  <li key={x.id} className="rounded-xl border border-line p-4">
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-navy-900">
+                      Sesi {x.urutan} · {x.jenis}
+                      {x.nomorAntrean && (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-sm tabular-nums text-navy-800">
+                          <Ticket size={14} aria-hidden="true" />
+                          {x.nomorAntrean}
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-1 text-ink">{fmt(x.mulai)} - {new Date(x.selesai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</p>
+                    <p className="mt-1 flex items-start gap-2 text-sm text-ink-soft">
+                      <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-mute" />
+                      {x.lokasi}, {x.alamat}
+                    </p>
+                    <p className="mt-1 text-sm text-ink-soft">Pendamping: {x.pendamping}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section aria-labelledby="h-dokumen" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-3 flex items-center gap-3">
               <IkonKotak ikon={FileText} warna="violet" />
@@ -126,6 +167,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
         </div>
 
         <PanelVerifikasi
+          opsi={{ jenis, pendamping, lokasi }}
           id={l.id}
           kode={l.kode}
           status={l.status}

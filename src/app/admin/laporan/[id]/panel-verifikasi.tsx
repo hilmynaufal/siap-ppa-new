@@ -1,13 +1,20 @@
 "use client";
 
-import { CheckCircle2, ClipboardCheck, Info, XCircle } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
+import { CheckCircle2, ClipboardCheck, TriangleAlert, XCircle } from "lucide-react";
+import { startTransition, useActionState, useEffect, useMemo, useState } from "react";
 import { LencanaLaporan, type StatusLaporanUi } from "@/components/lencana-laporan";
-import { Galat, Modal, fokus, tombolNetral, tombolUtama } from "@/components/ui-form";
+import { Galat, Modal, fokus, input, tombolNetral, tombolUtama } from "@/components/ui-form";
 import { ALASAN_MAKS, ALASAN_MIN } from "@/lib/verifikasi";
 import { tolak, verifikasi, type AksiVerifikasi } from "../actions";
 
+export type OpsiJadwal = {
+  jenis: { id: string; nama: string }[];
+  pendamping: { id: string; nama: string; jenisPendampingId: string | null }[];
+  lokasi: { id: string; nama: string }[];
+};
+
 type Props = {
+  opsi: OpsiJadwal;
   id: string;
   kode: string;
   status: StatusLaporanUi;
@@ -71,8 +78,104 @@ function ModalTolak({ id, kode, onTutup }: { id: string; kode: string; onTutup: 
   );
 }
 
-export function PanelVerifikasi({ id, kode, status, verifikator, diverifikasiPada, alasanPenolakan }: Props) {
-  const [stateV, aksiV, pendingV] = useActionState(verifikasi, undefined as AksiVerifikasi);
+function Bidang({ id, label, galat, children }: { id: string; label: string; galat?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-bold">
+        {label} <span className="text-error">*</span>
+      </label>
+      {children}
+      <div className="mt-1">
+        <Galat id={`galat-${id}`} pesan={galat} />
+      </div>
+    </div>
+  );
+}
+
+function FormVerifikasi({ id, opsi }: { id: string; opsi: OpsiJadwal }) {
+  const [state, aksi, pending] = useActionState(verifikasi, undefined as AksiVerifikasi);
+  // Semua isian dikendalikan state agar tidak hilang saat formulir di-reset React setelah aksi selesai (mis. karena galat).
+  const [v, setV] = useState({ jenisPendampingId: "", pendampingId: "", lokasiId: "", tanggal: "", jamMulai: "", jamSelesai: "" });
+  const isi = (k: keyof typeof v) => ({ value: v[k], onChange: (e: { target: { value: string } }) => setV((x) => ({ ...x, [k]: e.target.value })) });
+  const jenisId = v.jenisPendampingId;
+  const pendampingCocok = useMemo(
+    () => opsi.pendamping.filter((p) => !jenisId || !p.jenisPendampingId || p.jenisPendampingId === jenisId),
+    [opsi.pendamping, jenisId],
+  );
+  const g = state?.galat ?? {};
+  const lengkap = opsi.jenis.length > 0 && opsi.lokasi.length > 0 && opsi.pendamping.length > 0;
+  const lapor = (k: string) => (g as Record<string, string | undefined>)[k];
+  const attr = (k: string) => ({ "aria-invalid": lapor(k) ? true : undefined, "aria-describedby": lapor(k) ? `galat-${k}` : undefined });
+
+  if (!lengkap) {
+    return (
+      <p className="flex items-start gap-2 rounded-xl bg-warning-50 p-3 text-sm text-warning">
+        <TriangleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+        Data jenis pendampingan, lokasi layanan, atau akun Pendamping belum tersedia, sehingga jadwal belum dapat dibuat.
+      </p>
+    );
+  }
+
+  return (
+    <form
+      noValidate
+      onSubmit={(e) => {
+        // Dikirim manual (bukan action={...}) agar React tidak mengosongkan isian saat ada galat.
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        startTransition(() => aksi(data));
+      }}
+      className="flex flex-col gap-4"
+    >
+      <input type="hidden" name="id" value={id} />
+      <p className="text-sm text-ink-soft">
+        Tentukan pendamping dan jadwal layanan. Tiket terbit otomatis setelah laporan diverifikasi.
+      </p>
+      <Bidang id="jenisPendampingId" label="Jenis pendampingan" galat={g.jenisPendampingId}>
+        <select id="jenisPendampingId" name="jenisPendampingId" onChange={(e) => setV((x) => ({ ...x, jenisPendampingId: e.target.value, pendampingId: "" }))} value={v.jenisPendampingId} className={input} {...attr("jenisPendampingId")}>
+          <option value="">Pilih jenis</option>
+          {opsi.jenis.map((j) => (
+            <option key={j.id} value={j.id}>{j.nama}</option>
+          ))}
+        </select>
+      </Bidang>
+      <Bidang id="pendampingId" label="Pendamping" galat={g.pendampingId}>
+        <select id="pendampingId" name="pendampingId" {...isi("pendampingId")} className={input} {...attr("pendampingId")}>
+          <option value="">Pilih pendamping</option>
+          {pendampingCocok.map((p) => (
+            <option key={p.id} value={p.id}>{p.nama}</option>
+          ))}
+        </select>
+      </Bidang>
+      <Bidang id="lokasiId" label="Lokasi layanan" galat={g.lokasiId}>
+        <select id="lokasiId" name="lokasiId" {...isi("lokasiId")} className={input} {...attr("lokasiId")}>
+          <option value="">Pilih lokasi</option>
+          {opsi.lokasi.map((l) => (
+            <option key={l.id} value={l.id}>{l.nama}</option>
+          ))}
+        </select>
+      </Bidang>
+      <Bidang id="tanggal" label="Tanggal layanan" galat={g.tanggal}>
+        <input id="tanggal" name="tanggal" type="date" {...isi("tanggal")} className={input} {...attr("tanggal")} />
+      </Bidang>
+      <div className="grid grid-cols-2 gap-3">
+        <Bidang id="jamMulai" label="Jam mulai" galat={g.jamMulai}>
+          <input id="jamMulai" name="jamMulai" type="time" {...isi("jamMulai")} className={input} {...attr("jamMulai")} />
+        </Bidang>
+        <Bidang id="jamSelesai" label="Jam selesai" galat={g.jamSelesai}>
+          <input id="jamSelesai" name="jamSelesai" type="time" {...isi("jamSelesai")} className={input} {...attr("jamSelesai")} />
+        </Bidang>
+      </div>
+      <button type="submit" disabled={pending} className={`${tombolUtama} w-full`}>
+        <CheckCircle2 size={20} aria-hidden="true" />
+        Verifikasi dan terbitkan tiket
+      </button>
+      <Galat id="galat-verifikasi" pesan={state?.pesan} />
+    </form>
+  );
+}
+
+export function PanelVerifikasi({ opsi, id, kode, status, verifikator, diverifikasiPada, alasanPenolakan }: Props) {
   const [tolakBuka, setTolakBuka] = useState(false);
   const menunggu = status === "BARU";
 
@@ -89,16 +192,7 @@ export function PanelVerifikasi({ id, kode, status, verifikator, diverifikasiPad
 
       {menunggu ? (
         <>
-          <p className="mb-4 text-sm text-ink-soft">
-            Periksa isi laporan dan dokumen di samping. Laporan terverifikasi akan siap dijadwalkan pendampingannya.
-          </p>
-          <form action={aksiV}>
-            <input type="hidden" name="id" value={id} />
-            <button type="submit" disabled={pendingV} className={`${tombolUtama} w-full`}>
-              <CheckCircle2 size={20} aria-hidden="true" />
-              Verifikasi laporan
-            </button>
-          </form>
+          <FormVerifikasi id={id} opsi={opsi} />
           <button
             type="button"
             onClick={() => setTolakBuka(true)}
@@ -107,9 +201,6 @@ export function PanelVerifikasi({ id, kode, status, verifikator, diverifikasiPad
             <XCircle size={20} aria-hidden="true" />
             Tolak laporan
           </button>
-          <div className="mt-3">
-            <Galat id="galat-verifikasi" pesan={stateV?.pesan} />
-          </div>
         </>
       ) : (
         <dl className="flex flex-col gap-3 text-sm">
@@ -130,12 +221,6 @@ export function PanelVerifikasi({ id, kode, status, verifikator, diverifikasiPad
               <dt className="font-semibold text-ink-soft">Alasan penolakan</dt>
               <dd className="whitespace-pre-wrap break-words text-ink">{alasanPenolakan}</dd>
             </div>
-          )}
-          {status === "TERVERIFIKASI" && (
-            <p className="flex items-start gap-2 rounded-xl bg-info-50 p-3 text-info">
-              <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-              Langkah berikutnya: tentukan pendamping dan jadwal pada fitur Tiket dan Jadwal.
-            </p>
           )}
         </dl>
       )}
