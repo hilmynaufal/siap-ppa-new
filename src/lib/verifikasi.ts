@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { nikTersamar } from "./nik";
 import { terbitkanTiket, validasiJadwal, type GalatJadwal } from "./tiket";
 
 export const ALASAN_MIN = 10;
@@ -25,41 +26,77 @@ export async function daftarLaporanAdmin(db: PrismaClient) {
     orderBy: { dibuatPada: "desc" },
     include: {
       jenisKekerasan: { select: { nama: true } },
-      kecamatan: { select: { nama: true } },
+      korban: { select: { nama: true, kecamatan: { select: { nama: true } } } },
     },
   });
   return rows.map((r) => ({
     id: r.id,
     kode: r.kodePendaftaran,
-    namaKorban: r.namaKorban,
+    namaKorban: r.korban?.nama ?? "-",
     jenis: r.jenisKekerasan.nama,
-    kecamatan: r.kecamatan?.nama ?? null,
+    // Kecamatan tempat tinggal korban.
+    kecamatan: r.korban?.kecamatan?.nama ?? null,
     status: r.status,
     dibuatPada: r.dibuatPada.toISOString(),
   }));
 }
 
+const tgl = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
+
+/** Detail laporan untuk Admin. NIK hanya tampil tersamar; membuka NIK utuh adalah langkah terpisah yang tercatat di audit. */
 export async function detailLaporan(db: PrismaClient, id: string) {
   const r = await db.laporan.findUnique({
     where: { id },
     include: {
       jenisKekerasan: { select: { nama: true } },
-      kecamatan: { select: { nama: true } },
       verifikator: { select: { nama: true } },
       dokumen: { select: { id: true, namaBerkas: true, tipeMime: true, ukuran: true }, orderBy: { namaBerkas: "asc" } },
+      pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
+      korban: { include: { pekerjaan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
+      terlapor: { include: { hubungan: { select: { nama: true } } } },
     },
   });
   if (!r) return null;
+  const p = r.pelapor;
+  const k = r.korban;
   return {
     id: r.id,
     kode: r.kodePendaftaran,
-    namaPelapor: r.namaPelapor,
-    kontakPelapor: r.kontakPelapor,
-    namaKorban: r.namaKorban,
-    usiaKorban: r.usiaKorban,
-    jenisKelaminKorban: r.jenisKelaminKorban,
+    pelaporAdalahKorban: r.pelaporAdalahKorban,
+    pelapor: p && {
+      nama: p.nama,
+      nikTersamar: nikTersamar(p.nikCipher),
+      adaNik: !!p.nikCipher,
+      hubungan: p.hubungan?.nama ?? null,
+      kontak: p.kontak,
+      alamat: p.alamat,
+      kecamatan: p.kecamatan?.nama ?? null,
+      desa: p.desa?.nama ?? null,
+    },
+    korban: k && {
+      nama: k.nama,
+      nikTersamar: nikTersamar(k.nikCipher),
+      adaNik: !!k.nikCipher,
+      jenisKelamin: k.jenisKelamin,
+      tempatLahir: k.tempatLahir,
+      tanggalLahir: tgl(k.tanggalLahir),
+      pendidikan: k.pendidikan,
+      pekerjaan: k.pekerjaan?.nama ?? null,
+      statusPerkawinan: k.statusPerkawinan,
+      kontak: k.kontak,
+      alamat: k.alamat,
+      kecamatan: k.kecamatan?.nama ?? null,
+      desa: k.desa?.nama ?? null,
+    },
+    terlapor: r.terlapor.map((t) => ({
+      id: t.id,
+      nama: t.nama,
+      jenisKelamin: t.jenisKelamin,
+      usia: t.usia,
+      hubungan: t.hubungan?.nama ?? null,
+      alamat: t.alamat,
+    })),
     jenis: r.jenisKekerasan.nama,
-    kecamatan: r.kecamatan?.nama ?? null,
     tanggalKejadian: r.tanggalKejadian?.toISOString() ?? null,
     kronologi: r.kronologi,
     status: r.status,

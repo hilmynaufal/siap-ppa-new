@@ -247,7 +247,7 @@ export async function jadwalPendamping(db: PrismaClient, pendampingId: string) {
     where: { pendampingId },
     orderBy: { mulai: "asc" },
     include: {
-      laporan: { select: { kodePendaftaran: true, namaKorban: true, jenisKekerasan: { select: { nama: true } } } },
+      laporan: { select: { kodePendaftaran: true, korban: { select: { nama: true } }, jenisKekerasan: { select: { nama: true } } } },
       jenisPendamping: { select: { nama: true } },
       lokasi: { select: { nama: true, alamat: true } },
       tiket: { select: { nomorAntrean: true } },
@@ -256,7 +256,7 @@ export async function jadwalPendamping(db: PrismaClient, pendampingId: string) {
   return rows.map((s) => ({
     id: s.id,
     kodeLaporan: s.laporan.kodePendaftaran,
-    namaKorban: s.laporan.namaKorban,
+    namaKorban: s.laporan.korban?.nama ?? "-",
     jenisKekerasan: s.laporan.jenisKekerasan.nama,
     urutan: s.urutan,
     jenis: s.jenisPendamping.nama,

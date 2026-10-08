@@ -1,9 +1,10 @@
-import { CalendarClock, FileImage, FileSearch, FileText, MapPin, Phone, ShieldAlert, Ticket, User } from "lucide-react";
+import { CalendarClock, FileImage, FileSearch, FileText, Lock, MapPin, Phone, ShieldAlert, Ticket, User, UserX } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
+import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia } from "@/lib/laporan";
 import { jadwalLaporan } from "@/lib/tiket";
 import { detailLaporan } from "@/lib/verifikasi";
 import { PanelVerifikasi } from "./panel-verifikasi";
@@ -22,6 +23,9 @@ const fmt = (iso: string, denganJam = true) =>
 
 const ukuranTeks = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
 
+/** Label tampilan dari nilai enum (atau "Tidak diisi"). */
+const label = (daftar: readonly { nilai: string; label: string }[], nilai: string | null) => (nilai ? (daftar.find((o) => o.nilai === nilai)?.label ?? nilai) : "Tidak diisi");
+
 function Baris({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1 py-3 sm:grid-cols-[11rem_1fr] sm:gap-4">
@@ -35,6 +39,8 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   const { id } = await params;
   const l = await detailLaporan(db, id);
   if (!l) notFound();
+  const k = l.korban;
+  const usia = k?.tanggalLahir ? hitungUsia(k.tanggalLahir) : null;
   const [sesi, jenis, pendamping, lokasi] = await Promise.all([
     jadwalLaporan(db, id),
     db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
@@ -68,19 +74,52 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-korban" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-2 flex items-center gap-3">
               <IkonKotak ikon={ShieldAlert} warna="coral" />
-              <h2 id="h-korban" className="text-lg font-bold text-navy-900">Data korban dan kejadian</h2>
+              <h2 id="h-korban" className="text-lg font-bold text-navy-900">Data korban</h2>
+            </div>
+            {k ? (
+              <dl className="divide-y divide-line-soft">
+                <Baris label="Nama lengkap">{k.nama}</Baris>
+                <Baris label="NIK">
+                  <span className="inline-flex items-center gap-2 tabular-nums">
+                    <Lock size={14} aria-hidden="true" className="text-ink-mute" />
+                    {k.nikTersamar}
+                  </span>
+                </Baris>
+                <Baris label="Jenis kelamin">{label(OPSI_JENIS_KELAMIN, k.jenisKelamin)}</Baris>
+                <Baris label="Tempat, tanggal lahir">
+                  {k.tempatLahir || k.tanggalLahir ? [k.tempatLahir, k.tanggalLahir ? fmt(`${k.tanggalLahir}T00:00:00+07:00`, false) : null].filter(Boolean).join(", ") : "Tidak diisi"}
+                </Baris>
+                <Baris label="Usia">{usia !== null ? `${usia} tahun` : "Tidak diisi"}</Baris>
+                <Baris label="Pendidikan">{label(OPSI_PENDIDIKAN, k.pendidikan)}</Baris>
+                <Baris label="Pekerjaan">{k.pekerjaan ?? "Tidak diisi"}</Baris>
+                <Baris label="Status perkawinan">{label(OPSI_STATUS_PERKAWINAN, k.statusPerkawinan)}</Baris>
+                {k.kontak && (
+                  <Baris label="Kontak">
+                    <span className="inline-flex items-center gap-2 tabular-nums">
+                      <Phone size={16} aria-hidden="true" className="text-ink-mute" />
+                      {k.kontak}
+                    </span>
+                  </Baris>
+                )}
+                <Baris label="Alamat">
+                  <span className="flex items-start gap-2">
+                    <MapPin size={16} aria-hidden="true" className="mt-1 shrink-0 text-ink-mute" />
+                    <span>{[k.alamat, k.desa, k.kecamatan].filter(Boolean).join(", ") || "Tidak diisi"}</span>
+                  </span>
+                </Baris>
+              </dl>
+            ) : (
+              <p className="text-ink-soft">Data korban tidak tersedia.</p>
+            )}
+          </section>
+
+          <section aria-labelledby="h-kejadian" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
+            <div className="mb-2 flex items-center gap-3">
+              <IkonKotak ikon={FileSearch} warna="amber" />
+              <h2 id="h-kejadian" className="text-lg font-bold text-navy-900">Kejadian</h2>
             </div>
             <dl className="divide-y divide-line-soft">
-              <Baris label="Nama korban">{l.namaKorban}</Baris>
-              <Baris label="Usia">{l.usiaKorban !== null ? `${l.usiaKorban} tahun` : "Tidak diisi"}</Baris>
-              <Baris label="Jenis kelamin">{l.jenisKelaminKorban ?? "Tidak diisi"}</Baris>
               <Baris label="Jenis kekerasan">{l.jenis}</Baris>
-              <Baris label="Kecamatan">
-                <span className="inline-flex items-center gap-2">
-                  <MapPin size={16} aria-hidden="true" className="text-ink-mute" />
-                  {l.kecamatan ?? "Tidak diisi"}
-                </span>
-              </Baris>
               <Baris label="Tanggal kejadian">{l.tanggalKejadian ? fmt(l.tanggalKejadian, false) : "Tidak diisi"}</Baris>
               <Baris label="Kronologi">
                 <p className="whitespace-pre-wrap break-words">{l.kronologi}</p>
@@ -93,15 +132,47 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <IkonKotak ikon={User} warna="sky" />
               <h2 id="h-pelapor" className="text-lg font-bold text-navy-900">Pelapor</h2>
             </div>
-            <dl className="divide-y divide-line-soft">
-              <Baris label="Nama pelapor">{l.namaPelapor}</Baris>
-              <Baris label="Kontak">
-                <span className="inline-flex items-center gap-2 tabular-nums">
-                  <Phone size={16} aria-hidden="true" className="text-ink-mute" />
-                  {l.kontakPelapor}
-                </span>
-              </Baris>
-            </dl>
+            {l.pelaporAdalahKorban || !l.pelapor ? (
+              <p className="text-ink-soft">{l.pelaporAdalahKorban ? "Korban sendiri yang melapor. Kontaknya ada pada data korban." : "Data pelapor tidak tersedia."}</p>
+            ) : (
+              <dl className="divide-y divide-line-soft">
+                <Baris label="Nama lengkap">{l.pelapor.nama}</Baris>
+                <Baris label="NIK">
+                  <span className="inline-flex items-center gap-2 tabular-nums">
+                    <Lock size={14} aria-hidden="true" className="text-ink-mute" />
+                    {l.pelapor.nikTersamar}
+                  </span>
+                </Baris>
+                <Baris label="Hubungan dengan korban">{l.pelapor.hubungan ?? "Tidak diisi"}</Baris>
+                <Baris label="Kontak">
+                  <span className="inline-flex items-center gap-2 tabular-nums">
+                    <Phone size={16} aria-hidden="true" className="text-ink-mute" />
+                    {l.pelapor.kontak}
+                  </span>
+                </Baris>
+                <Baris label="Alamat">{[l.pelapor.alamat, l.pelapor.desa, l.pelapor.kecamatan].filter(Boolean).join(", ") || "Tidak diisi"}</Baris>
+              </dl>
+            )}
+          </section>
+
+          <section aria-labelledby="h-terlapor" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
+            <div className="mb-2 flex items-center gap-3">
+              <IkonKotak ikon={UserX} warna="violet" />
+              <h2 id="h-terlapor" className="text-lg font-bold text-navy-900">Terlapor</h2>
+            </div>
+            {l.terlapor.length === 0 ? (
+              <p className="text-ink-soft">Pelaku belum diketahui atau tidak diisi.</p>
+            ) : (
+              l.terlapor.map((t) => (
+                <dl key={t.id} className="divide-y divide-line-soft">
+                  <Baris label="Nama">{t.nama ?? "Tidak diisi"}</Baris>
+                  <Baris label="Jenis kelamin">{label(OPSI_JENIS_KELAMIN, t.jenisKelamin)}</Baris>
+                  <Baris label="Usia (perkiraan)">{t.usia !== null ? `${t.usia} tahun` : "Tidak diisi"}</Baris>
+                  <Baris label="Hubungan dengan korban">{t.hubungan ?? "Tidak diisi"}</Baris>
+                  <Baris label="Alamat / lokasi">{t.alamat ?? "Tidak diisi"}</Baris>
+                </dl>
+              ))
+            )}
           </section>
 
           {sesi.length > 0 && (

@@ -27,9 +27,8 @@ async function sesiBaru() {
   const l = await db.laporan.create({
     data: {
       kodePendaftaran: `PPA-261007-${sufiks.padEnd(5, "X").slice(0, 5)}${"ABCDEFGHJK"[n]}`,
-      namaPelapor: "Pelapor Fiktif",
-      kontakPelapor: "081200000000",
-      namaKorban: `Korban ${awalan}${n}`,
+      pelapor: { create: { nama: "Pelapor Fiktif", kontak: "081200000000" } },
+      korban: { create: { nama: `Korban ${awalan}${n}` } },
       jenisKekerasanId: jenisId,
       kronologi: "Kronologi fiktif untuk pengujian jadwal.",
       persetujuanData: true,

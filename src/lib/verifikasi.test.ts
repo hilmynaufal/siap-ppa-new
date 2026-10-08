@@ -28,9 +28,8 @@ async function laporanBaru(s: string) {
   const l = await db.laporan.create({
     data: {
       kodePendaftaran: `${awalan}-${s}`,
-      namaPelapor: "Pelapor Fiktif",
-      kontakPelapor: "081200000000",
-      namaKorban: `Korban ${s}`,
+      pelapor: { create: { nama: "Pelapor Fiktif", kontak: "081200000000" } },
+      korban: { create: { nama: `Korban ${s}` } },
       jenisKekerasanId: jenisId,
       kronologi: "Kronologi fiktif untuk pengujian verifikasi.",
       persetujuanData: true,
@@ -68,7 +67,7 @@ describe("verifikasi laporan", () => {
     const baris = (await daftarLaporanAdmin(db)).find((l) => l.id === id);
     expect(baris).toMatchObject({ kode: `${awalan}-a`, status: "BARU", jenis: `Jenis ${awalan}` });
     const d = await detailLaporan(db, id);
-    expect(d).toMatchObject({ namaKorban: "Korban a", namaPelapor: "Pelapor Fiktif", dokumen: [] });
+    expect(d).toMatchObject({ korban: { nama: "Korban a" }, pelapor: { nama: "Pelapor Fiktif" }, terlapor: [], dokumen: [] });
     expect(await detailLaporan(db, "tidak-ada")).toBeNull();
   });
 
