@@ -4,6 +4,7 @@ import type { Peran } from "./session";
 const AREA: { prefix: string; peran: Peran[] }[] = [
   { prefix: "/admin", peran: ["ADMIN"] },
   { prefix: "/pendamping", peran: ["PENDAMPING"] },
+  { prefix: "/petugas", peran: ["PETUGAS"] },
 ];
 
 export function areaUntukPath(pathname: string) {
@@ -25,5 +26,6 @@ export function putuskanAkses(pathname: string, peran: Peran | null): KeputusanA
 }
 
 export function berandaUntuk(peran: Peran): string {
-  return peran === "ADMIN" ? "/admin" : "/pendamping";
+  if (peran === "ADMIN") return "/admin";
+  return peran === "PETUGAS" ? "/petugas" : "/pendamping";
 }

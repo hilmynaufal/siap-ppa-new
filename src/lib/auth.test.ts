@@ -21,6 +21,12 @@ describe("sesi", () => {
     const token = await signSession({ userId: "u1", peran: "ADMIN" }, SECRET);
     expect(await verifySession(token, SECRET)).toEqual({ userId: "u1", peran: "ADMIN" });
   });
+  it("sesi Petugas dapat ditandatangani dan diverifikasi; peran tak dikenal ditolak", async () => {
+    const token = await signSession({ userId: "u2", peran: "PETUGAS" }, SECRET);
+    expect(await verifySession(token, SECRET)).toEqual({ userId: "u2", peran: "PETUGAS" });
+    const palsu = await signSession({ userId: "u3", peran: "SUPER" as never }, SECRET);
+    expect(await verifySession(palsu, SECRET)).toBeNull();
+  });
   it("menolak token dengan kunci lain, rusak, atau kosong", async () => {
     const token = await signSession({ userId: "u1", peran: "ADMIN" }, SECRET);
     expect(await verifySession(token, "y".repeat(40))).toBeNull();
@@ -49,11 +55,21 @@ describe("hak akses per peran", () => {
     expect(putuskanAkses("/pendamping/sesi", "PENDAMPING")).toEqual({ aksi: "izinkan" });
     expect(putuskanAkses("/admin", "PENDAMPING")).toEqual({ aksi: "ke-beranda", peran: "PENDAMPING" });
   });
+  it("Petugas hanya ke /petugas dan diarahkan ke beranda sendiri dari area lain", () => {
+    expect(putuskanAkses("/petugas", "PETUGAS")).toEqual({ aksi: "izinkan" });
+    expect(putuskanAkses("/petugas/jadwal", "PETUGAS")).toEqual({ aksi: "izinkan" });
+    expect(putuskanAkses("/admin/laporan", "PETUGAS")).toEqual({ aksi: "ke-beranda", peran: "PETUGAS" });
+    expect(putuskanAkses("/pendamping", "PETUGAS")).toEqual({ aksi: "ke-beranda", peran: "PETUGAS" });
+    expect(putuskanAkses("/petugas", "ADMIN")).toEqual({ aksi: "ke-beranda", peran: "ADMIN" });
+    expect(putuskanAkses("/petugas", "PENDAMPING")).toEqual({ aksi: "ke-beranda", peran: "PENDAMPING" });
+    expect(putuskanAkses("/petugas", null)).toEqual({ aksi: "ke-masuk" });
+  });
   it("awalan mirip tidak ikut terlindungi secara keliru", () => {
     expect(putuskanAkses("/administrasi", null)).toEqual({ aksi: "izinkan" });
   });
   it("beranda per peran", () => {
     expect(berandaUntuk("ADMIN")).toBe("/admin");
     expect(berandaUntuk("PENDAMPING")).toBe("/pendamping");
+    expect(berandaUntuk("PETUGAS")).toBe("/petugas");
   });
 });

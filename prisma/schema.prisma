@@ -14,6 +14,7 @@ datasource db {
 enum Peran {
   ADMIN
   PENDAMPING
+  PETUGAS
 
   @@map("peran")
 }
@@ -105,10 +106,13 @@ model Pengguna {
   aktif             Boolean  @default(true)
   /// Hanya untuk Pendamping: bidang pendampingannya.
   jenisPendampingId String?  @map("jenis_pendamping_id")
+  /// Hanya untuk Petugas: lokasi layanan tempat ia bertugas.
+  lokasiId          String?  @map("lokasi_id")
   dibuatPada        DateTime @default(now()) @map("dibuat_pada")
   diubahPada        DateTime @updatedAt @map("diubah_pada")
 
   jenisPendamping      JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
+  lokasi               Lokasi?                     @relation("LokasiPetugas", fields: [lokasiId], references: [id])
   laporanDiverifikasi  Laporan[]                   @relation("VerifikatorLaporan")
   sesi                 Sesi[]
   laporanPendampingan  LaporanPendampingan[]
@@ -208,12 +212,13 @@ model Pekerjaan {
 
 /// Tempat layanan (mis. UPTD PPA); antrean dihitung per lokasi.
 model Lokasi {
-  id     String  @id @default(cuid())
-  nama   String  @unique
-  alamat String
-  aktif  Boolean @default(true)
-  sesi   Sesi[]
-  tiket  Tiket[]
+  id      String     @id @default(cuid())
+  nama    String     @unique
+  alamat  String
+  aktif   Boolean    @default(true)
+  sesi    Sesi[]
+  tiket   Tiket[]
+  petugas Pengguna[] @relation("LokasiPetugas")
 
   @@map("lokasi")
 }

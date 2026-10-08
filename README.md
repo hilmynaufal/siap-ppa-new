@@ -59,9 +59,16 @@ Data nyata tidak disimpan di repositori. Isi lewat aplikasi atau perintah beriku
    ```
 
    Menjalankan ulang dengan email yang sama memperbarui nama dan kata sandi.
-2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, Akun Pendamping (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang), Hubungan dengan Korban dan Pekerjaan (nilai awal umum sudah terisi, dapat diubah), serta Desa/Kelurahan (kosong; isi lewat Impor CSV dari berkas resmi, kolom `kecamatan;desa;kode`).
+2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, Akun Pendamping dan Akun Petugas (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang; Petugas terikat pada satu lokasi layanan), Hubungan dengan Korban dan Pekerjaan (nilai awal umum sudah terisi, dapat diubah), serta Desa/Kelurahan (kosong; isi lewat Impor CSV dari berkas resmi, kolom `kecamatan;desa;kode`).
 3. **Kontak darurat** dapat diketik satu per satu atau diimpor dari CSV (menu Kontak Darurat, tombol Impor CSV; templat dapat diunduh di sana). Berkas diperiksa dulu dan hanya disimpan bila semua baris benar.
 4. `npx prisma db seed` hanya untuk lingkungan lokal: berisi akun dan data contoh fiktif.
+
+## Peran
+
+- **Admin**: seluruh area `/admin` (verifikasi, jadwal, antrean, data master, akun).
+- **Pendamping**: area `/pendamping`; hanya sesi yang ditugaskan kepadanya dan ringkasan kasus tanpa identitas korban.
+- **Petugas** (loket): area `/petugas`; mengelola antrean hari ini (check-in, panggil, lewati) dan melihat jadwal hari ini **hanya di lokasi tugasnya**, tanpa data laporan atau identitas korban. Lokasi dibaca dari akun di server, bukan dari kiriman peramban.
+- **Pelapor** tanpa akun: halaman publik.
 
 ## Perlindungan NIK
 

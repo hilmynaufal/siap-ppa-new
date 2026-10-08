@@ -76,14 +76,16 @@ export async function opsiAntrean(db: PrismaClient) {
  * Check-in petugas: memindai QR tiket atau mengetik kode/nomor antrean. Hanya pada hari layanan dan selama sesinya belum dimulai.
  * Tiket yang pernah dilewati dapat check-in lagi (datang terlambat) dan kembali menunggu.
  */
-export async function checkInTiket(db: PrismaClient, masukan: string, petugasId: string, sekarang = new Date()): Promise<HasilAntrean<{ nomorAntrean: string; jam: string }>> {
+export async function checkInTiket(db: PrismaClient, masukan: string, petugasId: string, sekarang = new Date(), batasLokasiId: string | null = null): Promise<HasilAntrean<{ nomorAntrean: string; jam: string }>> {
   const mentah = String(masukan ?? "").trim().slice(0, 100);
   if (!mentah) return { ok: false, pesan: "Isi kode tiket atau pindai QR." };
   const t = await db.tiket.findFirst({
     where: { OR: [{ kodeCheckIn: mentah }, { nomorAntrean: normalisasiKode(mentah) }] },
-    select: { id: true, nomorAntrean: true, tanggal: true, statusAntrean: true, checkInPada: true, sesi: { select: { status: true, laporan: { select: { status: true } } } } },
+    select: { id: true, nomorAntrean: true, lokasiId: true, tanggal: true, statusAntrean: true, checkInPada: true, sesi: { select: { status: true, laporan: { select: { status: true } } } } },
   });
   if (!t) return { ok: false, pesan: "Tiket tidak ditemukan. Periksa kode atau pindai ulang." };
+  // Petugas hanya melayani lokasinya sendiri; pesan sengaja tidak menyebut lokasi lain.
+  if (batasLokasiId && t.lokasiId !== batasLokasiId) return { ok: false, pesan: "Tiket ini bukan untuk lokasi Anda." };
   const tanggal = t.tanggal.toISOString().slice(0, 10);
   if (tanggal !== hariJakarta(sekarang)) return { ok: false, pesan: `Tiket ${t.nomorAntrean} untuk tanggal ${tanggal}, bukan hari ini.` };
   if (t.sesi.laporan.status === "DITUTUP" || t.sesi.status === "DIBATALKAN") return { ok: false, pesan: `Sesi untuk tiket ${t.nomorAntrean} sudah dibatalkan atau kasusnya ditutup.` };
@@ -103,7 +105,8 @@ export async function checkInTiket(db: PrismaClient, masukan: string, petugasId:
 // ------------------------------------------------------------------ Panggil dan lewati
 
 /** Memanggil nomor berikutnya: yang sudah check-in dan menunggu, berurutan menurut nomor antrean. */
-export async function panggilBerikutnya(db: PrismaClient, f: FilterAntrean, petugasId: string, sekarang = new Date()): Promise<HasilAntrean<{ nomorAntrean: string }>> {
+export async function panggilBerikutnya(db: PrismaClient, f: FilterAntrean, petugasId: string, sekarang = new Date(), batasLokasiId: string | null = null): Promise<HasilAntrean<{ nomorAntrean: string }>> {
+  if (batasLokasiId && f.lokasiId !== batasLokasiId) return { ok: false, pesan: "Antrean ini bukan untuk lokasi Anda." };
   if (f.tanggal !== hariJakarta(sekarang)) return { ok: false, pesan: "Nomor hanya dapat dipanggil pada hari layanan." };
   for (let percobaan = 0; percobaan < 3; percobaan++) {
     const t = await db.tiket.findFirst({
@@ -128,9 +131,9 @@ export async function panggilBerikutnya(db: PrismaClient, f: FilterAntrean, petu
 }
 
 /** Melewati nomor yang menunggu atau sedang dipanggil (tidak hadir di meja). Sesinya tetap terjadwal. */
-export async function lewatiTiket(db: PrismaClient, tiketId: string, petugasId: string, sekarang = new Date()): Promise<HasilAntrean<{ nomorAntrean: string }>> {
-  const t = await db.tiket.findUnique({ where: { id: tiketId }, select: { nomorAntrean: true } });
-  if (!t) return { ok: false, pesan: "Tiket tidak ditemukan." };
+export async function lewatiTiket(db: PrismaClient, tiketId: string, petugasId: string, sekarang = new Date(), batasLokasiId: string | null = null): Promise<HasilAntrean<{ nomorAntrean: string }>> {
+  const t = await db.tiket.findUnique({ where: { id: tiketId }, select: { nomorAntrean: true, lokasiId: true } });
+  if (!t || (batasLokasiId && t.lokasiId !== batasLokasiId)) return { ok: false, pesan: "Tiket tidak ditemukan." };
   const { count } = await db.tiket.updateMany({
     where: { id: tiketId, statusAntrean: { in: ["MENUNGGU", "DIPANGGIL"] }, sesi: { status: "TERJADWAL" } },
     data: { statusAntrean: "DILEWATI", selesaiPada: sekarang },
@@ -167,4 +170,40 @@ export async function layarPublik(db: PrismaClient, lokasiId: string, jenisPenda
     dipanggil: dipanggil ? pecahNomor(dipanggil.nomorAntrean) : null,
     berikutnya: berikut.map((b) => ({ ...pecahNomor(b.nomorAntrean), nomor: b.nomorAntrean })),
   };
+}
+
+// ------------------------------------------------------------------ Petugas: jadwal hari ini di lokasinya (tanpa data korban)
+
+export type BarisJadwalHariIni = {
+  nomorAntrean: string;
+  jam: string;
+  jenis: string;
+  pendamping: string;
+  statusSesi: "TERJADWAL" | "BERLANGSUNG" | "SELESAI" | "TIDAK_HADIR" | "DIBATALKAN";
+  statusAntrean: StatusAntrean;
+  checkIn: string | null;
+};
+
+/** Daftar sesi pada satu tanggal di satu lokasi untuk loket. Hanya nomor antrean, jam, jenis, dan Pendamping: tanpa nama atau kode laporan. */
+export async function jadwalHariIni(db: PrismaClient, lokasiId: string, tanggal: string): Promise<BarisJadwalHariIni[]> {
+  const rows = await db.sesi.findMany({
+    where: { lokasiId, mulai: { gte: new Date(`${tanggal}T00:00:00+07:00`), lt: new Date(`${tanggal}T23:59:59.999+07:00`) } },
+    orderBy: { mulai: "asc" },
+    select: {
+      mulai: true,
+      status: true,
+      jenisPendamping: { select: { nama: true } },
+      pendamping: { select: { nama: true } },
+      tiket: { select: { nomorAntrean: true, statusAntrean: true, checkInPada: true } },
+    },
+  });
+  return rows.map((r) => ({
+    nomorAntrean: r.tiket?.nomorAntrean ?? "-",
+    jam: jamJakarta(r.mulai),
+    jenis: r.jenisPendamping.nama,
+    pendamping: r.pendamping.nama,
+    statusSesi: r.status,
+    statusAntrean: (r.tiket?.statusAntrean ?? "MENUNGGU") as StatusAntrean,
+    checkIn: r.tiket?.checkInPada ? jamJakarta(r.tiket.checkInPada) : null,
+  }));
 }

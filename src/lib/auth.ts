@@ -13,7 +13,7 @@ import {
   type Peran,
 } from "./session";
 
-export type PenggunaAktif = { id: string; nama: string; email: string; peran: Peran };
+export type PenggunaAktif = { id: string; nama: string; email: string; peran: Peran; lokasiId: string | null };
 
 export async function buatSesi(userId: string, peran: Peran) {
   const token = await signSession({ userId, peran }, readSecret());
@@ -37,10 +37,10 @@ export const penggunaSaatIni = cache(async (): Promise<PenggunaAktif | null> => 
   if (!sesi) return null;
   const pengguna = await db.pengguna.findUnique({
     where: { id: sesi.userId },
-    select: { id: true, nama: true, email: true, peran: true, aktif: true },
+    select: { id: true, nama: true, email: true, peran: true, aktif: true, lokasiId: true },
   });
   if (!pengguna || !pengguna.aktif) return null;
-  return { id: pengguna.id, nama: pengguna.nama, email: pengguna.email, peran: pengguna.peran };
+  return { id: pengguna.id, nama: pengguna.nama, email: pengguna.email, peran: pengguna.peran, lokasiId: pengguna.lokasiId };
 });
 
 /** Dipakai di layout/halaman/aksi server: penjagaan kedua setelah proxy. */

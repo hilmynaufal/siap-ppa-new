@@ -147,10 +147,10 @@ export async function ubahLokasi(db: PrismaClient, id: string, mentah: unknown, 
 }
 
 export async function hapusLokasi(db: PrismaClient, id: string): Promise<HasilMaster> {
-  const l = await db.lokasi.findUnique({ where: { id }, include: { _count: { select: { sesi: true, tiket: true } } } });
+  const l = await db.lokasi.findUnique({ where: { id }, include: { _count: { select: { sesi: true, tiket: true, petugas: true } } } });
   if (!l) return { ok: false, pesan: "Lokasi tidak ditemukan." };
-  if (l._count.sesi + l._count.tiket > 0) {
-    return { ok: false, pesan: `"${l.nama}" dipakai di ${l._count.sesi} sesi sehingga tidak dapat dihapus. Nonaktifkan lewat Ubah.` };
+  if (l._count.sesi + l._count.tiket + l._count.petugas > 0) {
+    return { ok: false, pesan: `"${l.nama}" dipakai di ${l._count.sesi} sesi dan ${l._count.petugas} petugas sehingga tidak dapat dihapus. Nonaktifkan lewat Ubah.` };
   }
   await db.lokasi.delete({ where: { id } });
   return { ok: true };
@@ -242,17 +242,75 @@ export async function ubahPendamping(db: PrismaClient, id: string, mentah: unkno
   return { ok: true };
 }
 
-export async function aturUlangKataSandi(db: PrismaClient, id: string): Promise<HasilMaster> {
-  const u = await db.pengguna.findFirst({ where: { id, peran: "PENDAMPING" }, select: { id: true } });
-  if (!u) return { ok: false, pesan: "Pendamping tidak ditemukan." };
+export async function aturUlangKataSandi(db: PrismaClient, id: string, peran: "PENDAMPING" | "PETUGAS" = "PENDAMPING"): Promise<HasilMaster> {
+  const u = await db.pengguna.findFirst({ where: { id, peran }, select: { id: true } });
+  if (!u) return { ok: false, pesan: peran === "PETUGAS" ? "Petugas tidak ditemukan." : "Pendamping tidak ditemukan." };
   const kataSandi = buatKataSandiSementara();
   await db.pengguna.update({ where: { id }, data: { kataSandiHash: await hashPassword(kataSandi) } });
   return { ok: true, kataSandi };
 }
 
+// ------------------------------------------------------------------ Akun Petugas (loket)
+
+export const SkemaPetugas = z.object({
+  nama: SkemaPendamping.shape.nama,
+  email: SkemaPendamping.shape.email,
+  lokasiId: z.string({ error: "Pilih lokasi tugas." }).trim().min(1, { error: "Pilih lokasi tugas." }),
+});
+
+export async function daftarPetugas(db: PrismaClient) {
+  const rows = await db.pengguna.findMany({
+    where: { peran: "PETUGAS" },
+    orderBy: { nama: "asc" },
+    include: { lokasi: { select: { id: true, nama: true } } },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    nama: r.nama,
+    email: r.email,
+    aktif: r.aktif,
+    lokasiId: r.lokasiId,
+    lokasi: r.lokasi?.nama ?? null,
+    dibuatPada: r.dibuatPada.toISOString(),
+  }));
+}
+
+const periksaLokasiTugas = (db: PrismaClient, id: string) => db.lokasi.findFirst({ where: { id, aktif: true }, select: { id: true } });
+const GALAT_LOKASI = { ok: false as const, pesan: "Lokasi tidak ditemukan atau tidak aktif.", galat: { lokasiId: "Lokasi tidak ditemukan atau tidak aktif." } };
+
+export async function tambahPetugas(db: PrismaClient, mentah: unknown): Promise<HasilMaster & { id?: string }> {
+  const p = SkemaPetugas.safeParse(mentah);
+  if (!p.success) return galatZod(p.error);
+  if (!(await periksaLokasiTugas(db, p.data.lokasiId))) return GALAT_LOKASI;
+  const kataSandi = buatKataSandiSementara();
+  try {
+    const u = await db.pengguna.create({ data: { ...p.data, peran: "PETUGAS", kataSandiHash: await hashPassword(kataSandi) } });
+    return { ok: true, kataSandi, id: u.id };
+  } catch (e) {
+    if (unik(e)) return { ok: false, pesan: "Email sudah terdaftar.", galat: { email: "Email ini sudah terdaftar." } };
+    throw e;
+  }
+}
+
+export async function ubahPetugas(db: PrismaClient, id: string, mentah: unknown, aktif: boolean): Promise<HasilMaster> {
+  const p = SkemaPetugas.safeParse(mentah);
+  if (!p.success) return galatZod(p.error);
+  const u = await db.pengguna.findFirst({ where: { id, peran: "PETUGAS" } });
+  if (!u) return { ok: false, pesan: "Petugas tidak ditemukan." };
+  // Lokasi lama tetap boleh dipertahankan walau kini nonaktif.
+  if (p.data.lokasiId !== u.lokasiId && !(await periksaLokasiTugas(db, p.data.lokasiId))) return GALAT_LOKASI;
+  try {
+    await db.pengguna.update({ where: { id }, data: { ...p.data, aktif } });
+  } catch (e) {
+    if (unik(e)) return { ok: false, pesan: "Email sudah terdaftar.", galat: { email: "Email ini sudah terdaftar." } };
+    throw e;
+  }
+  return { ok: true };
+}
+
 // ------------------------------------------------------------------ Saklar aktif
 
-export type JenisMaster = "jenisPendampingan" | "lokasi" | "pendamping";
+export type JenisMaster = "jenisPendampingan" | "lokasi" | "pendamping" | "petugas";
 
 /** Menyalakan atau mematikan satu data master (data tidak dihapus agar riwayat jadwal tetap utuh). */
 export async function alihkanAktifMaster(db: PrismaClient, jenis: JenisMaster, id: string, aktif: boolean): Promise<HasilMaster> {
@@ -260,8 +318,9 @@ export async function alihkanAktifMaster(db: PrismaClient, jenis: JenisMaster, i
     if (jenis === "jenisPendampingan") await db.jenisPendampingan.update({ where: { id }, data: { aktif } });
     else if (jenis === "lokasi") await db.lokasi.update({ where: { id }, data: { aktif } });
     else {
-      const { count } = await db.pengguna.updateMany({ where: { id, peran: "PENDAMPING" }, data: { aktif } });
-      if (count === 0) return { ok: false, pesan: "Pendamping tidak ditemukan." };
+      const peran = jenis === "petugas" ? "PETUGAS" : "PENDAMPING";
+      const { count } = await db.pengguna.updateMany({ where: { id, peran }, data: { aktif } });
+      if (count === 0) return { ok: false, pesan: peran === "PETUGAS" ? "Petugas tidak ditemukan." : "Pendamping tidak ditemukan." };
     }
   } catch (e) {
     if (tidakAda(e)) return { ok: false, pesan: "Data tidak ditemukan." };

@@ -7,6 +7,7 @@ erDiagram
     enum_peran peran
     Boolean aktif
     String jenis_pendamping_id FK "opsional"
+    String lokasi_id FK "opsional"
     DateTime dibuat_pada
     DateTime diubah_pada
   }
@@ -226,6 +227,7 @@ erDiagram
     DateTime dibuat_pada
   }
   jenis_pendampingan |o--o{ pengguna : "jenisPendamping"
+  lokasi |o--o{ pengguna : "lokasi"
   pengguna |o--o{ jenis_kekerasan : "dibuatOleh"
   kecamatan ||--o{ desa : "kecamatan"
   kecamatan |o--o{ kontak_darurat : "kecamatan"

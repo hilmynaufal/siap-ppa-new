@@ -6,14 +6,17 @@ import {
   aturUlangKataSandi,
   buatKataSandiSementara,
   daftarPendamping,
+  daftarPetugas,
   hapusJenisPendampingan,
   hapusLokasi,
   tambahJenisPendampingan,
   tambahLokasi,
   tambahPendamping,
+  tambahPetugas,
   ubahJenisPendampingan,
   ubahLokasi,
   ubahPendamping,
+  ubahPetugas,
 } from "./master-layanan";
 import { verifyPassword } from "./password";
 
@@ -101,5 +104,41 @@ describe("akun Pendamping", () => {
     expect(a).toHaveLength(14);
     expect(a).not.toMatch(/[01OIl]/);
     expect(buatKataSandiSementara()).not.toBe(a);
+  });
+});
+
+describe("akun Petugas", () => {
+  it("membuat akun terikat lokasi dengan kata sandi sementara, lokasi wajib dan aktif, email unik", async () => {
+    const lok = await db.lokasi.create({ data: { nama: `${awalan} Lokasi Petugas`, alamat: "Jl. Fiktif 1" } });
+    const lokOff = await db.lokasi.create({ data: { nama: `${awalan} Lokasi Mati`, alamat: "Jl. Fiktif 2", aktif: false } });
+    const email = `petugas.${acak.toLowerCase()}@contoh.test`;
+    expect(await tambahPetugas(db, { nama: "Petugas Uji", email, lokasiId: "" })).toMatchObject({ ok: false, galat: { lokasiId: expect.any(String) } });
+    expect(await tambahPetugas(db, { nama: "Petugas Uji", email, lokasiId: lokOff.id })).toMatchObject({ ok: false, galat: { lokasiId: expect.stringContaining("tidak aktif") } });
+    const h = await tambahPetugas(db, { nama: "Petugas Uji", email, lokasiId: lok.id });
+    expect(h.ok).toBe(true);
+    const sandi = h.ok ? h.kataSandi! : "";
+    const u = await db.pengguna.findUniqueOrThrow({ where: { email } });
+    expect(u).toMatchObject({ peran: "PETUGAS", aktif: true, lokasiId: lok.id, jenisPendampingId: null });
+    expect(await verifyPassword(sandi, u.kataSandiHash)).toBe(true);
+    expect(await tambahPetugas(db, { nama: "Lain", email: email.toUpperCase(), lokasiId: lok.id })).toMatchObject({ ok: false, galat: { email: expect.stringContaining("sudah terdaftar") } });
+
+    // ubah dan nonaktifkan; atur ulang sandi khusus Petugas
+    expect(await ubahPetugas(db, u.id, { nama: "Petugas Uji 2", email, lokasiId: lok.id }, false)).toEqual({ ok: true });
+    expect((await db.pengguna.findUniqueOrThrow({ where: { id: u.id } })).aktif).toBe(false);
+    const baru = await aturUlangKataSandi(db, u.id, "PETUGAS");
+    expect(baru.ok && baru.kataSandi).toBeTruthy();
+    expect(await aturUlangKataSandi(db, u.id)).toMatchObject({ ok: false }); // bukan Pendamping
+    expect((await daftarPetugas(db)).find((d) => d.id === u.id)).toMatchObject({ nama: "Petugas Uji 2", lokasi: `${awalan} Lokasi Petugas`, aktif: false });
+
+    // lokasi yang dipakai Petugas tidak dapat dihapus
+    expect(await hapusLokasi(db, lok.id)).toMatchObject({ ok: false, pesan: expect.stringContaining("petugas") });
+    await db.pengguna.deleteMany({ where: { id: u.id } });
+  });
+
+  it("Pendamping tidak tampil di daftar Petugas dan tidak dapat diubah lewat fungsi Petugas", async () => {
+    const pend = await db.pengguna.create({ data: { nama: "Pendamping ML", email: `pend-${acak.toLowerCase()}@contoh.test`, kataSandiHash: "x", peran: "PENDAMPING" } });
+    const lok = await db.lokasi.create({ data: { nama: `${awalan} Lokasi P2`, alamat: "Jl. Fiktif 3" } });
+    expect((await daftarPetugas(db)).some((d) => d.id === pend.id)).toBe(false);
+    expect(await ubahPetugas(db, pend.id, { nama: "X Y Z", email: pend.email, lokasiId: lok.id }, true)).toEqual({ ok: false, pesan: "Petugas tidak ditemukan." });
   });
 });
