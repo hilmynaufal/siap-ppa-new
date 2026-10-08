@@ -127,8 +127,48 @@ model Kecamatan {
   nama    String          @unique
   laporan Laporan[]
   kontak  KontakDarurat[]
+  desa    Desa[]
 
   @@map("kecamatan")
+}
+
+/// Desa atau kelurahan dalam satu kecamatan; diisi Admin lewat impor CSV.
+model Desa {
+  id          String    @id @default(cuid())
+  kecamatanId String    @map("kecamatan_id")
+  nama        String
+  /// Kode wilayah Kemendagri bila tersedia.
+  kode        String?   @unique
+  dibuatPada  DateTime  @default(now()) @map("dibuat_pada")
+  diubahPada  DateTime  @default(now()) @updatedAt @map("diubah_pada")
+  kecamatan   Kecamatan @relation(fields: [kecamatanId], references: [id])
+
+  @@unique([kecamatanId, nama])
+  @@map("desa")
+}
+
+/// Hubungan pelapor atau terlapor dengan korban (satu daftar bersama, dikelola Admin).
+model HubunganKorban {
+  id         String   @id @default(cuid())
+  nama       String   @unique
+  aktif      Boolean  @default(true)
+  urutan     Int      @default(0)
+  dibuatPada DateTime @default(now()) @map("dibuat_pada")
+  diubahPada DateTime @default(now()) @updatedAt @map("diubah_pada")
+
+  @@map("hubungan_korban")
+}
+
+/// Pekerjaan korban (daftar pendek yang dikelola Admin).
+model Pekerjaan {
+  id         String   @id @default(cuid())
+  nama       String   @unique
+  aktif      Boolean  @default(true)
+  urutan     Int      @default(0)
+  dibuatPada DateTime @default(now()) @map("dibuat_pada")
+  diubahPada DateTime @default(now()) @updatedAt @map("diubah_pada")
+
+  @@map("pekerjaan")
 }
 
 /// Tempat layanan (mis. UPTD PPA); antrean dihitung per lokasi.

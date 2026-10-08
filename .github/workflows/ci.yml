@@ -36,6 +36,8 @@ jobs:
       DATABASE_URL: postgresql://siap_ppa:siap_ppa_ci@localhost:5432/siap_ppa?schema=public
       # Nilai khusus CI, bukan rahasia.
       SESSION_SECRET: ci-session-secret-tidak-untuk-produksi-0123456789
+      # Kunci uji (32 byte base64) khusus CI; produksi memakai kunci acak sendiri.
+      DATA_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
 
     steps:
       - uses: actions/checkout@v4

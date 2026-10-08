@@ -36,6 +36,12 @@ const PENDAMPINGAN_UJI = [
   { kode: "HUK", nama: "Pendampingan hukum" },
   { kode: "MED", nama: "Pendampingan medis" },
 ];
+// Contoh desa FIKTIF untuk menguji formulir lokal. Data resmi diimpor Admin lewat CSV di halaman Desa/Kelurahan.
+const DESA_UJI = [
+  { kecamatan: "Soreang", nama: "Desa Contoh Satu" },
+  { kecamatan: "Soreang", nama: "Kelurahan Contoh Dua" },
+  { kecamatan: "Baleendah", nama: "Desa Contoh Tiga" },
+];
 const LOKASI_UJI = [{ nama: "Kantor UPTD PPA (contoh)", alamat: "Jl. Raya Soreang-Banjaran, Soreang" }];
 
 async function main() {
@@ -52,6 +58,10 @@ async function main() {
   for (const l of LOKASI_UJI) {
     await db.lokasi.upsert({ where: { nama: l.nama }, update: {}, create: l });
   }
+  for (const d of DESA_UJI) {
+    const kec = await db.kecamatan.findUniqueOrThrow({ where: { nama: d.kecamatan } });
+    await db.desa.upsert({ where: { kecamatanId_nama: { kecamatanId: kec.id, nama: d.nama } }, update: {}, create: { kecamatanId: kec.id, nama: d.nama } });
+  }
   const psi = await db.jenisPendampingan.findUniqueOrThrow({ where: { kode: "PSI" } });
   await db.pengguna.updateMany({ where: { email: "pendamping@contoh.test", jenisPendampingId: null }, data: { jenisPendampingId: psi.id } });
   for (const nama of JENIS_UJI) {
@@ -62,7 +72,7 @@ async function main() {
     const ada = await db.kontakDarurat.findFirst({ where: { instansi: k.instansi } });
     if (!ada) await db.kontakDarurat.create({ data: { instansi: k.instansi, telepon: k.telepon, alamat: k.alamat, kecamatanId: kec?.id ?? null } });
   }
-  console.log(`Seed: ${AKUN_UJI.length} akun uji, ${JENIS_UJI.length} jenis kekerasan, ${KONTAK_UJI.length} kontak darurat, ${PENDAMPINGAN_UJI.length} jenis pendampingan, ${LOKASI_UJI.length} lokasi contoh.`);
+  console.log(`Seed: ${AKUN_UJI.length} akun uji, ${JENIS_UJI.length} jenis kekerasan, ${KONTAK_UJI.length} kontak darurat, ${PENDAMPINGAN_UJI.length} jenis pendampingan, ${LOKASI_UJI.length} lokasi, ${DESA_UJI.length} desa contoh.`);
 }
 
 main().finally(() => db.$disconnect());

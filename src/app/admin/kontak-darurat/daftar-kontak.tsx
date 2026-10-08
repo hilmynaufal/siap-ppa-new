@@ -17,8 +17,9 @@ import {
   tombolUtama,
   useTutupDenganEsc,
 } from "@/components/ui-form";
-import { alihkan, hapus, tambah, ubah, type AksiKontak } from "./actions";
-import { ImporKontak } from "./impor-kontak";
+import { alihkan, hapus, jalankanImpor, pratinjauImpor, tambah, ubah, type AksiKontak } from "./actions";
+import { ImporCsv } from "@/components/impor-csv";
+import { TEMPLAT_CSV } from "@/lib/impor-kontak";
 
 type Kontak = {
   id: string;
@@ -256,7 +257,19 @@ export function DaftarKontak({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <ImporKontak />
+          <ImporCsv
+            judul="Impor kontak darurat dari CSV"
+            petunjuk={
+              <>
+                Kolom: <strong>instansi, telepon, alamat, kecamatan</strong>. Kosongkan kecamatan untuk kontak tingkat kabupaten. Baris yang sudah ada (instansi dan kecamatan sama) dilewati.
+              </>
+            }
+            templat={TEMPLAT_CSV}
+            namaTemplat="templat-kontak-darurat.csv"
+            satuan="kontak"
+            pratinjau={pratinjauImpor}
+            jalankan={jalankanImpor}
+          />
           <button type="button" onClick={() => setForm({ kontak: null })} className={tombolUtama}>
             <Plus size={20} aria-hidden="true" />
             Tambah kontak

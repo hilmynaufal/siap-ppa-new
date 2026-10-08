@@ -2,18 +2,40 @@
 
 import { CheckCircle2, Download, FileSpreadsheet, TriangleAlert, Upload } from "lucide-react";
 import { startTransition, useActionState, useState } from "react";
-import { Galat, Modal, fokus, tombolNetral, tombolUtama } from "@/components/ui-form";
-import { TEMPLAT_CSV } from "@/lib/impor-kontak";
-import { jalankanImpor, pratinjauImpor, type AksiImpor } from "./actions";
+import { Galat, Modal, fokus, tombolNetral, tombolUtama } from "./ui-form";
 
-/** Tombol dan modal impor kontak dari CSV: pilih berkas, periksa (tanpa menyimpan), lalu impor bila semua baris valid. */
-export function ImporKontak() {
+export type PratinjauUmum = { ok: boolean; pesan?: string; valid: unknown[]; dilewati: unknown[]; galat: { baris: number; pesan: string }[] };
+export type AksiImporUmum = { pratinjau?: PratinjauUmum; pesan?: string; selesai?: { ditambah: number; dilewati: number } } | undefined;
+type AksiServer = (s: AksiImporUmum, fd: FormData) => Promise<AksiImporUmum>;
+/** Aksi server tiap halaman punya tipe status sendiri yang bentuknya sama; diterima apa adanya lalu dipakai sebagai AksiServer. */
+type AksiHalaman = (s: never, fd: FormData) => Promise<unknown>;
+
+/** Tombol dan modal impor CSV: pilih berkas, periksa (tanpa menyimpan), lalu impor bila semua baris valid. */
+export function ImporCsv({
+  judul,
+  petunjuk,
+  templat,
+  namaTemplat,
+  satuan,
+  pratinjau: aksiPratinjau,
+  jalankan: aksiJalankan,
+}: {
+  judul: string;
+  petunjuk: React.ReactNode;
+  /** Isi templat CSV yang dapat diunduh. */
+  templat: string;
+  namaTemplat: string;
+  /** Kata benda untuk ringkasan, mis. "kontak" atau "desa". */
+  satuan: string;
+  pratinjau: AksiHalaman;
+  jalankan: AksiHalaman;
+}) {
   const [buka, setBuka] = useState(false);
   const [berkas, setBerkas] = useState<File | null>(null);
-  const [periksa, kirimPeriksa, memeriksa] = useActionState(pratinjauImpor, undefined as AksiImpor);
-  const [impor, kirimImpor, mengimpor] = useActionState(jalankanImpor, undefined as AksiImpor);
+  const [periksa, kirimPeriksa, memeriksa] = useActionState(aksiPratinjau as unknown as AksiServer, undefined as AksiImporUmum);
+  const [impor, kirimImpor, mengimpor] = useActionState(aksiJalankan as unknown as AksiServer, undefined as AksiImporUmum);
   // URL data (bukan blob) agar sama di server dan klien; BOM membuat Excel membaca UTF-8 dengan benar.
-  const urlTemplat = `data:text/csv;charset=utf-8,${encodeURIComponent(String.fromCharCode(0xfeff) + TEMPLAT_CSV)}`;
+  const urlTemplat = `data:text/csv;charset=utf-8,${encodeURIComponent(String.fromCharCode(0xfeff) + templat)}`;
 
   const tutup = () => {
     setBuka(false);
@@ -43,21 +65,21 @@ export function ImporKontak() {
           idSubjudul="subjudul-impor"
           ikon={FileSpreadsheet}
           warna="teal"
-          judul="Impor kontak darurat dari CSV"
+          judul={judul}
           subjudul="Berkas diperiksa dulu. Data baru disimpan hanya bila semua baris benar."
           onTutup={tutup}
         >
           <div className="mt-5 flex flex-col gap-4">
             <a
               href={urlTemplat}
-              download="templat-kontak-darurat.csv"
+              download={namaTemplat}
               className={`inline-flex min-h-11 items-center gap-2 self-start rounded-xl px-1 text-sm font-bold text-blue-600 hover:underline ${fokus}`}
             >
               <Download size={16} aria-hidden="true" />
               Unduh templat CSV
             </a>
             <p className="text-sm text-ink-soft">
-              Kolom: <strong>instansi, telepon, alamat, kecamatan</strong>. Kosongkan kecamatan untuk kontak tingkat kabupaten. Baris yang sudah ada (instansi dan kecamatan sama) dilewati.
+              {petunjuk}
             </p>
             <div>
               <label htmlFor="berkas-csv" className="mb-2 block text-sm font-bold">
@@ -79,7 +101,7 @@ export function ImporKontak() {
               <div role="status" className={"rounded-xl p-4 text-sm " + (p.ok ? "bg-success-50 text-success" : "bg-error-50 text-error")}>
                 <p className="flex items-center gap-2 font-bold">
                   {p.ok ? <CheckCircle2 size={16} aria-hidden="true" /> : <TriangleAlert size={16} aria-hidden="true" />}
-                  {p.ok ? `${p.valid.length} kontak siap diimpor${p.dilewati.length ? `, ${p.dilewati.length} dilewati karena sudah ada` : ""}.` : p.pesan}
+                  {p.ok ? `${p.valid.length} ${satuan} siap diimpor${p.dilewati.length ? `, ${p.dilewati.length} dilewati karena sudah ada` : ""}.` : p.pesan}
                 </p>
                 {p.galat.length > 0 && (
                   <ul className="mt-2 max-h-40 list-disc overflow-y-auto pl-5 text-ink">
@@ -95,7 +117,7 @@ export function ImporKontak() {
             {sudahImpor && impor?.selesai && (
               <p role="status" className="flex items-center gap-2 rounded-xl bg-success-50 p-4 text-sm font-bold text-success">
                 <CheckCircle2 size={16} aria-hidden="true" />
-                {impor.selesai.ditambah} kontak ditambahkan{impor.selesai.dilewati ? `, ${impor.selesai.dilewati} dilewati (sudah ada)` : ""}.
+                {impor.selesai.ditambah} {satuan} ditambahkan{impor.selesai.dilewati ? `, ${impor.selesai.dilewati} dilewati (sudah ada)` : ""}.
               </p>
             )}
           </div>
@@ -110,7 +132,7 @@ export function ImporKontak() {
                 </button>
                 <button type="button" disabled={!berkas || !p?.ok || p.valid.length === 0 || mengimpor} onClick={() => kirim(kirimImpor)} className={tombolUtama}>
                   <Upload size={18} aria-hidden="true" />
-                  Impor{p?.ok && p.valid.length > 0 ? ` ${p.valid.length} kontak` : ""}
+                  Impor{p?.ok && p.valid.length > 0 ? ` ${p.valid.length} ${satuan}` : ""}
                 </button>
               </>
             )}
