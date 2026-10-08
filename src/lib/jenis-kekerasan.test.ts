@@ -91,9 +91,8 @@ describe("master jenis kekerasan", () => {
     await db.laporan.create({
       data: {
         kodePendaftaran: `${awalan}-1`,
-        namaPelapor: "Uji",
-        kontakPelapor: "0",
-        namaKorban: "Uji",
+        pelapor: { create: { nama: "Uji", kontak: "0" } },
+        korban: { create: { nama: "Uji" } },
         jenisKekerasanId: id,
         kronologi: "uji",
         persetujuanData: true,

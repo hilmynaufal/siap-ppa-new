@@ -25,9 +25,8 @@ async function laporanBaru(n: number, status: "BARU" | "DITOLAK" = "BARU") {
   const l = await db.laporan.create({
     data: {
       kodePendaftaran: kodeUji(n),
-      namaPelapor: "Pelapor Fiktif",
-      kontakPelapor: "081200000000",
-      namaKorban: `Korban ${awalan}${n}`,
+      pelapor: { create: { nama: "Pelapor Fiktif", kontak: "081200000000" } },
+      korban: { create: { nama: `Korban ${awalan}${n}` } },
       jenisKekerasanId: jenisId,
       kronologi: "Kronologi fiktif untuk pengujian tiket.",
       persetujuanData: true,

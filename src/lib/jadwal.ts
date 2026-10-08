@@ -162,7 +162,7 @@ export async function daftarJadwalAdmin(db: PrismaClient) {
   const rows = await db.sesi.findMany({
     orderBy: { mulai: "asc" },
     include: {
-      laporan: { select: { kodePendaftaran: true, namaKorban: true } },
+      laporan: { select: { kodePendaftaran: true, korban: { select: { nama: true } } } },
       jenisPendamping: { select: { nama: true } },
       lokasi: { select: { nama: true } },
       pendamping: { select: { id: true, nama: true } },
@@ -174,7 +174,7 @@ export async function daftarJadwalAdmin(db: PrismaClient) {
   return rows.map((s) => ({
     id: s.id,
     kodeLaporan: s.laporan.kodePendaftaran,
-    namaKorban: s.laporan.namaKorban,
+    namaKorban: s.laporan.korban?.nama ?? "-",
     urutan: s.urutan,
     jenis: s.jenisPendamping.nama,
     jenisPendampingId: s.jenisPendampingId,

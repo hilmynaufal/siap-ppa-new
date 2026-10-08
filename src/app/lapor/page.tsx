@@ -2,17 +2,22 @@ import { HeartHandshake } from "lucide-react";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { KepalaPelapor } from "@/components/kepala-pelapor";
 import { db } from "@/lib/db";
+import { pilihanDesa } from "@/lib/desa";
 import { kontakDaruratAktif } from "@/lib/kontak-darurat";
+import { pilihanReferensi } from "@/lib/referensi";
 import { FormLaporan } from "./form-laporan";
 
 export const metadata = { title: "Buat Laporan | SIAP PPA" };
 export const dynamic = "force-dynamic";
 
 export default async function HalamanLapor() {
-  const [jenis, kecamatan, kontak] = await Promise.all([
+  const [jenis, kecamatan, kontak, desa, hubungan, pekerjaan] = await Promise.all([
     db.jenisKekerasan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     db.kecamatan.findMany({ orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     kontakDaruratAktif(db, 1),
+    pilihanDesa(db),
+    pilihanReferensi(db, "hubungan"),
+    pilihanReferensi(db, "pekerjaan"),
   ]);
 
   return (
@@ -30,7 +35,7 @@ export default async function HalamanLapor() {
             </div>
           </div>
         ) : (
-          <FormLaporan jenis={jenis} kecamatan={kecamatan} />
+          <FormLaporan jenis={jenis} kecamatan={kecamatan} desa={desa} hubungan={hubungan} pekerjaan={pekerjaan} />
         )}
       </main>
     </div>

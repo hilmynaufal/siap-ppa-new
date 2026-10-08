@@ -29,6 +29,35 @@ enum StatusLaporan {
   @@map("status_laporan")
 }
 
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+
+  @@map("jenis_kelamin")
+}
+
+enum Pendidikan {
+  BELUM_SEKOLAH
+  TIDAK_SEKOLAH
+  SD
+  SMP
+  SMA
+  DIPLOMA
+  SARJANA
+  PASCASARJANA
+
+  @@map("pendidikan")
+}
+
+enum StatusPerkawinan {
+  BELUM_KAWIN
+  KAWIN
+  CERAI_HIDUP
+  CERAI_MATI
+
+  @@map("status_perkawinan")
+}
+
 enum StatusSesi {
   TERJADWAL
   BERLANGSUNG
@@ -125,9 +154,10 @@ model JenisPendampingan {
 model Kecamatan {
   id      String          @id @default(cuid())
   nama    String          @unique
-  laporan Laporan[]
   kontak  KontakDarurat[]
   desa    Desa[]
+  pelapor Pelapor[]
+  korban  Korban[]
 
   @@map("kecamatan")
 }
@@ -142,6 +172,8 @@ model Desa {
   dibuatPada  DateTime  @default(now()) @map("dibuat_pada")
   diubahPada  DateTime  @default(now()) @updatedAt @map("diubah_pada")
   kecamatan   Kecamatan @relation(fields: [kecamatanId], references: [id])
+  pelapor     Pelapor[]
+  korban      Korban[]
 
   @@unique([kecamatanId, nama])
   @@map("desa")
@@ -149,12 +181,14 @@ model Desa {
 
 /// Hubungan pelapor atau terlapor dengan korban (satu daftar bersama, dikelola Admin).
 model HubunganKorban {
-  id         String   @id @default(cuid())
-  nama       String   @unique
-  aktif      Boolean  @default(true)
-  urutan     Int      @default(0)
-  dibuatPada DateTime @default(now()) @map("dibuat_pada")
-  diubahPada DateTime @default(now()) @updatedAt @map("diubah_pada")
+  id         String     @id @default(cuid())
+  nama       String     @unique
+  aktif      Boolean    @default(true)
+  urutan     Int        @default(0)
+  dibuatPada DateTime   @default(now()) @map("dibuat_pada")
+  diubahPada DateTime   @default(now()) @updatedAt @map("diubah_pada")
+  pelapor    Pelapor[]
+  terlapor   Terlapor[]
 
   @@map("hubungan_korban")
 }
@@ -167,6 +201,7 @@ model Pekerjaan {
   urutan     Int      @default(0)
   dibuatPada DateTime @default(now()) @map("dibuat_pada")
   diubahPada DateTime @default(now()) @updatedAt @map("diubah_pada")
+  korban     Korban[]
 
   @@map("pekerjaan")
 }
@@ -203,34 +238,97 @@ model KontakDarurat {
 // ============ Pelaporan ============
 
 model Laporan {
-  id                 String        @id @default(cuid())
-  kodePendaftaran    String        @unique @map("kode_pendaftaran")
-  namaPelapor        String        @map("nama_pelapor")
-  kontakPelapor      String        @map("kontak_pelapor")
-  namaKorban         String        @map("nama_korban")
-  usiaKorban         Int?          @map("usia_korban")
-  jenisKelaminKorban String?       @map("jenis_kelamin_korban")
-  jenisKekerasanId   String        @map("jenis_kekerasan_id")
-  kecamatanId        String?       @map("kecamatan_id")
-  tanggalKejadian    DateTime?     @map("tanggal_kejadian")
-  kronologi          String
-  persetujuanData    Boolean       @map("persetujuan_data")
-  persetujuanPada    DateTime      @map("persetujuan_pada")
-  status             StatusLaporan @default(BARU)
-  alasanPenolakan    String?       @map("alasan_penolakan")
-  verifikatorId      String?       @map("verifikator_id")
-  diverifikasiPada   DateTime?     @map("diverifikasi_pada")
-  ditutupPada        DateTime?     @map("ditutup_pada")
-  dibuatPada         DateTime      @default(now()) @map("dibuat_pada")
+  id                  String        @id @default(cuid())
+  kodePendaftaran     String        @unique @map("kode_pendaftaran")
+  /// Bila benar, tidak ada baris Pelapor: korban sendiri yang melapor (kontaknya ada di Korban).
+  pelaporAdalahKorban Boolean       @default(false) @map("pelapor_adalah_korban")
+  jenisKekerasanId    String        @map("jenis_kekerasan_id")
+  tanggalKejadian     DateTime?     @map("tanggal_kejadian")
+  kronologi           String
+  persetujuanData     Boolean       @map("persetujuan_data")
+  persetujuanPada     DateTime      @map("persetujuan_pada")
+  status              StatusLaporan @default(BARU)
+  alasanPenolakan     String?       @map("alasan_penolakan")
+  verifikatorId       String?       @map("verifikator_id")
+  diverifikasiPada    DateTime?     @map("diverifikasi_pada")
+  ditutupPada         DateTime?     @map("ditutup_pada")
+  dibuatPada          DateTime      @default(now()) @map("dibuat_pada")
 
   jenisKekerasan JenisKekerasan   @relation(fields: [jenisKekerasanId], references: [id])
-  kecamatan      Kecamatan?       @relation(fields: [kecamatanId], references: [id])
   verifikator    Pengguna?        @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
+  pelapor        Pelapor?
+  korban         Korban?
+  terlapor       Terlapor[]
   dokumen        DokumenLaporan[]
   sesi           Sesi[]
 
   @@index([status, dibuatPada])
   @@map("laporan")
+}
+
+/// Data pelapor bila bukan korban sendiri. NIK disimpan terenkripsi (lihat src/lib/nik.ts).
+/// Kolom yang diwajibkan formulir dibuat nullable karena data sebelum revisi formulir tidak memilikinya.
+model Pelapor {
+  id          String          @id @default(cuid())
+  laporanId   String          @unique @map("laporan_id")
+  nama        String
+  nikCipher   String?         @map("nik_cipher")
+  nikIndeks   String?         @map("nik_indeks")
+  hubunganId  String?         @map("hubungan_id")
+  kontak      String
+  alamat      String?
+  kecamatanId String?         @map("kecamatan_id")
+  desaId      String?         @map("desa_id")
+  laporan     Laporan         @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  hubungan    HubunganKorban? @relation(fields: [hubunganId], references: [id], onDelete: Restrict)
+  kecamatan   Kecamatan?      @relation(fields: [kecamatanId], references: [id], onDelete: Restrict)
+  desa        Desa?           @relation(fields: [desaId], references: [id], onDelete: Restrict)
+
+  @@index([nikIndeks])
+  @@map("pelapor")
+}
+
+model Korban {
+  id               String            @id @default(cuid())
+  laporanId        String            @unique @map("laporan_id")
+  nama             String
+  nikCipher        String?           @map("nik_cipher")
+  nikIndeks        String?           @map("nik_indeks")
+  jenisKelamin     JenisKelamin?     @map("jenis_kelamin")
+  tempatLahir      String?           @map("tempat_lahir")
+  tanggalLahir     DateTime?         @map("tanggal_lahir") @db.Date
+  pendidikan       Pendidikan?
+  pekerjaanId      String?           @map("pekerjaan_id")
+  statusPerkawinan StatusPerkawinan? @map("status_perkawinan")
+  /// Wajib bila pelapor adalah korban sendiri (petugas perlu menghubunginya).
+  kontak           String?
+  alamat           String?
+  kecamatanId      String?           @map("kecamatan_id")
+  desaId           String?           @map("desa_id")
+  laporan          Laporan           @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  pekerjaan        Pekerjaan?        @relation(fields: [pekerjaanId], references: [id], onDelete: Restrict)
+  kecamatan        Kecamatan?        @relation(fields: [kecamatanId], references: [id], onDelete: Restrict)
+  desa             Desa?             @relation(fields: [desaId], references: [id], onDelete: Restrict)
+
+  @@index([nikIndeks])
+  @@index([kecamatanId])
+  @@map("korban")
+}
+
+/// Pihak yang dilaporkan. Satu laporan dapat memiliki lebih dari satu; formulir saat ini menerima satu.
+model Terlapor {
+  id           String          @id @default(cuid())
+  laporanId    String          @map("laporan_id")
+  nama         String?
+  jenisKelamin JenisKelamin?   @map("jenis_kelamin")
+  usia         Int?
+  hubunganId   String?         @map("hubungan_id")
+  alamat       String?
+  laporan      Laporan         @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  hubungan     HubunganKorban? @relation(fields: [hubunganId], references: [id], onDelete: Restrict)
+
+  @@index([laporanId])
+  @@map("terlapor")
 }
 
 model DokumenLaporan {

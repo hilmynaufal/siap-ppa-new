@@ -72,13 +72,8 @@ erDiagram
   laporan {
     String id PK
     String kode_pendaftaran UK
-    String nama_pelapor
-    String kontak_pelapor
-    String nama_korban
-    Int usia_korban "opsional"
-    String jenis_kelamin_korban "opsional"
+    Boolean pelapor_adalah_korban
     String jenis_kekerasan_id FK
-    String kecamatan_id FK "opsional"
     DateTime tanggal_kejadian "opsional"
     String kronologi
     Boolean persetujuan_data
@@ -89,6 +84,44 @@ erDiagram
     DateTime diverifikasi_pada "opsional"
     DateTime ditutup_pada "opsional"
     DateTime dibuat_pada
+  }
+  pelapor {
+    String id PK
+    String laporan_id FK,UK
+    String nama
+    String nik_cipher "opsional"
+    String nik_indeks "opsional"
+    String hubungan_id FK "opsional"
+    String kontak
+    String alamat "opsional"
+    String kecamatan_id FK "opsional"
+    String desa_id FK "opsional"
+  }
+  korban {
+    String id PK
+    String laporan_id FK,UK
+    String nama
+    String nik_cipher "opsional"
+    String nik_indeks "opsional"
+    enum_jenis_kelamin jenis_kelamin "opsional"
+    String tempat_lahir "opsional"
+    DateTime tanggal_lahir "opsional"
+    enum_pendidikan pendidikan "opsional"
+    String pekerjaan_id FK "opsional"
+    enum_status_perkawinan status_perkawinan "opsional"
+    String kontak "opsional"
+    String alamat "opsional"
+    String kecamatan_id FK "opsional"
+    String desa_id FK "opsional"
+  }
+  terlapor {
+    String id PK
+    String laporan_id FK
+    String nama "opsional"
+    enum_jenis_kelamin jenis_kelamin "opsional"
+    Int usia "opsional"
+    String hubungan_id FK "opsional"
+    String alamat "opsional"
   }
   dokumen_laporan {
     String id PK
@@ -198,8 +231,17 @@ erDiagram
   kecamatan |o--o{ kontak_darurat : "kecamatan"
   pengguna |o--o{ kontak_darurat : "dibuatOleh"
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"
-  kecamatan |o--o{ laporan : "kecamatan"
   pengguna |o--o{ laporan : "verifikator"
+  laporan ||--o| pelapor : "laporan"
+  hubungan_korban |o--o{ pelapor : "hubungan"
+  kecamatan |o--o{ pelapor : "kecamatan"
+  desa |o--o{ pelapor : "desa"
+  laporan ||--o| korban : "laporan"
+  pekerjaan |o--o{ korban : "pekerjaan"
+  kecamatan |o--o{ korban : "kecamatan"
+  desa |o--o{ korban : "desa"
+  laporan ||--o{ terlapor : "laporan"
+  hubungan_korban |o--o{ terlapor : "hubungan"
   laporan ||--o{ dokumen_laporan : "laporan"
   laporan ||--o{ sesi : "laporan"
   jenis_pendampingan ||--o{ sesi : "jenisPendamping"

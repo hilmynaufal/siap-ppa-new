@@ -8,19 +8,7 @@ import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } f
 
 const VERSI = "v1";
 
-export const POLA_NIK = /^\d{16}$/;
-
-export function nikValid(nik: string) {
-  if (!POLA_NIK.test(nik)) return false;
-  // Struktur NIK: 6 digit wilayah, 6 digit tanggal lahir (tanggal +40 untuk perempuan), 4 digit urut.
-  const hari = Number(nik.slice(6, 8));
-  const bulan = Number(nik.slice(8, 10));
-  const hariNyata = hari > 40 ? hari - 40 : hari;
-  return Number(nik.slice(0, 2)) > 0 && hariNyata >= 1 && hariNyata <= 31 && bulan >= 1 && bulan <= 12;
-}
-
-/** Hapus spasi dan tanda hubung yang sering terketik saat menyalin NIK. */
-export const bersihkanNik = (s: string) => s.replace(/[\s.-]/g, "");
+export { POLA_NIK, bersihkanNik, nikValid } from "./nik-format";
 
 function induk(): Buffer {
   const mentah = process.env.DATA_KEY;
@@ -57,4 +45,14 @@ export function indeksNik(nik: string): string {
 /** Tampilan tersamar untuk daftar: 4 digit pertama dan 4 terakhir. */
 export function samarkanNik(nik: string): string {
   return nik.length === 16 ? `${nik.slice(0, 4)}${"•".repeat(8)}${nik.slice(-4)}` : "•".repeat(nik.length);
+}
+
+/** NIK tersamar dari teks terenkripsi; bila tidak ada atau tidak bisa dibuka, kembalikan keterangan singkat. */
+export function nikTersamar(cipher: string | null | undefined): string {
+  if (!cipher) return "Tidak tersedia";
+  try {
+    return samarkanNik(dekripsiNik(cipher));
+  } catch {
+    return "Tidak dapat dibuka";
+  }
 }
