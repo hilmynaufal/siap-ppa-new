@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Clock, FileSearch, Inbox, XCircle } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BilahCari } from "@/components/bilah-cari";
 import { FilterChip, FilterPilihan, TombolAturUlang } from "@/components/filter";
 import { IkonKotak } from "@/components/ikon-kotak";
@@ -10,6 +10,8 @@ import { LencanaLaporan, type StatusLaporanUi } from "@/components/lencana-lapor
 import { Paginasi } from "@/components/paginasi";
 import { StripKpi } from "@/components/strip-kpi";
 import { tombolKecil } from "@/components/ui-form";
+import { bersihkanNik, nikValid } from "@/lib/nik-format";
+import { cariNik } from "./actions";
 
 type Baris = {
   id: string;
@@ -42,21 +44,43 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
   const [halaman, setHalaman] = useState(1);
   const [ukuran, setUkuran] = useState(10);
 
+  // Pencarian NIK: bila isian berbentuk NIK yang sah, hasilnya dicari di server (lewat indeks, tercatat di audit).
+  const nikDicari = nikValid(bersihkanNik(cari)) ? bersihkanNik(cari) : null;
+  const [hasilNik, setHasilNik] = useState<{ nik: string; ids: Set<string> | null; galat?: string } | null>(null);
+  useEffect(() => {
+    if (!nikDicari) return;
+    let batal = false;
+    const t = setTimeout(async () => {
+      const h = await cariNik(nikDicari);
+      if (!batal) setHasilNik(h.ok ? { nik: nikDicari, ids: new Set(h.laporanIds) } : { nik: nikDicari, ids: null, galat: h.pesan });
+    }, 400);
+    return () => {
+      batal = true;
+      clearTimeout(t);
+    };
+  }, [nikDicari]);
+  const modeNik = nikDicari !== null;
+  const nikSiap = modeNik && hasilNik?.nik === nikDicari && hasilNik.ids !== null;
+
   const hitung = (s: StatusLaporanUi) => laporan.filter((l) => l.status === s).length;
   const filterAktif = !!(cari || jenisF || wilayah || dari || sampai || status !== "semua");
 
   const tampil = useMemo(() => {
     const q = cari.trim().toLowerCase();
     return laporan.filter((l) => {
+      if (modeNik) {
+        // Mode NIK: hanya laporan yang cocok NIK-nya; filter lain tetap berlaku.
+        if (!nikSiap || !hasilNik?.ids?.has(l.id)) return false;
+      }
       if (status !== "semua" && l.status !== status) return false;
       if (jenisF && l.jenis !== jenisF) return false;
       if (wilayah && l.kecamatan !== wilayah) return false;
       const hari = hariJakarta(l.dibuatPada);
       if (dari && hari < dari) return false;
       if (sampai && hari > sampai) return false;
-      return !q || l.kode.toLowerCase().includes(q) || l.namaKorban.toLowerCase().includes(q);
+      return modeNik || !q || l.kode.toLowerCase().includes(q) || l.namaKorban.toLowerCase().includes(q);
     });
-  }, [laporan, cari, status, jenisF, wilayah, dari, sampai]);
+  }, [laporan, cari, status, jenisF, wilayah, dari, sampai, modeNik, nikSiap, hasilNik]);
 
   const jumlahHalaman = Math.max(1, Math.ceil(tampil.length / ukuran));
   const halamanAktif = Math.min(halaman, jumlahHalaman);
@@ -101,10 +125,15 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
 
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap gap-3">
-          <BilahCari nilai={cari} onUbah={ubah(setCari)} placeholder="Cari kode pendaftaran atau nama korban..." label="Cari laporan" />
+          <BilahCari nilai={cari} onUbah={ubah(setCari)} placeholder="Cari kode, nama korban, atau NIK..." label="Cari laporan" />
           <FilterPilihan id="filter-jenis" label="Filter jenis kekerasan" semua="Semua jenis" pilihan={jenis} nilai={jenisF} onUbah={ubah(setJenisF)} />
           <FilterPilihan id="filter-kecamatan" label="Filter kecamatan" semua="Semua kecamatan" pilihan={kecamatan} nilai={wilayah} onUbah={ubah(setWilayah)} />
         </div>
+        {modeNik && (
+          <p role="status" className="text-sm text-ink-soft">
+            {hasilNik?.galat ?? (nikSiap ? `Mencari berdasarkan NIK: ${tampil.length} laporan ditemukan. Pencarian ini tercatat di audit.` : "Mencari berdasarkan NIK...")}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <label className="flex items-center gap-2 text-[13px] font-semibold text-ink-soft">
             Dari tanggal

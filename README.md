@@ -62,3 +62,9 @@ Data nyata tidak disimpan di repositori. Isi lewat aplikasi atau perintah beriku
 2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, Akun Pendamping (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang), Hubungan dengan Korban dan Pekerjaan (nilai awal umum sudah terisi, dapat diubah), serta Desa/Kelurahan (kosong; isi lewat Impor CSV dari berkas resmi, kolom `kecamatan;desa;kode`).
 3. **Kontak darurat** dapat diketik satu per satu atau diimpor dari CSV (menu Kontak Darurat, tombol Impor CSV; templat dapat diunduh di sana). Berkas diperiksa dulu dan hanya disimpan bila semua baris benar.
 4. `npx prisma db seed` hanya untuk lingkungan lokal: berisi akun dan data contoh fiktif.
+
+## Perlindungan NIK
+
+- NIK pelapor dan korban disimpan terenkripsi (AES-256-GCM) dengan kunci `DATA_KEY`; basis data hanya memuat teks terenkripsi dan indeks HMAC.
+- Halaman Admin menampilkan NIK tersamar. Tombol **Tampilkan** membuka NIK utuh selama 30 detik, dan **setiap pembukaan dan pencarian lewat NIK** tercatat di `log_audit` (siapa, kapan, laporan mana; NIK tidak pernah ditulis ke log).
+- Laporan lain dengan NIK yang sama ditandai pada detail laporan (bagian Laporan terkait).
