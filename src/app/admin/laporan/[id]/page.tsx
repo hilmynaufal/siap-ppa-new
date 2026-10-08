@@ -1,12 +1,15 @@
-import { CalendarClock, FileImage, FileSearch, FileText, Lock, MapPin, Phone, ShieldAlert, Ticket, User, UserX } from "lucide-react";
+import { CalendarClock, FileImage, FileSearch, FileText, Link2, MapPin, Phone, ShieldAlert, Ticket, User, UserX } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
 import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia } from "@/lib/laporan";
+import { laporanTerkait } from "@/lib/nik-akses";
 import { jadwalLaporan } from "@/lib/tiket";
 import { detailLaporan } from "@/lib/verifikasi";
+import { NikTersamar } from "./nik-tersamar";
 import { PanelVerifikasi } from "./panel-verifikasi";
 
 export const metadata = { title: "Detail Laporan | SIAP PPA" };
@@ -41,8 +44,9 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   if (!l) notFound();
   const k = l.korban;
   const usia = k?.tanggalLahir ? hitungUsia(k.tanggalLahir) : null;
-  const [sesi, jenis, pendamping, lokasi] = await Promise.all([
+  const [sesi, terkait, jenis, pendamping, lokasi] = await Promise.all([
     jadwalLaporan(db, id),
+    laporanTerkait(db, id),
     db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     db.pengguna.findMany({
       where: { peran: "PENDAMPING", aktif: true },
@@ -80,10 +84,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <dl className="divide-y divide-line-soft">
                 <Baris label="Nama lengkap">{k.nama}</Baris>
                 <Baris label="NIK">
-                  <span className="inline-flex items-center gap-2 tabular-nums">
-                    <Lock size={14} aria-hidden="true" className="text-ink-mute" />
-                    {k.nikTersamar}
-                  </span>
+                  <NikTersamar laporanId={l.id} pihak="KORBAN" tersamar={k.nikTersamar} ada={k.adaNik} />
                 </Baris>
                 <Baris label="Jenis kelamin">{label(OPSI_JENIS_KELAMIN, k.jenisKelamin)}</Baris>
                 <Baris label="Tempat, tanggal lahir">
@@ -138,10 +139,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <dl className="divide-y divide-line-soft">
                 <Baris label="Nama lengkap">{l.pelapor.nama}</Baris>
                 <Baris label="NIK">
-                  <span className="inline-flex items-center gap-2 tabular-nums">
-                    <Lock size={14} aria-hidden="true" className="text-ink-mute" />
-                    {l.pelapor.nikTersamar}
-                  </span>
+                  <NikTersamar laporanId={l.id} pihak="PELAPOR" tersamar={l.pelapor.nikTersamar} ada={l.pelapor.adaNik} />
                 </Baris>
                 <Baris label="Hubungan dengan korban">{l.pelapor.hubungan ?? "Tidak diisi"}</Baris>
                 <Baris label="Kontak">
@@ -174,6 +172,30 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               ))
             )}
           </section>
+
+          {terkait.length > 0 && (
+            <section aria-labelledby="h-terkait" className="rounded-2xl border border-warning/30 bg-warning-50 p-5 md:p-6">
+              <div className="mb-3 flex items-center gap-3">
+                <IkonKotak ikon={Link2} warna="amber" />
+                <h2 id="h-terkait" className="text-lg font-bold text-navy-900">Laporan terkait</h2>
+              </div>
+              <p className="mb-3 text-sm text-ink-soft">Laporan lain memuat NIK yang sama dengan korban atau pelapor laporan ini.</p>
+              <ul className="flex flex-col gap-2">
+                {terkait.map((t) => (
+                  <li key={t.id}>
+                    <Link
+                      href={`/admin/laporan/${t.id}`}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-4 py-3 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                    >
+                      <span className="font-semibold tabular-nums text-ink">{t.kode}</span>
+                      <span className="text-sm text-ink-soft">{t.keterangan}</span>
+                      <LencanaLaporan status={t.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {sesi.length > 0 && (
             <section aria-labelledby="h-jadwal" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
