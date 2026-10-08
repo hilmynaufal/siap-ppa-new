@@ -3,7 +3,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
 import { periksaLaju, catatGagal } from "./batas-laju";
-import { cekTiket, formatNomorAntrean, hariJakarta, jadwalPendamping, normalisasiKode } from "./tiket";
+import { daftarSesiPendamping } from "./sesi";
+import { cekTiket, formatNomorAntrean, hariJakarta, normalisasiKode } from "./tiket";
 import { tolakLaporan, verifikasiLaporan } from "./verifikasi";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
@@ -149,12 +150,12 @@ describe("cek tiket Pelapor", () => {
 
 describe("jadwal Pendamping", () => {
   it("hanya memuat sesi yang ditugaskan kepada pendamping itu, terurut menurut waktu", async () => {
-    const semua = await jadwalPendamping(db, pendampingId);
+    const semua = await daftarSesiPendamping(db, pendampingId);
     expect(semua.length).toBeGreaterThanOrEqual(3);
     const waktu = semua.map((s) => s.mulai);
     expect([...waktu].sort()).toEqual(waktu);
     expect(semua.every((s) => s.nomorAntrean && s.lokasi === `Lokasi ${awalan}`)).toBe(true);
-    expect(await jadwalPendamping(db, adminId)).toEqual([]);
+    expect(await daftarSesiPendamping(db, adminId)).toEqual([]);
   });
 });
 
