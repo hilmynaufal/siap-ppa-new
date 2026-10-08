@@ -142,6 +142,12 @@ function Hasil({ h }: { h: Extract<HasilPeriksa, { ok: true }> }) {
         </div>
       )}
 
+      {h.status === "DITUTUP" && (
+        <p className="mb-4 rounded-2xl border border-line bg-canvas p-5 text-ink-soft">
+          Pendampingan untuk laporan ini sudah selesai dan kasus telah ditutup. Terima kasih atas kepercayaan Anda.
+        </p>
+      )}
+
       {h.tiket.length > 0 && (
         <>
           <ul className="flex flex-col gap-4">

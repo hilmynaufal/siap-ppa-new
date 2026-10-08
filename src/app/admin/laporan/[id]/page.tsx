@@ -1,4 +1,4 @@
-import { CalendarClock, FileImage, FileSearch, FileText, Link2, MapPin, Phone, ShieldAlert, Ticket, User, UserX } from "lucide-react";
+import { FileImage, FileSearch, FileText, Link2, MapPin, Phone, ShieldAlert, User, UserX } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
@@ -6,11 +6,16 @@ import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
 import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia } from "@/lib/laporan";
+import { daftarUsulan, laporanKasus } from "@/lib/laporan-pendampingan";
 import { laporanTerkait } from "@/lib/nik-akses";
+import { syaratTutupKasus } from "@/lib/sesi";
 import { jadwalLaporan } from "@/lib/tiket";
 import { detailLaporan } from "@/lib/verifikasi";
 import { NikTersamar } from "./nik-tersamar";
 import { PanelVerifikasi } from "./panel-verifikasi";
+import { PendampinganAdmin } from "./pendampingan-admin";
+import { TutupKasus } from "./tutup-kasus";
+import { UsulanSesi } from "./usulan-sesi";
 
 export const metadata = { title: "Detail Laporan | SIAP PPA" };
 export const dynamic = "force-dynamic";
@@ -44,9 +49,12 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   if (!l) notFound();
   const k = l.korban;
   const usia = k?.tanggalLahir ? hitungUsia(k.tanggalLahir) : null;
-  const [sesi, terkait, jenis, pendamping, lokasi] = await Promise.all([
+  const [sesiDasar, laporanSesi, usulan, terkait, tutup, jenis, pendamping, lokasi] = await Promise.all([
     jadwalLaporan(db, id),
+    laporanKasus(db, id),
+    daftarUsulan(db, id),
     laporanTerkait(db, id),
+    syaratTutupKasus(db, id),
     db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     db.pengguna.findMany({
       where: { peran: "PENDAMPING", aktif: true },
@@ -55,6 +63,9 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
     }),
     db.lokasi.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
   ]);
+
+  const sesi = sesiDasar.map((x) => ({ ...x, laporan: laporanSesi[x.id] ?? null }));
+  const kasusAktif = l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN";
 
   return (
     <main className="px-4 py-6 md:px-8 md:py-8">
@@ -197,34 +208,14 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             </section>
           )}
 
-          {sesi.length > 0 && (
-            <section aria-labelledby="h-jadwal" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
-              <div className="mb-3 flex items-center gap-3">
-                <IkonKotak ikon={CalendarClock} warna="teal" />
-                <h2 id="h-jadwal" className="text-lg font-bold text-navy-900">Jadwal dan tiket</h2>
-              </div>
-              <ul className="flex flex-col gap-3">
-                {sesi.map((x) => (
-                  <li key={x.id} className="rounded-xl border border-line p-4">
-                    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-navy-900">
-                      Sesi {x.urutan} · {x.jenis}
-                      {x.nomorAntrean && (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-sm tabular-nums text-navy-800">
-                          <Ticket size={14} aria-hidden="true" />
-                          {x.nomorAntrean}
-                        </span>
-                      )}
-                    </p>
-                    <p className="mt-1 text-ink">{fmt(x.mulai)} - {new Date(x.selesai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</p>
-                    <p className="mt-1 flex items-start gap-2 text-sm text-ink-soft">
-                      <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-mute" />
-                      {x.lokasi}, {x.alamat}
-                    </p>
-                    <p className="mt-1 text-sm text-ink-soft">Pendamping: {x.pendamping}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {(l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN" || l.status === "DITUTUP") && (
+            <PendampinganAdmin
+              laporanId={l.id}
+              kode={l.kode}
+              sesi={sesi}
+              opsi={{ jenis, pendamping, lokasi }}
+              bisaTambah={l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN"}
+            />
           )}
 
           <section aria-labelledby="h-dokumen" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
@@ -259,6 +250,8 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           </section>
         </div>
 
+        <div>
+        {(kasusAktif || l.status === "DITUTUP") && <UsulanSesi laporanId={l.id} kode={l.kode} usulan={usulan} opsi={{ jenis, pendamping, lokasi }} bisaMemutuskan={kasusAktif} />}
         <PanelVerifikasi
           opsi={{ jenis, pendamping, lokasi }}
           id={l.id}
@@ -268,6 +261,10 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           diverifikasiPada={l.diverifikasiPada ? fmt(l.diverifikasiPada) : null}
           alasanPenolakan={l.alasanPenolakan}
         />
+        {(l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN" || l.status === "DITUTUP") && (
+          <TutupKasus laporanId={l.id} kode={l.kode} bisa={tutup.bisa} alasan={tutup.alasan} sudahDitutup={tutup.sudahDitutup} />
+        )}
+        </div>
       </div>
     </main>
   );

@@ -239,36 +239,6 @@ export async function cekTiket(db: PrismaClient, kodeMentah: string, sekarang = 
   };
 }
 
-// ---------------------------------------------------------------- Pendamping: jadwal
-
-/** Sesi yang ditugaskan kepada satu Pendamping, terdekat lebih dulu. */
-export async function jadwalPendamping(db: PrismaClient, pendampingId: string) {
-  const rows = await db.sesi.findMany({
-    where: { pendampingId },
-    orderBy: { mulai: "asc" },
-    include: {
-      laporan: { select: { kodePendaftaran: true, korban: { select: { nama: true } }, jenisKekerasan: { select: { nama: true } } } },
-      jenisPendamping: { select: { nama: true } },
-      lokasi: { select: { nama: true, alamat: true } },
-      tiket: { select: { nomorAntrean: true } },
-    },
-  });
-  return rows.map((s) => ({
-    id: s.id,
-    kodeLaporan: s.laporan.kodePendaftaran,
-    namaKorban: s.laporan.korban?.nama ?? "-",
-    jenisKekerasan: s.laporan.jenisKekerasan.nama,
-    urutan: s.urutan,
-    jenis: s.jenisPendamping.nama,
-    lokasi: s.lokasi.nama,
-    alamat: s.lokasi.alamat,
-    nomorAntrean: s.tiket?.nomorAntrean ?? null,
-    mulai: s.mulai.toISOString(),
-    selesai: s.selesai.toISOString(),
-    status: s.status,
-  }));
-}
-
 /** Sesi dan tiket sebuah laporan, untuk Admin. */
 export async function jadwalLaporan(db: PrismaClient, laporanId: string) {
   const rows = await db.sesi.findMany({
