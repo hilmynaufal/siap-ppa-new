@@ -83,6 +83,12 @@ function KartuTiket({ t }: { t: TiketDenganQr }) {
         </div>
       </dl>
 
+      {t.statusAntrean === "DIPANGGIL" && (
+        <p role="status" className="mt-4 rounded-xl bg-warning-50 p-3 text-center font-bold text-warning">
+          Nomor Anda dipanggil. Silakan menuju meja petugas.
+        </p>
+      )}
+
       {t.antrean && (
         <div className="mt-4 grid grid-cols-2 gap-3 text-center" aria-live="polite">
           <div className="rounded-xl bg-success-50 p-3">
