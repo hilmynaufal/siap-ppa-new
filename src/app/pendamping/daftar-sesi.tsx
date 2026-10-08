@@ -117,13 +117,24 @@ export function DaftarSesi({ sesi }: { sesi: SesiPendamping[] }) {
                   <td className="px-5 py-4">
                     <div className="flex flex-col items-end gap-2">
                       <AksiSesi id={s.id} status={s.status} bisaMulai={s.bisaMulai} kode={s.kodeLaporan} kecil />
-                      <Link
-                        href={`/pendamping/sesi/${s.id}`}
-                        aria-label={`Lihat ringkasan kasus ${s.kodeLaporan} sesi ${s.urutan}`}
-                        className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
-                      >
-                        Ringkasan kasus
-                      </Link>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {(s.perluLaporan || s.status === "BERLANGSUNG") && (
+                          <Link
+                            href={`/pendamping/sesi/${s.id}#h-laporan`}
+                            aria-label={`Isi laporan ${s.kodeLaporan} sesi ${s.urutan}`}
+                            className={`${tombolKecil} border-magenta-600 bg-magenta-600 text-white hover:bg-magenta-700`}
+                          >
+                            Isi laporan
+                          </Link>
+                        )}
+                        <Link
+                          href={`/pendamping/sesi/${s.id}`}
+                          aria-label={`Lihat ringkasan kasus ${s.kodeLaporan} sesi ${s.urutan}`}
+                          className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
+                        >
+                          Ringkasan kasus
+                        </Link>
+                      </div>
                     </div>
                   </td>
                 </tr>

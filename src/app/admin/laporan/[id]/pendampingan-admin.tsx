@@ -4,6 +4,8 @@ import { CalendarClock, CircleSlash, MapPin, Plus, Ticket } from "lucide-react";
 import { startTransition, useActionState, useEffect, useMemo, useState } from "react";
 import { LencanaSesi, type StatusSesiUi } from "@/components/lencana-sesi";
 import { IkonKotak } from "@/components/ikon-kotak";
+import { TampilLaporan } from "@/components/tampil-laporan";
+import type { LaporanView } from "@/lib/laporan-pendampingan";
 import { Galat, Modal, fokus, input, tombolKecil, tombolNetral, tombolUtama } from "@/components/ui-form";
 import { batalkanSesiAksi, tambahSesiAksi, type AksiSesi } from "../actions";
 import type { OpsiJadwal } from "./panel-verifikasi";
@@ -19,6 +21,7 @@ export type SesiAdmin = {
   mulai: string;
   selesai: string;
   status: StatusSesiUi;
+  laporan: LaporanView | null;
 };
 
 const ZONA = "Asia/Jakarta";
@@ -39,9 +42,13 @@ function Bidang({ id, label, galat, children }: { id: string; label: string; gal
   );
 }
 
-function ModalTambah({ laporanId, kode, opsi, onTutup }: { laporanId: string; kode: string; opsi: OpsiJadwal; onTutup: () => void }) {
+/** Isian awal jadwal saat menjadwalkan dari usulan sesi lanjutan. */
+export type AwalJadwal = { jenisPendampingId?: string; pendampingId?: string; lokasiId?: string };
+
+/** Formulir jadwal sesi. Dengan `usulanId` formulir menyetujui usulan sesi lanjutan sekaligus menjadwalkannya. */
+export function ModalTambah({ laporanId, kode, opsi, onTutup, usulanId, awal }: { laporanId: string; kode: string; opsi: OpsiJadwal; onTutup: () => void; usulanId?: string; awal?: AwalJadwal }) {
   const [state, aksi, pending] = useActionState(tambahSesiAksi, undefined as AksiSesi);
-  const [v, setV] = useState({ jenisPendampingId: "", pendampingId: "", lokasiId: "", tanggal: "", jamMulai: "", jamSelesai: "" });
+  const [v, setV] = useState({ jenisPendampingId: awal?.jenisPendampingId ?? "", pendampingId: awal?.pendampingId ?? "", lokasiId: awal?.lokasiId ?? "", tanggal: "", jamMulai: "", jamSelesai: "" });
   const isi = (k: keyof typeof v) => ({ value: v[k], onChange: (e: { target: { value: string } }) => setV((x) => ({ ...x, [k]: e.target.value })) });
   const g = (state?.galat ?? {}) as Record<string, string | undefined>;
   const attr = (k: string) => ({ "aria-invalid": g[k] ? true : undefined, "aria-describedby": g[k] ? `galat-${k}` : undefined });
@@ -52,7 +59,7 @@ function ModalTambah({ laporanId, kode, opsi, onTutup }: { laporanId: string; ko
   }, [state, onTutup]);
 
   return (
-    <Modal idJudul="judul-tambah-sesi" idSubjudul="sub-tambah-sesi" ikon={Plus} warna="green" judul="Tambah sesi pendampingan" subjudul={`Laporan ${kode}. Tiket terbit otomatis dan Pelapor serta Pendamping diberi tahu.`} onTutup={onTutup}>
+    <Modal idJudul="judul-tambah-sesi" idSubjudul="sub-tambah-sesi" ikon={Plus} warna="green" judul={usulanId ? "Setujui dan jadwalkan" : "Tambah sesi pendampingan"} subjudul={usulanId ? `Laporan ${kode}. Menyetujui usulan sesi lanjutan dan menerbitkan tiket; Pelapor serta Pendamping diberi tahu.` : `Laporan ${kode}. Tiket terbit otomatis dan Pelapor serta Pendamping diberi tahu.`} onTutup={onTutup}>
       <form
         noValidate
         onSubmit={(e) => {
@@ -63,6 +70,7 @@ function ModalTambah({ laporanId, kode, opsi, onTutup }: { laporanId: string; ko
         className="mt-5 flex flex-col gap-4"
       >
         <input type="hidden" name="id" value={laporanId} />
+        {usulanId && <input type="hidden" name="usulanId" value={usulanId} />}
         <Bidang id="jenisPendampingId" label="Jenis pendampingan" galat={g.jenisPendampingId}>
           <select id="jenisPendampingId" name="jenisPendampingId" value={v.jenisPendampingId} onChange={(e) => setV((x) => ({ ...x, jenisPendampingId: e.target.value, pendampingId: "" }))} className={input} {...attr("jenisPendampingId")}>
             <option value="">Pilih jenis</option>
@@ -111,7 +119,7 @@ function ModalTambah({ laporanId, kode, opsi, onTutup }: { laporanId: string; ko
           </button>
           <button type="submit" disabled={pending} className={tombolUtama}>
             <Plus size={18} aria-hidden="true" />
-            Tambah sesi
+            {usulanId ? "Setujui dan jadwalkan" : "Tambah sesi"}
           </button>
         </div>
       </form>
@@ -214,6 +222,16 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
                   </button>
                 )}
               </div>
+              {x.laporan ? (
+                <details className="mt-2 border-t border-line-soft pt-2">
+                  <summary className="inline-flex min-h-11 cursor-pointer items-center font-bold text-blue-600 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">Lihat laporan</summary>
+                  <div className="mt-3">
+                    <TampilLaporan laporan={x.laporan} />
+                  </div>
+                </details>
+              ) : (
+                x.status === "SELESAI" && <p className="mt-2 border-t border-line-soft pt-2 text-sm font-semibold text-warning">Laporan belum dikirim</p>
+              )}
             </li>
           ))}
         </ul>

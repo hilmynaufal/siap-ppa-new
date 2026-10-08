@@ -147,6 +147,8 @@ export async function ringkasanSesiPendamping(db: PrismaClient, sesiId: string, 
   const lahir = l.korban?.tanggalLahir ? l.korban.tanggalLahir.toISOString().slice(0, 10) : null;
   return {
     id: s.id,
+    laporanId: s.laporanId,
+    jenisPendampingId: s.jenisPendampingId,
     urutan: s.urutan,
     status: s.status as StatusSesi,
     jenis: s.jenisPendamping.nama,
@@ -198,8 +200,13 @@ async function beriTahu(tx: Prisma.TransactionClient, sesiId: string, pendamping
   });
 }
 
-/** Menambah sesi pendampingan pada laporan yang sudah terverifikasi (satu laporan dapat memiliki banyak sesi). */
-export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: string, jadwalMentah: unknown, sekarang = new Date()): Promise<HasilSesi> {
+class UsulanTidakValid extends Error {}
+
+/**
+ * Menambah sesi pendampingan pada laporan yang sudah terverifikasi (satu laporan dapat memiliki banyak sesi).
+ * Bila `usulanId` diberikan, usulan sesi lanjutan itu disetujui dan dihubungkan ke sesi baru dalam transaksi yang sama.
+ */
+export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: string, jadwalMentah: unknown, sekarang = new Date(), usulanId?: string): Promise<HasilSesi> {
   const l = await db.laporan.findUnique({ where: { id: laporanId }, select: { status: true, kodePendaftaran: true } });
   if (!l) return { ok: false, pesan: "Laporan tidak ditemukan." };
   if (l.status !== "TERVERIFIKASI" && l.status !== "DALAM_PENDAMPINGAN") {
@@ -215,6 +222,14 @@ export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: s
         const masihBuka = await tx.laporan.count({ where: { id: laporanId, status: { in: ["TERVERIFIKASI", "DALAM_PENDAMPINGAN"] } } });
         if (!masihBuka) return { ok: false, pesan: "Kasus sudah ditutup." };
         const t = await terbitkanTiket(tx, laporanId, j.jadwal);
+        if (usulanId) {
+          const { count } = await tx.usulanSesi.updateMany({
+            where: { id: usulanId, status: "MENUNGGU", laporanPendampingan: { sesi: { laporanId } } },
+            data: { status: "DISETUJUI", keputusanOlehId: adminId, diputuskanPada: new Date(), sesiHasilId: t.sesiId },
+          });
+          // Melempar agar tiket dan sesi yang baru terbit ikut dibatalkan.
+          if (count === 0) throw new UsulanTidakValid();
+        }
         const waktu = `${fmtTanggal(j.jadwal.mulai)}, pukul ${fmtJam(j.jadwal.mulai)}-${fmtJam(j.jadwal.selesai)} WIB`;
         await beriTahu(
           tx,
@@ -224,11 +239,12 @@ export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: s
           `Sesi baru untuk laporan ${l.kodePendaftaran} dijadwalkan: ${waktu}.`,
         );
         await tx.logAudit.create({
-          data: { penggunaId: adminId, aksi: "TAMBAH_SESI", entitas: "Sesi", entitasId: t.sesiId, rincian: { laporanId, nomorAntrean: t.nomorAntrean } },
+          data: { penggunaId: adminId, aksi: usulanId ? "SETUJUI_USULAN_SESI" : "TAMBAH_SESI", entitas: "Sesi", entitasId: t.sesiId, rincian: { laporanId, nomorAntrean: t.nomorAntrean, ...(usulanId ? { usulanId } : {}) } },
         });
         return { ok: true, pesan: t.nomorAntrean };
       });
     } catch (e) {
+      if (e instanceof UsulanTidakValid) return { ok: false, pesan: "Usulan ini sudah diputuskan." };
       if (!adaBentrokUnik(e) || percobaan >= 4) throw e;
     }
   }
