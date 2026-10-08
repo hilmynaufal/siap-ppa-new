@@ -32,6 +32,8 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
   kosong,
   lebarMin = 800,
   anak,
+  sembunyikanStatus = false,
+  filterTambahan,
 }: {
   judul: string;
   deskripsi: string;
@@ -50,6 +52,10 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
   kosong: string;
   lebarMin?: number;
   anak?: ReactNode;
+  /** Untuk data tanpa status aktif (mis. desa): menyembunyikan chip Status. */
+  sembunyikanStatus?: boolean;
+  /** Filter tambahan di samping kotak cari (state dipegang pemanggil; `cocok` membacanya). */
+  filterTambahan?: ReactNode;
 }) {
   const [cari, setCari] = useState("");
   const [status, setStatus] = useState<"semua" | "aktif" | "nonaktif">("semua");
@@ -58,7 +64,7 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
 
   const tampil = useMemo(() => {
     const q = cari.trim().toLowerCase();
-    return baris.filter((r) => (status === "semua" || (status === "aktif") === r.aktif) && (!q || cocok(r, q)));
+    return baris.filter((r) => (status === "semua" || (status === "aktif") === r.aktif) && cocok(r, q));
   }, [baris, cari, status, cocok]);
   const jumlahAktif = baris.filter((r) => r.aktif).length;
   const jumlahHalaman = Math.max(1, Math.ceil(tampil.length / ukuran));
@@ -96,8 +102,10 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
             placeholder={placeholderCari}
             label={labelCari}
           />
+          {filterTambahan}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
+          {!sembunyikanStatus && (
           <FilterChip
             label="Status"
             nilai={status}
@@ -111,6 +119,8 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
               { nilai: "nonaktif", label: "Nonaktif", jumlah: baris.length - jumlahAktif },
             ]}
           />
+          )}
+          {sembunyikanStatus && <span />}
           {filterAktif && (
             <TombolAturUlang
               onKlik={() => {

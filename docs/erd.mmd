@@ -28,6 +28,30 @@ erDiagram
     String id PK
     String nama UK
   }
+  desa {
+    String id PK
+    String kecamatan_id FK
+    String nama
+    String kode UK "opsional"
+    DateTime dibuat_pada
+    DateTime diubah_pada
+  }
+  hubungan_korban {
+    String id PK
+    String nama UK
+    Boolean aktif
+    Int urutan
+    DateTime dibuat_pada
+    DateTime diubah_pada
+  }
+  pekerjaan {
+    String id PK
+    String nama UK
+    Boolean aktif
+    Int urutan
+    DateTime dibuat_pada
+    DateTime diubah_pada
+  }
   lokasi {
     String id PK
     String nama UK
@@ -170,6 +194,7 @@ erDiagram
   }
   jenis_pendampingan |o--o{ pengguna : "jenisPendamping"
   pengguna |o--o{ jenis_kekerasan : "dibuatOleh"
+  kecamatan ||--o{ desa : "kecamatan"
   kecamatan |o--o{ kontak_darurat : "kecamatan"
   pengguna |o--o{ kontak_darurat : "dibuatOleh"
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"

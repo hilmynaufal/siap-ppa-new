@@ -8,7 +8,7 @@ Stack: TypeScript, Next.js (App Router), PostgreSQL, Prisma, zod, vitest. Lihat 
 
 ```bash
 npm install
-cp .env.example .env   # isi juga SESSION_SECRET (acak, min. 32 karakter); DATABASE_URL untuk PostgreSQL lokal (lihat docker-compose.yml)
+cp .env.example .env   # isi juga SESSION_SECRET (acak, min. 32 karakter) dan DATA_KEY (kunci enkripsi NIK, lihat bawah); DATABASE_URL untuk PostgreSQL lokal (lihat docker-compose.yml)
 docker compose up -d --wait   # PostgreSQL lokal di port 5439
 npx prisma migrate dev        # terapkan migrasi
 npx prisma db seed            # akun uji lokal (lihat prisma/seed.ts)
@@ -34,7 +34,7 @@ docker run --rm -e DATABASE_URL=... siap-ppa-migrasi      # jalankan migrasi dah
 docker run -d -p 3000:3000 -e DATABASE_URL=... -e SESSION_SECRET=... siap-ppa
 ```
 
-`SESSION_SECRET` wajib acak (min. 32 karakter). Berkas unggahan: pasang volume pada `/data/uploads`.
+`SESSION_SECRET` wajib acak (min. 32 karakter). `DATA_KEY` wajib untuk enkripsi NIK: 32 byte acak dalam base64 (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`). **Cadangkan kunci ini terpisah dari basis data**: bila hilang, NIK tersimpan tidak dapat dipulihkan. Berkas unggahan: pasang volume pada `/data/uploads`.
 
 ## CI
 
@@ -59,6 +59,6 @@ Data nyata tidak disimpan di repositori. Isi lewat aplikasi atau perintah beriku
    ```
 
    Menjalankan ulang dengan email yang sama memperbarui nama dan kata sandi.
-2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, dan Akun Pendamping (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang).
+2. **Data master** lewat menu Admin: Jenis Kekerasan, Jenis Pendampingan (kode dipakai sebagai awalan nomor antrean), Lokasi Layanan, Akun Pendamping (kata sandi sementara dibuat otomatis, tampil sekali, dan dapat diatur ulang), Hubungan dengan Korban dan Pekerjaan (nilai awal umum sudah terisi, dapat diubah), serta Desa/Kelurahan (kosong; isi lewat Impor CSV dari berkas resmi, kolom `kecamatan;desa;kode`).
 3. **Kontak darurat** dapat diketik satu per satu atau diimpor dari CSV (menu Kontak Darurat, tombol Impor CSV; templat dapat diunduh di sana). Berkas diperiksa dulu dan hanya disimpan bila semua baris benar.
 4. `npx prisma db seed` hanya untuk lingkungan lokal: berisi akun dan data contoh fiktif.

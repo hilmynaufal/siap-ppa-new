@@ -2,7 +2,7 @@
 #   Aplikasi : docker build -t siap-ppa .
 #   Migrasi  : docker build --target migrasi -t siap-ppa-migrasi .
 #              docker run --rm -e DATABASE_URL=... siap-ppa-migrasi
-# Variabel wajib saat aplikasi berjalan: DATABASE_URL, SESSION_SECRET (acak, min. 32 karakter).
+# Variabel wajib saat aplikasi berjalan: DATABASE_URL, SESSION_SECRET (acak, min. 32 karakter), DATA_KEY (32 byte base64).
 
 FROM node:22-slim AS dasar
 WORKDIR /app
