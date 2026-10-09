@@ -4,6 +4,7 @@ import { CheckCircle2, AlertCircle, Megaphone, SkipForward, Ticket } from "lucid
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { IkonKotak } from "@/components/ikon-kotak";
+import { mulaiProgresNavigasi } from "@/components/progres-navigasi";
 import { LencanaStatus, type NadaLencana } from "@/components/lencana-status";
 import { fokus, input, tombolUtama } from "@/components/ui-form";
 import type { BarisAntrean, StatusAntrean } from "@/lib/antrean";
@@ -60,6 +61,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
 
   function ubahFilter(k: "lokasi" | "jenis" | "tanggal", v: string) {
     const q = new URLSearchParams({ lokasi: lokasiId, jenis: jenisId, tanggal, [k]: v });
+    mulaiProgresNavigasi();
     router.replace(`${basePath}?${q.toString()}`);
   }
 
