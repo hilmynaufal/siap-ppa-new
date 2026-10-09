@@ -1,18 +1,18 @@
 "use client";
 
-import { BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Home, Inbox, Landmark, MapPinned, Shapes, Ticket, ScanLine, UserRoundCog, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Inbox, LayoutDashboard, Landmark, MapPinned, Shapes, Ticket, ScanLine, UserRoundCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Item = { href: string; label: string; ikon: LucideIcon };
+type Item = { href: string; label: string; ikon: LucideIcon; lencana?: "baru" };
 
 // Hanya menu yang halamannya sudah ada; menu lain ditambahkan di kartu fitur masing-masing.
 const GRUP: { judul?: string; item: Item[] }[] = [
-  { item: [{ href: "/admin", label: "Beranda", ikon: Home }] },
+  { item: [{ href: "/admin", label: "Dasbor", ikon: LayoutDashboard }] },
   {
     judul: "Layanan",
     item: [
-      { href: "/admin/laporan", label: "Laporan masuk", ikon: Inbox },
+      { href: "/admin/laporan", label: "Laporan masuk", ikon: Inbox, lencana: "baru" },
       { href: "/admin/jadwal", label: "Jadwal pendampingan", ikon: CalendarDays },
       { href: "/admin/antrean", label: "Antrean hari ini", ikon: Ticket },
     ],
@@ -34,7 +34,7 @@ const GRUP: { judul?: string; item: Item[] }[] = [
 ];
 
 /** Menu Admin. Bila `kolaps`, hanya ikon yang tampak (rail); label tetap ada untuk pembaca layar dan tooltip. */
-export function NavigasiAdmin({ kolaps = false }: { kolaps?: boolean }) {
+export function NavigasiAdmin({ kolaps = false, jumlahBaru = 0 }: { kolaps?: boolean; jumlahBaru?: number }) {
   const path = usePathname();
   return (
     <nav aria-label="Menu Admin" className="flex flex-col gap-4 p-3">
@@ -69,7 +69,7 @@ export function NavigasiAdmin({ kolaps = false }: { kolaps?: boolean }) {
                 title={kolaps ? it.label : undefined}
                 aria-current={aktif ? "page" : undefined}
                 className={
-                  "flex min-h-11 items-center rounded-xl text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100/60 " +
+                  "relative flex min-h-11 items-center rounded-xl text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100/60 " +
                   (kolaps ? "justify-center px-0 " : "px-3 ") +
                   (aktif ? "bg-magenta-100/15" : "hover:bg-white/8")
                 }
@@ -88,6 +88,18 @@ export function NavigasiAdmin({ kolaps = false }: { kolaps?: boolean }) {
                 >
                   {it.label}
                 </span>
+                {it.lencana === "baru" && jumlahBaru > 0 && (
+                  <span
+                    className={
+                      kolaps
+                        ? "absolute right-1.5 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-magenta-600 px-1 text-[10px] font-bold leading-none text-white"
+                        : "ml-auto grid h-6 min-w-6 place-items-center rounded-full bg-blue-600 px-1.5 text-xs font-bold text-white"
+                    }
+                  >
+                    <span aria-hidden="true">{jumlahBaru > 99 ? "99+" : jumlahBaru}</span>
+                    <span className="sr-only">{jumlahBaru} laporan menunggu verifikasi</span>
+                  </span>
+                )}
               </Link>
             );
           })}
