@@ -7,11 +7,23 @@ import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaStatus, type NadaLencana } from "@/components/lencana-status";
 import { fokus, input, tombolUtama } from "@/components/ui-form";
 import type { BarisAntrean, StatusAntrean } from "@/lib/antrean";
-import { checkInAksi, lewatiAksi, panggilAksi } from "./actions";
+import type { HasilAksiAntrean } from "./actions";
 import { PemindaiQr } from "./pemindai-qr";
 
 type Data = { baris: BarisAntrean[]; sedangDipanggil: BarisAntrean | null; jumlah: number; menunggu: number; adaYangBisaDipanggil: boolean };
+/** Aksi server yang dipakai panel: Admin dan Petugas memakai aksi berbeda (Petugas dibatasi lokasinya). */
+export type AksiAntrean = {
+  checkIn: (masukan: string) => Promise<HasilAksiAntrean>;
+  panggil: (lokasiId: string, jenisPendampingId: string, tanggal: string) => Promise<HasilAksiAntrean>;
+  lewati: (tiketId: string) => Promise<HasilAksiAntrean>;
+};
+
 type Props = {
+  aksi: AksiAntrean;
+  basePath: string;
+  /** Petugas: lokasi dan tanggal tidak dapat diganti. */
+  kunciLokasi?: boolean;
+  kunciTanggal?: boolean;
   opsi: { lokasi: { id: string; nama: string }[]; jenis: { id: string; nama: string }[] };
   lokasiId: string;
   jenisId: string;
@@ -31,7 +43,7 @@ const STATUS: Record<StatusAntrean, { label: string; nada: NadaLencana }> = {
 const SEGAR_MS = 8000;
 
 /** Antrean hari ini: nomor yang dipanggil, daftar antrean, dan check-in petugas. Disegarkan otomatis. */
-export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }: Props) {
+export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, opsi, lokasiId, jenisId, tanggal, hariIni, data }: Props) {
   const router = useRouter();
   const [pending, mulai] = useTransition();
   const [kode, setKode] = useState("");
@@ -48,7 +60,7 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
 
   function ubahFilter(k: "lokasi" | "jenis" | "tanggal", v: string) {
     const q = new URLSearchParams({ lokasi: lokasiId, jenis: jenisId, tanggal, [k]: v });
-    router.replace(`/admin/antrean?${q.toString()}`);
+    router.replace(`${basePath}?${q.toString()}`);
   }
 
   function checkIn(masukan: string) {
@@ -57,7 +69,7 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
       return;
     }
     mulai(async () => {
-      const h = await checkInAksi(masukan);
+      const h = await ak.checkIn(masukan);
       setHasil(h.ok ? { ok: true, pesan: `${h.nomorAntrean} berhasil check-in pukul ${h.jam}.` } : { ok: false, pesan: h.pesan });
       if (h.ok) {
         setKode("");
@@ -90,7 +102,7 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
           <label htmlFor="f-lokasi" className="mb-1.5 block text-sm font-bold">
             Lokasi
           </label>
-          <select id="f-lokasi" value={lokasiId} onChange={(e) => ubahFilter("lokasi", e.target.value)} className={input}>
+          <select id="f-lokasi" value={lokasiId} disabled={kunciLokasi} onChange={(e) => ubahFilter("lokasi", e.target.value)} className={input}>
             {opsi.lokasi.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.nama}
@@ -114,7 +126,7 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
           <label htmlFor="f-tanggal" className="mb-1.5 block text-sm font-bold">
             Tanggal
           </label>
-          <input id="f-tanggal" type="date" value={tanggal} onChange={(e) => e.target.value && ubahFilter("tanggal", e.target.value)} className={input} />
+          <input id="f-tanggal" type="date" value={tanggal} disabled={kunciTanggal} onChange={(e) => e.target.value && ubahFilter("tanggal", e.target.value)} className={input} />
         </div>
       </section>
 
@@ -136,14 +148,14 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
                 )}
               </div>
               <div className="flex w-full flex-col gap-2 sm:w-56">
-                <button type="button" disabled={pending || !bisaPanggil} onClick={() => jalankan(() => panggilAksi(lokasiId, jenisId, tanggal))} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white font-bold text-navy-900 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60 ${fokus}`}>
+                <button type="button" disabled={pending || !bisaPanggil} onClick={() => jalankan(() => ak.panggil(lokasiId, jenisId, tanggal))} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white font-bold text-navy-900 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60 ${fokus}`}>
                   <Megaphone size={18} aria-hidden="true" />
                   Panggil berikutnya
                 </button>
                 <button
                   type="button"
                   disabled={pending || !dipanggil?.bisaLewati}
-                  onClick={() => dipanggil && jalankan(() => lewatiAksi(dipanggil.id))}
+                  onClick={() => dipanggil && jalankan(() => ak.lewati(dipanggil.id))}
                   className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/70 font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60 ${fokus}`}
                 >
                   <SkipForward size={18} aria-hidden="true" />
@@ -193,7 +205,7 @@ export function PanelAntrean({ opsi, lokasiId, jenisId, tanggal, hariIni, data }
                           </td>
                           <td className="px-3 py-3 text-right">
                             {b.bisaLewati && b.id !== dipanggil?.id && (
-                              <button type="button" disabled={pending} onClick={() => jalankan(() => lewatiAksi(b.id))} aria-label={`Lewati ${b.nomorAntrean}`} className={`inline-flex h-10 items-center rounded-lg border border-line-strong px-3 text-sm font-bold text-ink hover:bg-blue-50 disabled:opacity-60 ${fokus}`}>
+                              <button type="button" disabled={pending} onClick={() => jalankan(() => ak.lewati(b.id))} aria-label={`Lewati ${b.nomorAntrean}`} className={`inline-flex h-10 items-center rounded-lg border border-line-strong px-3 text-sm font-bold text-ink hover:bg-blue-50 disabled:opacity-60 ${fokus}`}>
                                 Lewati
                               </button>
                             )}

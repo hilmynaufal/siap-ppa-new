@@ -2,6 +2,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { db } from "@/lib/db";
 import { daftarAntrean, opsiAntrean } from "@/lib/antrean";
 import { hariJakarta } from "@/lib/tiket";
+import { checkInAksi, lewatiAksi, panggilAksi } from "./actions";
 import { PanelAntrean } from "./panel-antrean";
 
 export const metadata = { title: "Antrean Hari Ini | SIAP PPA" };
@@ -21,7 +22,7 @@ export default async function HalamanAntrean({ searchParams }: { searchParams: P
   return (
     <main className="px-4 py-6 md:px-8 md:py-8">
       <Breadcrumb remah={[{ label: "Beranda", href: "/admin" }, { label: "Antrean hari ini" }]} />
-      <PanelAntrean opsi={opsi} lokasiId={lokasiId} jenisId={jenisId} tanggal={tanggal} hariIni={hariIni} data={data} />
+      <PanelAntrean aksi={{ checkIn: checkInAksi, panggil: panggilAksi, lewati: lewatiAksi }} basePath="/admin/antrean" opsi={opsi} lokasiId={lokasiId} jenisId={jenisId} tanggal={tanggal} hariIni={hariIni} data={data} />
     </main>
   );
 }

@@ -280,7 +280,7 @@ export async function revisiLaporanPendampingan(
 // ------------------------------------------------------------------ akses foto
 
 /** Admin, atau Pendamping yang memegang sesi pada kasus yang sama dengan laporan pemilik foto. Mengembalikan data berkas bila boleh. */
-export async function fotoUntukPengguna(db: PrismaClient, fotoId: string, pengguna: { id: string; peran: "ADMIN" | "PENDAMPING" }) {
+export async function fotoUntukPengguna(db: PrismaClient, fotoId: string, pengguna: { id: string; peran: "ADMIN" | "PENDAMPING" | "PETUGAS" }) {
   const foto = await db.fotoPendampingan.findUnique({
     where: { id: fotoId },
     select: { namaBerkas: true, jalurBerkas: true, tipeMime: true, laporanPendampingan: { select: { sesi: { select: { laporanId: true } } } } },

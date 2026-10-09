@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Home, Inbox, Landmark, MapPinned, Shapes, Ticket, UserRoundCog, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Home, Inbox, Landmark, MapPinned, Shapes, Ticket, ScanLine, UserRoundCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,6 +25,7 @@ const GRUP: { judul?: string; item: Item[] }[] = [
       { href: "/admin/jenis-pendampingan", label: "Jenis Pendampingan", ikon: HeartHandshake },
       { href: "/admin/lokasi", label: "Lokasi Layanan", ikon: MapPinned },
       { href: "/admin/pendamping", label: "Akun Pendamping", ikon: UserRoundCog },
+      { href: "/admin/petugas", label: "Akun Petugas", ikon: ScanLine },
       { href: "/admin/hubungan", label: "Hubungan dengan Korban", ikon: Handshake },
       { href: "/admin/pekerjaan", label: "Pekerjaan", ikon: BriefcaseBusiness },
       { href: "/admin/desa", label: "Desa/Kelurahan", ikon: Landmark },

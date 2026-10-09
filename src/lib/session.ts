@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 export const SESSION_COOKIE = "siap_ppa_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
-export type Peran = "ADMIN" | "PENDAMPING";
+export type Peran = "ADMIN" | "PENDAMPING" | "PETUGAS";
 
 export type SessionPayload = {
   userId: string;
@@ -40,7 +40,7 @@ export async function verifySession(
   try {
     const { payload } = await jwtVerify(token, key(secret), { algorithms: ["HS256"] });
     const peran = payload.peran;
-    if (!payload.sub || (peran !== "ADMIN" && peran !== "PENDAMPING")) return null;
+    if (!payload.sub || (peran !== "ADMIN" && peran !== "PENDAMPING" && peran !== "PETUGAS")) return null;
     return { userId: payload.sub, peran };
   } catch {
     return null;

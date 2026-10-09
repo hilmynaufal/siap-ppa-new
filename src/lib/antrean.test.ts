@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
-import { checkInTiket, daftarAntrean, layarPublik, lewatiTiket, panggilBerikutnya, pecahNomor } from "./antrean";
+import { checkInTiket, daftarAntrean, jadwalHariIni, layarPublik, lewatiTiket, panggilBerikutnya, pecahNomor } from "./antrean";
 import { ubahStatusSesi } from "./sesi";
 import { cekTiket } from "./tiket";
 import { hariJakarta } from "./tiket";
@@ -33,7 +33,7 @@ async function tiketBaru(opsi: { tanggal?: string; status?: "TERJADWAL" | "BERLA
   const n = kodeUrut++;
   const l = await db.laporan.create({
     data: {
-      kodePendaftaran: `PPA-261008-${acak.slice(0, 5)}${"ABCDEFGHJKMNPQRSTUVWXYZ"[n]}`,
+      kodePendaftaran: `PPA-261008-${acak.slice(0, 4)}${"ABCDEFGHJKMNPQRSTUVWXYZ"[Math.floor(n / 23)]}${"ABCDEFGHJKMNPQRSTUVWXYZ"[n % 23]}`,
       jenisKekerasanId: jenisId,
       kronologi: "Kronologi fiktif pengujian antrean.",
       persetujuanData: true,
@@ -232,6 +232,42 @@ describe("Daftar antrean dan layar publik", () => {
     await panggilBerikutnya(db, filter(hariIni(), lok), adminId);
     const h = await cekTiket(db, b.laporan.kodePendaftaran);
     expect(h.ok && h.tiket[0].antrean).toEqual({ nomorSaatIni: a.tiket.nomorAntrean, sisaDidepan: 1 });
+    await db.tiket.deleteMany({ where: { lokasiId: lok } });
+    await db.sesi.updateMany({ where: { lokasiId: lok }, data: { lokasiId } });
+    await db.lokasi.delete({ where: { id: lok } });
+  });
+});
+
+describe("Petugas dibatasi pada lokasinya", () => {
+  it("check-in, panggil, dan lewati hanya di lokasi sendiri; Admin tanpa batas", async () => {
+    const sendiri = await tiketBaru({ lok: lokasi2Id });
+    const lain = await tiketBaru({ lok: lokasiId });
+    // tiket lokasi lain ditolak tanpa mengubah apa pun
+    expect(await checkInTiket(db, lain.tiket.kodeCheckIn, adminId, new Date(), lokasi2Id)).toEqual({ ok: false, pesan: "Tiket ini bukan untuk lokasi Anda." });
+    expect((await db.tiket.findUniqueOrThrow({ where: { id: lain.tiket.id } })).checkInPada).toBeNull();
+    expect(await checkInTiket(db, sendiri.tiket.kodeCheckIn, adminId, new Date(), lokasi2Id)).toMatchObject({ ok: true });
+    // panggil di lokasi lain ditolak; di lokasi sendiri berhasil
+    expect(await panggilBerikutnya(db, filter(hariIni(), lokasiId), adminId, new Date(), lokasi2Id)).toEqual({ ok: false, pesan: "Antrean ini bukan untuk lokasi Anda." });
+    expect(await panggilBerikutnya(db, filter(hariIni(), lokasi2Id), adminId, new Date(), lokasi2Id)).toMatchObject({ ok: true });
+    // lewati tiket lokasi lain: seolah tidak ada
+    expect(await lewatiTiket(db, lain.tiket.id, adminId, new Date(), lokasi2Id)).toEqual({ ok: false, pesan: "Tiket tidak ditemukan." });
+    expect(await lewatiTiket(db, sendiri.tiket.id, adminId, new Date(), lokasi2Id)).toMatchObject({ ok: true });
+    // tanpa batas (Admin) boleh di lokasi mana pun
+    expect(await checkInTiket(db, lain.tiket.kodeCheckIn, adminId)).toMatchObject({ ok: true });
+  });
+
+  it("jadwal hari ini: hanya sesi di lokasinya, tanpa nama atau kode laporan", async () => {
+    const lok = (await db.lokasi.create({ data: { nama: `Lokasi Jadwal ${awalan}`, alamat: "Jl. Fiktif" } })).id;
+    const a = await tiketBaru({ lok });
+    await tiketBaru({ lok: lokasiId }); // lokasi lain, tidak ikut
+    await tiketBaru({ lok, tanggal: hariJakarta(new Date(Date.now() + 2 * HARI)) }); // hari lain, tidak ikut
+    const j = await jadwalHariIni(db, lok, hariIni());
+    expect(j).toHaveLength(1);
+    expect(j[0]).toMatchObject({ nomorAntrean: a.tiket.nomorAntrean, jenis: `Layanan ${awalan}`, pendamping: "Pendamping Antrean", statusSesi: "TERJADWAL", checkIn: null });
+    const json = JSON.stringify(j);
+    for (const rahasia of [a.laporan.kodePendaftaran, "Kronologi", a.tiket.kodeCheckIn]) expect(json).not.toContain(rahasia);
+    await checkInTiket(db, a.tiket.kodeCheckIn, adminId);
+    expect((await jadwalHariIni(db, lok, hariIni()))[0].checkIn).toMatch(/^\d{2}:\d{2}$/);
     await db.tiket.deleteMany({ where: { lokasiId: lok } });
     await db.sesi.updateMany({ where: { lokasiId: lok }, data: { lokasiId } });
     await db.lokasi.delete({ where: { id: lok } });
