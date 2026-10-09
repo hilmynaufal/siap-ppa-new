@@ -16,7 +16,7 @@ const JEDA_MASUK_MS = 120;
  * Saat berupa rail, sidebar terbentang sementara (menimpa isi halaman tanpa menggesernya) selama kursor atau fokus papan tombol
  * ada di dalamnya, lalu kembali menjadi rail. Tombol bentang/ciutkan ada di bawah.
  */
-export function SidebarAdmin({ awalKolaps }: { awalKolaps: boolean }) {
+export function SidebarAdmin({ awalKolaps, jumlahBaru = 0 }: { awalKolaps: boolean; jumlahBaru?: number }) {
   const [kolaps, setKolaps] = useState(awalKolaps);
   const [sementara, setSementara] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,7 +69,7 @@ export function SidebarAdmin({ awalKolaps }: { awalKolaps: boolean }) {
         style={{ width: terbentang ? LEBAR_LEBAR : LEBAR_RAIL }}
       >
         <div className="gulir-gelap min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-3">
-          <NavigasiAdmin kolaps={!terbentang} />
+          <NavigasiAdmin kolaps={!terbentang} jumlahBaru={jumlahBaru} />
         </div>
         <div className="border-t border-white/10 p-3">
           <button
