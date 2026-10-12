@@ -1,0 +1,22 @@
+{
+ "brand": "SIAP PPA",
+ "tagline": "Sistem Informasi Aduan dan Pendampingan Perempuan dan Anak",
+ "brief": "Logo untuk layanan pengaduan dan pendampingan korban kekerasan perempuan dan anak di Kabupaten Bandung (Diskominfo). Harus terasa aman, hangat, dan resmi tanpa menakutkan; terbaca jelas di layar ponsel, QR Code, dan cetakan satu warna.",
+ "adjectives": ["aman","hangat","terpercaya","tenang"],
+ "criteria": "Berhasil bila: tidak memakai klise perisai, terbaca di 16 px, tetap utuh dalam satu warna, dan selaras dengan token navy dan magenta di DESIGN.md.",
+ "industry": "services",
+ "mockups": ["business-card","badge","signage","website","app-icon","social"],
+ "nav": ["Lapor","Cek Tiket","Layanan","Bantuan"],
+ "brand_color": "#0f2a63",
+ "greyscale": false,
+ "designer": "Tim SIAP PPA",
+ "round": 2,
+ "concepts": [
+  {"name":"Naungan","symbol":"siap-symbol.svg","lockup":"siap-horizontal.svg",
+   "symbol_on_tile":"siap-symbol-reversed.svg","lockup_on_dark":"siap-horizontal-reversed.svg","tile_color":"#0f2a63",
+   "idea":"Lengkung pelindung yang merangkul satu titik: setiap orang yang melapor dilindungi dan didampingi.",
+   "rationale":["Perlindungan tanpa klise perisai atau gembok","Lengkung dan titik tetap terbaca di 16 px","Titik magenta menjadi satu-satunya aksen: orang yang dilindungi","Garis tebal berujung bulat selaras dengan huruf SIAP buatan sendiri"]}
+ ],
+ "recommendation": "Naungan: satu ide, mudah diingat, dan siap dipakai di layar, cetak, dan papan layanan.",
+ "next_steps": ["Setujui arah dan warna","Pasang favicon dan header di aplikasi","Cetak papan layanan dan stiker QR"]
+}

@@ -1,0 +1,10 @@
+{"brand":"SIAP PPA","tagline":"Sistem Informasi Aduan dan Pendampingan Perempuan dan Anak",
+"brief":"Logo layanan pengaduan dan pendampingan korban kekerasan perempuan dan anak, Kabupaten Bandung. Aman, hangat, resmi, tidak menakutkan.",
+"adjectives":["aman","hangat","terpercaya","tenang"],"criteria":"Terbaca di 16 px, utuh dalam satu warna, selaras dengan token navy dan magenta.",
+"industry":"services","mockups":["business-card","badge","signage","website","app-icon","social"],"nav":["Lapor","Cek Tiket","Layanan","Bantuan"],
+"brand_color":"#0f2a63","greyscale":false,"designer":"Tim SIAP PPA","round":3,
+"concepts":[
+{"name":"A Naungan","symbol":"siap-symbol.svg","lockup":"siap-horizontal.svg","symbol_on_tile":"siap-symbol-reversed.svg","lockup_on_dark":"siap-horizontal-reversed.svg","tile_color":"#0f2a63","idea":"Lengkung pelindung yang merangkul satu titik.","rationale":["Paling sederhana dan kuat di 16 px","Tanpa klise perisai"]},
+{"name":"B Pendamping","symbol":"alt-b/siap-symbol.svg","lockup":"alt-b/siap-horizontal.svg","symbol_on_tile":"alt-b/siap-symbol-reversed.svg","lockup_on_dark":"alt-b/siap-horizontal-reversed.svg","tile_color":"#0f2a63","idea":"Pendamping dewasa menaungi anak (magenta).","rationale":["Paling literal dan hangat: langsung terbaca sebagai pendampingan","Anak sebagai aksen magenta"]},
+{"name":"C Siap","symbol":"alt-c/siap-symbol.svg","lockup":"alt-c/siap-horizontal.svg","symbol_on_tile":"alt-c/siap-symbol-reversed.svg","lockup_on_dark":"alt-c/siap-horizontal-reversed.svg","tile_color":"#0f2a63","idea":"Tiga pola QR dan satu titik: akses lewat QR Code.","rationale":["Merujuk ke cara Pelapor mengakses layanan","Modular, mudah jadi pola"]}],
+"recommendation":"A Naungan: paling sederhana dan ownable. B bila ingin pesan pendampingan lebih eksplisit.","next_steps":["Pilih arah final","Pasang di aplikasi"]}
