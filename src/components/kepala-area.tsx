@@ -1,12 +1,12 @@
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { keluar } from "@/app/masuk/actions";
-import { IkonKotak } from "./ikon-kotak";
+import { LogoSiap } from "./logo-siap";
 
 export function KepalaArea({ nama, peran }: { nama: string; peran: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-[4.5rem] items-center justify-between gap-4 border-b border-line bg-surface px-4 md:px-8">
       <div className="flex items-center gap-3">
-        <IkonKotak ikon={ShieldCheck} warna="magenta" ukuran="md" />
+        <LogoSiap />
         <div>
           <p className="font-extrabold leading-tight text-navy-900">SIAP PPA</p>
           <p className="text-sm font-medium text-ink-mute">{peran}</p>
