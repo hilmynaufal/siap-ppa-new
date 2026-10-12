@@ -7,15 +7,18 @@ export function KepalaPelapor({
   judul,
   kembaliHref,
   telepon,
+  lebar = false,
 }: {
   judul?: string;
   kembaliHref?: string;
   /** Nomor kontak darurat aktif; tombol Darurat disembunyikan bila belum ada. */
   telepon?: string | null;
+  /** Lebarkan isi header (landing page di layar besar); bawaan selebar ponsel. */
+  lebar?: boolean;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface">
-      <div className="mx-auto flex h-16 max-w-md items-center justify-between gap-3 px-4">
+      <div className={`mx-auto flex h-16 items-center justify-between gap-3 px-4 ${lebar ? "max-w-6xl" : "max-w-md"}`}>
         {kembaliHref ? (
           <Link
             href={kembaliHref}
