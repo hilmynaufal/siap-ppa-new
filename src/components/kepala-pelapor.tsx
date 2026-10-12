@@ -1,6 +1,6 @@
-import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Phone } from "lucide-react";
 import Link from "next/link";
-import { IkonKotak } from "./ikon-kotak";
+import { LogoSiap } from "./logo-siap";
 
 /** Header halaman Pelapor (mobile first). `kembaliHref` menampilkan panah kembali dan judul halaman. */
 export function KepalaPelapor({
@@ -29,7 +29,7 @@ export function KepalaPelapor({
           </Link>
         ) : (
           <Link href="/" className="flex min-w-0 items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
-            <IkonKotak ikon={ShieldCheck} warna="magenta" ukuran="md" />
+            <LogoSiap />
             <span className="min-w-0">
               <span className="block font-extrabold leading-tight text-navy-900">SIAP PPA</span>
               <span className="block truncate text-xs text-ink-mute">DALDUK PPA Kab. Bandung</span>
