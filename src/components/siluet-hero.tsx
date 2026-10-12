@@ -1,5 +1,5 @@
 /**
- * Pita perbukitan selebar hero dengan siluet ibu memeluk anaknya dari samping. Diletakkan absolut di dasar hero
+ * Pita perbukitan selebar hero dengan siluet ibu dan anak bergandengan. Diletakkan absolut di dasar hero
  * sehingga bukit-bukit berlapis menyatu dengan gradien latar. Dekoratif; SVG inline.
  */
 export function SiluetHero({ className = "" }: { className?: string }) {
@@ -30,17 +30,8 @@ export function SiluetHero({ className = "" }: { className?: string }) {
         <ellipse cx="1300" cy="168" rx="22" ry="34" />
       </g>
 
-      {/* ibu memeluk anak dari samping */}
-      <g fill="#0A1B44" transform="translate(628 -58) scale(0.8)">
-        <circle cx="232" cy="102" r="10" />
-        <circle cx="246" cy="120" r="21" />
-        <path d="M230 140 C212 152 200 178 198 212 C196 254 176 306 156 342 L278 342 C268 302 256 264 256 234 C256 206 266 180 262 160 C260 150 254 144 246 140 Z" />
-        <path d="M256 172 C276 202 298 228 324 238" fill="none" stroke="#0A1B44" strokeWidth="14" strokeLinecap="round" />
-        <path d="M310 192 C328 186 338 202 331 218 C327 206 322 200 312 200 Z" />
-        <circle cx="296" cy="196" r="15" />
-        <path d="M299 213 C287 218 283 234 284 252 C283 286 277 318 273 342 L331 342 C327 318 322 286 322 254 C322 234 318 220 308 214 Z" />
-        <path d="M296 238 C284 244 270 242 258 236" fill="none" stroke="#0A1B44" strokeWidth="9" strokeLinecap="round" />
-      </g>
+      {/* ibu dan anak bergandengan: gambar sumber diubah menjadi siluet satu warna (public/siluet-ibu-anak.webp) */}
+      <image href="/siluet-ibu-anak.webp" x="736" y="0" width="168" height="218" preserveAspectRatio="xMidYMax meet" />
     </svg>
   );
 }
