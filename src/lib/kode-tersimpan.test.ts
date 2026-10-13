@@ -6,8 +6,8 @@ const SEKARANG = Date.UTC(2026, 9, 13);
 const isi = (sampai: unknown, kode: unknown = KODE) => JSON.stringify({ kode, sampai });
 
 describe("uraiKodeTersimpan", () => {
-  it("mengembalikan kode selama masa berlaku 3 hari", () => {
-    expect(MASA_BERLAKU_MS).toBe(3 * 24 * 3600 * 1000);
+  it("mengembalikan kode selama masa berlaku 1 hari", () => {
+    expect(MASA_BERLAKU_MS).toBe(24 * 3600 * 1000);
     expect(uraiKodeTersimpan(isi(SEKARANG + MASA_BERLAKU_MS), SEKARANG)).toBe(KODE);
     expect(uraiKodeTersimpan(isi(SEKARANG + 1), SEKARANG)).toBe(KODE);
   });

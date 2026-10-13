@@ -1,9 +1,9 @@
-// Kode pendaftaran yang diingat di browser Pelapor (hanya bila Pelapor memilihnya). Tidak pernah dikirim ke server.
+// Kode pendaftaran yang diingat di browser Pelapor (otomatis setelah laporan terkirim, berlaku 1 hari karena layanan dilakukan pada hari itu). Tidak pernah dikirim ke server.
 // Semua akses dibungkus try/catch: penyimpanan bisa ditolak (mode pribadi, data situs diblokir).
 import { POLA_KODE } from "./laporan";
 
 const KUNCI = "siap-ppa:kode-pendaftaran";
-export const MASA_BERLAKU_MS = 3 * 24 * 60 * 60 * 1000;
+export const MASA_BERLAKU_MS = 24 * 60 * 60 * 1000;
 
 /** Isi penyimpanan -> kode, atau null bila rusak, bukan kode yang sah, atau sudah lewat masa berlakunya. */
 export function uraiKodeTersimpan(mentah: string | null, sekarang = Date.now()): string | null {
