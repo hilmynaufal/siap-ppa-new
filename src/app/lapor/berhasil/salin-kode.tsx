@@ -2,30 +2,15 @@
 
 import { CheckCircle2, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
-import { bacaKodeTersimpan, hapusKodeTersimpan, simpanKode } from "@/lib/kode-tersimpan";
+import { simpanKode } from "@/lib/kode-tersimpan";
 
 export function SalinKode({ kode }: { kode: string }) {
   const [tersalin, setTersalin] = useState(false);
-  const [ingat, setIngat] = useState(false);
-  const [gagalSimpan, setGagalSimpan] = useState(false);
 
+  // Kode diingat di perangkat ini (berlaku 1 hari) agar mudah dibuka lagi di Cek Tiket. Gagal diam-diam bila penyimpanan ditolak.
   useEffect(() => {
-    // Membaca penyimpanan browser hanya mungkin setelah tampil di klien.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIngat(bacaKodeTersimpan() === kode);
+    simpanKode(kode);
   }, [kode]);
-
-  function ubahIngat(nilai: boolean) {
-    if (nilai) {
-      const ok = simpanKode(kode);
-      setGagalSimpan(!ok);
-      setIngat(ok);
-    } else {
-      hapusKodeTersimpan();
-      setGagalSimpan(false);
-      setIngat(false);
-    }
-  }
 
   async function salin() {
     try {
@@ -54,16 +39,6 @@ export function SalinKode({ kode }: { kode: string }) {
             Kode berhasil disalin
           </span>
         )}
-      </p>
-      <label className="mt-3 flex w-full cursor-pointer items-start gap-3 rounded-xl border border-line-strong bg-surface p-3 text-left has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100">
-        <input type="checkbox" checked={ingat} onChange={(e) => ubahIngat(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-blue-600" />
-        <span className="text-sm text-ink">
-          <span className="font-semibold">Ingat kode di perangkat ini</span>
-          <span className="mt-0.5 block text-ink-soft">Agar mudah dibuka lagi di Cek Tiket; terhapus otomatis setelah 3 hari. Jangan dicentang bila HP atau komputer ini dipakai bersama orang lain.</span>
-        </span>
-      </label>
-      <p role="status" aria-live="polite" className="min-h-5 text-sm text-error">
-        {gagalSimpan && "Browser ini tidak mengizinkan penyimpanan. Salin dan simpan kodenya sendiri."}
       </p>
     </>
   );
