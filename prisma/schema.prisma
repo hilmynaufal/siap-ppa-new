@@ -30,6 +30,18 @@ enum StatusLaporan {
   @@map("status_laporan")
 }
 
+/// Jenis dokumen pendukung laporan. KK, KTP, dan akta kelahiran wajib; sisanya opsional.
+enum JenisDokumen {
+  KK
+  KTP
+  AKTA_KELAHIRAN
+  SURAT_NIKAH
+  SURAT_CERAI
+  BPJS
+
+  @@map("jenis_dokumen")
+}
+
 enum JenisKelamin {
   LAKI_LAKI
   PEREMPUAN
@@ -336,14 +348,16 @@ model Terlapor {
   @@map("terlapor")
 }
 
+/// jenis kosong untuk berkas yang diunggah sebelum formulir membedakan jenis dokumen.
 model DokumenLaporan {
-  id          String  @id @default(cuid())
-  laporanId   String  @map("laporan_id")
-  namaBerkas  String  @map("nama_berkas")
-  jalurBerkas String  @map("jalur_berkas")
-  tipeMime    String  @map("tipe_mime")
+  id          String        @id @default(cuid())
+  laporanId   String        @map("laporan_id")
+  jenis       JenisDokumen?
+  namaBerkas  String        @map("nama_berkas")
+  jalurBerkas String        @map("jalur_berkas")
+  tipeMime    String        @map("tipe_mime")
   ukuran      Int
-  laporan     Laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  laporan     Laporan       @relation(fields: [laporanId], references: [id], onDelete: Cascade)
 
   @@map("dokumen_laporan")
 }

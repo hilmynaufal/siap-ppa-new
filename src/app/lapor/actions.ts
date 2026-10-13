@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import {
-  MAKS_BERKAS,
+  DOKUMEN_LAPORAN,
+  bidangDokumen,
   NAMA_BIDANG,
   SkemaLaporan,
   bentukDataLaporan,
@@ -48,13 +49,18 @@ export async function kirimLaporan(_s: KirimState, formData: FormData): Promise<
     return { galat: galatPilihan, ringkasan: "Ada pilihan yang tidak sesuai. Silakan periksa kolom bertanda merah.", langkah: langkahPertamaBergalat(galatPilihan), nilai: pulihkan(nilai) };
   }
 
-  const files = formData.getAll("dokumen").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length > MAKS_BERKAS) return { ringkasan: `Maksimal ${MAKS_BERKAS} berkas.`, langkah: 5, nilai: pulihkan(nilai) };
-  for (const f of files) {
+  // Satu berkas per jenis dokumen; KK, KTP, dan akta kelahiran wajib.
+  const berkas = [];
+  for (const d of DOKUMEN_LAPORAN) {
+    const f = formData.get(bidangDokumen(d.jenis));
+    if (!(f instanceof File) || f.size === 0) {
+      if (d.wajib) return { ringkasan: `${d.label} wajib dilampirkan.`, langkah: 5, nilai: pulihkan(nilai) };
+      continue;
+    }
     const g = periksaBerkas(f);
-    if (g) return { ringkasan: `${f.name}: ${g}`, langkah: 5, nilai: pulihkan(nilai) };
+    if (g) return { ringkasan: `${d.label}: ${g}`, langkah: 5, nilai: pulihkan(nilai) };
+    berkas.push({ jenis: d.jenis, nama: f.name, bytes: new Uint8Array(await f.arrayBuffer()) });
   }
-  const berkas = await Promise.all(files.map(async (f) => ({ nama: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })));
 
   const simpan = await simpanLaporan(db, data, berkas);
   if (!simpan.ok) return { ringkasan: simpan.pesan, langkah: 5, nilai: pulihkan(nilai) };

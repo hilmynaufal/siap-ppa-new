@@ -1,6 +1,20 @@
 import { randomInt } from "node:crypto";
 
-export const MAKS_BERKAS = 3;
+
+/** Dokumen pendukung: satu berkas per jenis. KK, KTP, dan akta kelahiran wajib; sisanya opsional. */
+export const DOKUMEN_LAPORAN = [
+  { jenis: "KK", label: "Kartu Keluarga (KK)", wajib: true },
+  { jenis: "KTP", label: "KTP", wajib: true },
+  { jenis: "AKTA_KELAHIRAN", label: "Akta kelahiran", wajib: true },
+  { jenis: "SURAT_NIKAH", label: "Surat nikah", wajib: false },
+  { jenis: "SURAT_CERAI", label: "Surat keterangan cerai", wajib: false },
+  { jenis: "BPJS", label: "BPJS", wajib: false },
+] as const;
+export type JenisDokumenLaporan = (typeof DOKUMEN_LAPORAN)[number]["jenis"];
+export const MAKS_BERKAS = DOKUMEN_LAPORAN.length;
+export const labelDokumen = (jenis: string | null) => DOKUMEN_LAPORAN.find((d) => d.jenis === jenis)?.label ?? "Dokumen lain";
+/** Nama bidang formulir untuk berkas sebuah jenis dokumen. */
+export const bidangDokumen = (jenis: JenisDokumenLaporan) => `dokumen_${jenis}`;
 export const MAKS_UKURAN = 5 * 1024 * 1024;
 
 // Tanpa huruf dan angka yang mudah tertukar (O/0, I/1/L) agar kode mudah dibaca dan disalin.

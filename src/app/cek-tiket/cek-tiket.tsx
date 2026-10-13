@@ -4,6 +4,7 @@ import { BellRing, CalendarDays, Clock, Hourglass, MapPin, Phone, Printer, Searc
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { IkonKotak } from "@/components/ikon-kotak";
+import { bacaKodeTersimpan, hapusKodeTersimpan } from "@/lib/kode-tersimpan";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { Galat, fokus } from "@/components/ui-form";
 import { periksaTiket, type HasilPeriksa, type TiketDenganQr } from "./actions";
@@ -184,6 +185,13 @@ export function CekTiket() {
   const [hasil, setHasil] = useState<HasilPeriksa | null>(null);
   const [pending, mulai] = useTransition();
   const kodeAktif = useRef<string | null>(null);
+  const [tersimpan, setTersimpan] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Membaca penyimpanan browser hanya mungkin setelah tampil di klien.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTersimpan(bacaKodeTersimpan());
+  }, []);
 
   const cari = useCallback(
     (nilai: string) => {
@@ -218,6 +226,34 @@ export function CekTiket() {
             <p className="mt-0.5 text-sm text-ink-soft">Masukkan kode pendaftaran dari saat Anda mengirim laporan.</p>
           </div>
         </div>
+        {tersimpan && (
+          <div className="mb-4 rounded-xl border border-line bg-canvas p-4">
+            <p className="text-sm font-semibold text-ink-soft">Kode tersimpan di perangkat ini</p>
+            <p className="mt-1 font-extrabold tabular-nums tracking-wide text-navy-900">{tersimpan}</p>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setKode(tersimpan);
+                  cari(tersimpan);
+                }}
+                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-blue-600 px-3 font-bold text-white transition-colors hover:bg-blue-700 ${fokus}`}
+              >
+                Pakai kode ini
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  hapusKodeTersimpan();
+                  setTersimpan(null);
+                }}
+                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line-strong bg-surface px-3 font-bold text-ink transition-colors hover:bg-blue-50 ${fokus}`}
+              >
+                Lupakan kode
+              </button>
+            </div>
+          </div>
+        )}
         <form
           noValidate
           onSubmit={(e) => {

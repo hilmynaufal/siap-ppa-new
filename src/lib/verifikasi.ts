@@ -50,7 +50,7 @@ export async function detailLaporan(db: PrismaClient, id: string) {
     include: {
       jenisKekerasan: { select: { nama: true } },
       verifikator: { select: { nama: true } },
-      dokumen: { select: { id: true, namaBerkas: true, tipeMime: true, ukuran: true }, orderBy: { namaBerkas: "asc" } },
+      dokumen: { select: { id: true, jenis: true, namaBerkas: true, tipeMime: true, ukuran: true }, orderBy: [{ jenis: "asc" }, { namaBerkas: "asc" }] },
       pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       terlapor: { include: { hubungan: { select: { nama: true } } } },

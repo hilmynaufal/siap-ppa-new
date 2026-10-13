@@ -1,4 +1,4 @@
-import { CheckCircle2, ClipboardCheck, SearchCheck, Ticket } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Copy, SearchCheck, Ticket } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { KepalaPelapor } from "@/components/kepala-pelapor";
@@ -34,7 +34,11 @@ export default async function HalamanBerhasil({ searchParams }: { searchParams: 
         </div>
 
         <section aria-label="Kode pendaftaran" className="mt-6 rounded-2xl border border-line bg-canvas p-5 text-center shadow-card">
-          <p className="text-sm font-semibold text-ink-soft">Kode pendaftaran</p>
+          <p className="napas mx-auto inline-flex items-center gap-2 rounded-full bg-magenta-50 px-4 py-2 text-base font-extrabold text-magenta-700">
+            <Copy size={18} aria-hidden="true" />
+            Salin kode pendaftaran Anda sekarang
+          </p>
+          <p className="mt-4 text-sm font-semibold text-ink-soft">Kode pendaftaran</p>
           <p className="mt-2 select-all break-all text-3xl font-extrabold tracking-wide text-navy-900 tabular-nums">{kode}</p>
           <div className="mt-4 flex flex-col items-center gap-1">
             <SalinKode kode={kode} />

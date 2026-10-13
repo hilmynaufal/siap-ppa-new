@@ -1,0 +1,24 @@
+import { describe, expect, it } from "vitest";
+import { MASA_BERLAKU_MS, uraiKodeTersimpan } from "./kode-tersimpan";
+
+const KODE = "PPA-261013-ABCDEF";
+const SEKARANG = Date.UTC(2026, 9, 13);
+const isi = (sampai: unknown, kode: unknown = KODE) => JSON.stringify({ kode, sampai });
+
+describe("uraiKodeTersimpan", () => {
+  it("mengembalikan kode selama masa berlaku 3 hari", () => {
+    expect(MASA_BERLAKU_MS).toBe(3 * 24 * 3600 * 1000);
+    expect(uraiKodeTersimpan(isi(SEKARANG + MASA_BERLAKU_MS), SEKARANG)).toBe(KODE);
+    expect(uraiKodeTersimpan(isi(SEKARANG + 1), SEKARANG)).toBe(KODE);
+  });
+
+  it("menolak yang sudah lewat, rusak, atau bukan kode pendaftaran", () => {
+    expect(uraiKodeTersimpan(isi(SEKARANG), SEKARANG)).toBeNull();
+    expect(uraiKodeTersimpan(isi(SEKARANG - 1), SEKARANG)).toBeNull();
+    expect(uraiKodeTersimpan(KODE, SEKARANG)).toBeNull(); // format lama tanpa masa berlaku
+    expect(uraiKodeTersimpan("{", SEKARANG)).toBeNull();
+    expect(uraiKodeTersimpan(null, SEKARANG)).toBeNull();
+    expect(uraiKodeTersimpan(isi(SEKARANG + 1000, "<script>"), SEKARANG)).toBeNull();
+    expect(uraiKodeTersimpan(isi("besok"), SEKARANG)).toBeNull();
+  });
+});

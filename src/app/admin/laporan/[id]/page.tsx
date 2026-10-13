@@ -5,7 +5,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
-import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia } from "@/lib/laporan";
+import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "@/lib/laporan";
 import { daftarUsulan, laporanKasus } from "@/lib/laporan-pendampingan";
 import { laporanTerkait } from "@/lib/nik-akses";
 import { syaratTutupKasus } from "@/lib/sesi";
@@ -240,7 +240,10 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                       ) : (
                         <FileImage size={20} aria-hidden="true" className="shrink-0 text-sky-500" />
                       )}
-                      <span className="min-w-0 flex-1 truncate font-semibold">{d.namaBerkas}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold">{labelDokumen(d.jenis)}</span>
+                        <span className="block truncate text-sm text-ink-mute">{d.namaBerkas}</span>
+                      </span>
                       <span className="shrink-0 text-sm text-ink-mute">{ukuranTeks(d.ukuran)}</span>
                     </a>
                   </li>

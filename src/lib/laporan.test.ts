@@ -214,7 +214,7 @@ afterAll(async () => {
 
 describe("simpanLaporan", () => {
   it("menyimpan laporan, pelapor, korban, dan terlapor; NIK terenkripsi dan dapat dicari lewat indeks", async () => {
-    const hasil = await simpanLaporan(db, data(), [{ nama: "bukti.jpg", bytes: JPG }, { nama: "surat.pdf", bytes: PDF }], dir);
+    const hasil = await simpanLaporan(db, data(), [{ nama: "bukti.jpg", bytes: JPG, jenis: "KTP" }, { nama: "surat.pdf", bytes: PDF, jenis: "SURAT_NIKAH" }], dir);
     expect(hasil.ok).toBe(true);
     if (!hasil.ok) return;
     expect(hasil.kode).toMatch(POLA_KODE);
@@ -240,6 +240,7 @@ describe("simpanLaporan", () => {
     expect(l.dokumen).toHaveLength(2);
     for (const d of l.dokumen) expect(existsSync(path.join(dir, d.jalurBerkas))).toBe(true);
     expect(l.dokumen.map((d) => d.tipeMime).sort()).toEqual(["application/pdf", "image/jpeg"]);
+    expect(l.dokumen.map((d) => d.jenis).sort()).toEqual(["KTP", "SURAT_NIKAH"]);
   });
 
   it("korban sendiri yang melapor: tanpa baris pelapor dan tanpa terlapor", async () => {
@@ -259,9 +260,11 @@ describe("simpanLaporan", () => {
     expect(!hasil.ok && hasil.pesan).toContain("bukan JPG, PNG, atau PDF");
   });
 
-  it("menolak lebih dari 3 berkas dan berkas lebih dari 5 MB", async () => {
-    const empat = [1, 2, 3, 4].map((i) => ({ nama: `b${i}.png`, bytes: PNG }));
-    expect((await simpanLaporan(db, data(), empat, dir)).ok).toBe(false);
+  it("menolak lebih dari 6 berkas, jenis dokumen kembar, dan berkas lebih dari 5 MB", async () => {
+    const tujuh = [1, 2, 3, 4, 5, 6, 7].map((i) => ({ nama: `b${i}.png`, bytes: PNG }));
+    expect((await simpanLaporan(db, data(), tujuh, dir)).ok).toBe(false);
+    const kembar = [{ nama: "a.png", bytes: PNG, jenis: "KTP" as const }, { nama: "b.png", bytes: PNG, jenis: "KTP" as const }];
+    expect((await simpanLaporan(db, data(), kembar, dir)).ok).toBe(false);
     const besar = new Uint8Array(5 * 1024 * 1024 + 1);
     besar.set(PNG);
     expect((await simpanLaporan(db, data(), [{ nama: "besar.png", bytes: besar }], dir)).ok).toBe(false);
