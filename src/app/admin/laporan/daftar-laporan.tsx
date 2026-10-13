@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, FileSearch, Inbox, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Download, FileSearch, Inbox, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BilahCari } from "@/components/bilah-cari";
@@ -63,6 +63,14 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
   const nikSiap = modeNik && hasilNik?.nik === nikDicari && hasilNik.ids !== null;
 
   const hitung = (s: StatusLaporanUi) => laporan.filter((l) => l.status === s).length;
+  // Unduhan mengikuti filter status, jenis, kecamatan, dan tanggal yang sedang dipilih (bukan kotak cari).
+  const paramEkspor = new URLSearchParams();
+  if (status !== "semua") paramEkspor.set("status", status);
+  if (jenisF) paramEkspor.set("jenis", jenisF);
+  if (wilayah) paramEkspor.set("kecamatan", wilayah);
+  if (dari) paramEkspor.set("dari", dari);
+  if (sampai) paramEkspor.set("sampai", sampai);
+  const tautanEkspor = `/admin/laporan/ekspor${paramEkspor.size ? `?${paramEkspor}` : ""}`;
   const filterAktif = !!(cari || jenisF || wilayah || dari || sampai || status !== "semua");
 
   const tampil = useMemo(() => {
@@ -105,12 +113,20 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
 
   return (
     <>
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex flex-wrap items-center gap-4">
         <IkonKotak ikon={Inbox} warna="blue" ukuran="lg" />
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-extrabold text-navy-900">Laporan masuk</h1>
           <p className="mt-0.5 text-sm text-ink-soft">Periksa isi laporan dari Pelapor, lalu verifikasi atau tolak dengan alasan.</p>
         </div>
+        <a
+          href={tautanEkspor}
+          download
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 font-bold text-navy-800 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+        >
+          <Download size={18} aria-hidden="true" />
+          Unduh Excel
+        </a>
       </div>
 
       <StripKpi

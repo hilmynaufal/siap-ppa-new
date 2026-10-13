@@ -12,9 +12,10 @@ import {
   periksaBerkas,
   type DataLaporan,
   type Galat,
+  type JenisDokumenLaporan,
 } from "./laporan";
 
-export type BerkasMasuk = { nama: string; bytes: Uint8Array };
+export type BerkasMasuk = { nama: string; bytes: Uint8Array; jenis?: JenisDokumenLaporan };
 
 export type HasilKirim = { ok: true; kode: string } | { ok: false; pesan: string };
 
@@ -38,7 +39,9 @@ export async function simpanLaporan(
   dir = direktoriUnggah(),
 ): Promise<HasilKirim> {
   if (berkas.length > MAKS_BERKAS) return { ok: false, pesan: `Maksimal ${MAKS_BERKAS} berkas.` };
-  const diperiksa: { nama: string; bytes: Uint8Array; tipe: NonNullable<ReturnType<typeof deteksiTipe>> }[] = [];
+  const jenisAda = berkas.flatMap((b) => (b.jenis ? [b.jenis] : []));
+  if (new Set(jenisAda).size < jenisAda.length) return { ok: false, pesan: "Setiap jenis dokumen hanya boleh satu berkas." };
+  const diperiksa: { nama: string; bytes: Uint8Array; jenis?: JenisDokumenLaporan; tipe: NonNullable<ReturnType<typeof deteksiTipe>> }[] = [];
   for (const b of berkas) {
     const galat = periksaBerkas({ name: b.nama, size: b.bytes.length });
     if (galat) return { ok: false, pesan: `${b.nama}: ${galat}` };
@@ -115,6 +118,7 @@ export async function simpanLaporan(
       await db.dokumenLaporan.create({
         data: {
           laporanId,
+          jenis: b.jenis,
           namaBerkas: b.nama.slice(0, 200),
           jalurBerkas: path.join(/* turbopackIgnore: true */ laporanId, nama),
           tipeMime: b.tipe,

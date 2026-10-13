@@ -136,8 +136,21 @@ body {
     animation: muncul 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: var(--tunda, 0ms);
   }
+  /* Zoom-in/zoom-out pelan agar pandangan Pelapor tertuju ke ajakan menyalin kode. */
+  .napas {
+    animation: napas 2.4s ease-in-out infinite;
+  }
   .hero-senja {
     background: linear-gradient(180deg, var(--color-blue-100) 0%, var(--color-blue-50) 55%, var(--color-magenta-50) 100%);
+  }
+}
+@keyframes napas {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
   }
 }
 @keyframes muncul {

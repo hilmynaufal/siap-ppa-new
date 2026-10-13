@@ -15,8 +15,8 @@ import {
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  DOKUMEN_LAPORAN,
   FORMAT_BERKAS,
-  MAKS_BERKAS,
   NAMA_BIDANG,
   OPSI_JENIS_KELAMIN,
   OPSI_PENDIDIKAN,
@@ -26,8 +26,10 @@ import {
   galatSampaiLangkah,
   hitungUsia,
   langkahDariBidang,
+  bidangDokumen,
   periksaBerkas,
   type Galat,
+  type JenisDokumenLaporan,
   type Langkah,
 } from "@/lib/laporan";
 import { kirimLaporan } from "./actions";
@@ -35,6 +37,7 @@ import { kirimLaporan } from "./actions";
 type Opsi = { id: string; nama: string };
 type OpsiDesa = Opsi & { kecamatanId: string };
 type ItemBerkas = { file: File; galat: string | null };
+type BerkasPerJenis = Partial<Record<JenisDokumenLaporan, ItemBerkas>>;
 
 const LANGKAH = ["Pelapor", "Korban", "Kejadian", "Terlapor", "Dokumen"];
 const MAKS_KRONOLOGI = 2000;
@@ -52,6 +55,66 @@ function hariIniLokal() {
 
 function ukuranTeks(n: number) {
   return n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1).replace(".", ",")} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+}
+
+function SlotDokumen({
+  jenis,
+  label,
+  wajib,
+  item,
+  onUbah,
+}: {
+  jenis: JenisDokumenLaporan;
+  label: string;
+  wajib: boolean;
+  item: ItemBerkas | undefined;
+  onUbah: (item: ItemBerkas | null) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  const bidang = bidangDokumen(jenis);
+
+  function pilih(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return onUbah(null);
+    const galat = periksaBerkas(file);
+    // Berkas bermasalah tidak ikut terkirim: kolomnya dikosongkan dan pesannya ditampilkan.
+    if (galat) e.target.value = "";
+    onUbah({ file, galat });
+  }
+
+  function hapus() {
+    if (input.current) input.current.value = "";
+    onUbah(null);
+  }
+
+  return (
+    <li className={"rounded-xl border bg-surface p-4 " + (item?.galat ? "border-error bg-error-50/40" : "border-line")}>
+      <div className="flex items-center justify-between gap-3">
+        <label htmlFor={bidang} className="font-bold text-ink">
+          {label}
+        </label>
+        <span className={"shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold " + (wajib ? "bg-magenta-50 text-magenta-700" : "bg-blue-50 text-navy-700")}>{wajib ? "Wajib" : "Opsional"}</span>
+      </div>
+      <input ref={input} id={bidang} name={bidang} type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={pilih} className="sr-only" tabIndex={-1} />
+      {item ? (
+        <div className="mt-3 flex items-center gap-3">
+          {item.galat ? <AlertCircle size={24} aria-hidden="true" className="shrink-0 text-error" /> : <CheckCircle2 size={24} aria-hidden="true" className="shrink-0 text-success" />}
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-bold text-ink">{item.file.name}</p>
+            <p className={"text-sm " + (item.galat ? "text-error" : "text-ink-mute")}>{item.galat ?? `${ukuranTeks(item.file.size)} · Siap dikirim`}</p>
+          </div>
+          <button type="button" onClick={hapus} aria-label={`${item.galat ? "Singkirkan" : "Hapus"} ${item.file.name}`} className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-blue-50 ${fokus}`}>
+            {item.galat ? <X size={20} aria-hidden="true" /> : <Trash2 size={20} aria-hidden="true" />}
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => input.current?.click()} className={`mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-600/40 bg-blue-50/50 font-bold text-navy-800 transition-colors hover:bg-blue-50 ${fokus}`}>
+          <FilePlus2 size={20} aria-hidden="true" className="text-blue-600" />
+          Pilih berkas
+        </button>
+      )}
+    </li>
+  );
 }
 
 function Bidang({
@@ -201,14 +264,13 @@ export function FormLaporan({
   const [state, aksi, mengirim] = useActionState(kirimLaporan, undefined);
   const form = useRef<HTMLFormElement>(null);
   const ringkasanRef = useRef<HTMLDivElement>(null);
-  const inputBerkas = useRef<HTMLInputElement>(null);
   const [hariIni] = useState(hariIniLokal);
 
   const [langkah, setLangkah] = useState<Langkah>(1);
   const [galat, setGalat] = useState<Galat>({});
   const [ringkasan, setRingkasan] = useState<string | null>(null);
   const [panjang, setPanjang] = useState(0);
-  const [berkas, setBerkas] = useState<ItemBerkas[]>([]);
+  const [berkas, setBerkas] = useState<BerkasPerJenis>({});
   const [lihatState, setLihatState] = useState(state);
 
   // Isian yang mengubah tampilan form dikendalikan state; selebihnya dibaca dari form saat dikirim.
@@ -222,6 +284,8 @@ export function FormLaporan({
   if (state !== lihatState) {
     setLihatState(state);
     if (state) {
+      // Browser mengosongkan formulir setelah dikirim, termasuk kolom berkas; tampilan disamakan.
+      setBerkas({});
       setGalat(state.galat ?? {});
       setRingkasan(state.ringkasan ?? null);
       if (state.langkah) setLangkah(state.langkah);
@@ -281,8 +345,12 @@ export function FormLaporan({
     const nilai = nilaiFormulir();
     const hasil = SkemaLaporan.safeParse(nilai);
     const gDesa = galatDesa(nilai);
-    const adaBerkasBermasalah = berkas.some((b) => b.galat);
-    if (hasil.success && !adaBerkasBermasalah && Object.keys(gDesa).length === 0) return; // lanjut ke Server Action
+    const galatBerkas = DOKUMEN_LAPORAN.flatMap((d) => {
+      const item = berkas[d.jenis];
+      if (item?.galat) return [`${d.label}: ${item.galat}`];
+      return d.wajib && !item ? [`${d.label} wajib dilampirkan.`] : [];
+    });
+    if (hasil.success && galatBerkas.length === 0 && Object.keys(gDesa).length === 0) return; // lanjut ke Server Action
     e.preventDefault();
     if (!hasil.success || Object.keys(gDesa).length > 0) {
       const g = { ...gDesa, ...(hasil.success ? {} : galatPerBidang(hasil.error)) };
@@ -290,37 +358,17 @@ export function FormLaporan({
       tampilkanGalat(g, `${bidang.length} kolom perlu dilengkapi. Perbaiki kolom bertanda merah untuk melanjutkan.`);
       setLangkah(Math.min(...bidang.map(langkahDariBidang)) as Langkah);
     } else {
-      tampilkanGalat({}, "Hapus berkas yang bermasalah sebelum mengirim.");
+      tampilkanGalat({}, galatBerkas[0]);
     }
   }
 
-  // Berkas yang sah disinkronkan ke input file agar ikut terkirim; yang bermasalah tidak dikirim.
-  function sinkron(daftar: ItemBerkas[]) {
-    const dt = new DataTransfer();
-    daftar.filter((b) => !b.galat).forEach((b) => dt.items.add(b.file));
-    if (inputBerkas.current) inputBerkas.current.files = dt.files;
-  }
-
-  function pilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
-    const baru = Array.from(e.target.files ?? []).map((file) => ({ file, galat: periksaBerkas(file) }));
-    let sah = berkas.filter((b) => !b.galat).length;
-    const gabung = [
-      ...berkas,
-      ...baru.map((b) => {
-        if (b.galat) return b;
-        if (sah >= MAKS_BERKAS) return { ...b, galat: `Maksimal ${MAKS_BERKAS} berkas.` };
-        sah += 1;
-        return b;
-      }),
-    ];
-    setBerkas(gabung);
-    sinkron(gabung);
-  }
-
-  function hapusBerkas(i: number) {
-    const sisa = berkas.filter((_, j) => j !== i);
-    setBerkas(sisa);
-    sinkron(sisa);
+  function ubahBerkas(jenis: JenisDokumenLaporan, item: ItemBerkas | null) {
+    setBerkas((lama) => {
+      const baru = { ...lama };
+      if (item) baru[jenis] = item;
+      else delete baru[jenis];
+      return baru;
+    });
   }
 
   const aktif = (n: number) => (langkah === n ? "" : "hidden");
@@ -524,41 +572,16 @@ export function FormLaporan({
         {/* Langkah 5: Dokumen dan persetujuan */}
         <fieldset className={aktif(5) + " flex flex-col gap-5"}>
           <legend className="mb-1 text-xl font-extrabold text-navy-900">
-            Dokumen pendukung <span className="text-base font-medium text-ink-mute">(tidak wajib)</span>
+            Dokumen pendukung
           </legend>
           <p className="-mt-2 text-ink-soft">
-            Foto, tangkapan layar, atau surat. {FORMAT_BERKAS}, maksimal 5 MB per berkas, hingga {MAKS_BERKAS} berkas.
+            Lampirkan dokumen milik korban. {FORMAT_BERKAS}, maksimal 5 MB per berkas.
           </p>
-
-          <input ref={inputBerkas} id="dokumen" name="dokumen" type="file" multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={pilihBerkas} className="sr-only" tabIndex={-1} />
-          <button
-            type="button"
-            onClick={() => {
-              // Memilih ulang menggantikan isi input; berkas lama dipertahankan lewat state.
-              inputBerkas.current?.click();
-            }}
-            className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-600/40 bg-blue-50/50 px-4 py-6 font-bold text-navy-800 transition-colors hover:bg-blue-50 ${fokus}`}
-          >
-            <FilePlus2 size={32} aria-hidden="true" className="text-blue-600" />
-            Pilih berkas
-          </button>
-
-          {berkas.length > 0 && (
-            <ul className="flex flex-col gap-3" aria-label="Berkas dipilih">
-              {berkas.map((b, i) => (
-                <li key={`${b.file.name}-${i}`} className={"flex items-center gap-3 rounded-xl border bg-surface p-4 " + (b.galat ? "border-error bg-error-50/40" : "border-line")}>
-                  {b.galat ? <AlertCircle size={24} aria-hidden="true" className="shrink-0 text-error" /> : <CheckCircle2 size={24} aria-hidden="true" className="shrink-0 text-success" />}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold text-ink">{b.file.name}</p>
-                    <p className={"text-sm " + (b.galat ? "text-error" : "text-ink-mute")}>{b.galat ?? `${ukuranTeks(b.file.size)} · Siap dikirim`}</p>
-                  </div>
-                  <button type="button" onClick={() => hapusBerkas(i)} aria-label={`${b.galat ? "Singkirkan" : "Hapus"} ${b.file.name}`} className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-blue-50 ${fokus}`}>
-                    {b.galat ? <X size={20} aria-hidden="true" /> : <Trash2 size={20} aria-hidden="true" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="flex flex-col gap-3">
+            {DOKUMEN_LAPORAN.map((d) => (
+              <SlotDokumen key={d.jenis} jenis={d.jenis} label={d.label} wajib={d.wajib} item={berkas[d.jenis]} onUbah={(item) => ubahBerkas(d.jenis, item)} />
+            ))}
+          </ul>
 
           <div className="border-t border-line-soft pt-5" />
           <div>
