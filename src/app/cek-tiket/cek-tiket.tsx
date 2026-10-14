@@ -25,7 +25,7 @@ function KartuTiket({ t }: { t: TiketDenganQr }) {
         <IkonKotak ikon={Ticket} warna="magenta" />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-ink-soft">Sesi {t.urutan}</p>
-          <h3 className="font-bold text-navy-900">{t.jenis}</h3>
+          <h3 className="font-bold text-brand-900">{t.jenis}</h3>
         </div>
       </div>
 
@@ -42,9 +42,9 @@ function KartuTiket({ t }: { t: TiketDenganQr }) {
         </div>
       )}
 
-      <div className="mt-4 rounded-xl bg-blue-50 p-4 text-center">
+      <div className="mt-4 rounded-xl bg-brand-50 p-4 text-center">
         <p className="text-sm font-semibold text-ink-soft">Nomor antrean</p>
-        <p className="mt-1 text-2xl font-extrabold tabular-nums text-navy-900" aria-label={`Nomor antrean ${t.nomorAntrean}`}>
+        <p className="mt-1 text-2xl font-extrabold tabular-nums text-brand-900" aria-label={`Nomor antrean ${t.nomorAntrean}`}>
           {t.nomorAntrean}
         </p>
       </div>
@@ -126,7 +126,7 @@ function Hasil({ h }: { h: Extract<HasilPeriksa, { ok: true }> }) {
   return (
     <section aria-labelledby="h-hasil" className="mt-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="h-hasil" className="text-lg font-bold text-navy-900">Laporan <span className="tabular-nums">{h.kode}</span></h2>
+        <h2 id="h-hasil" className="text-lg font-bold text-brand-900">Laporan <span className="tabular-nums">{h.kode}</span></h2>
         <LencanaLaporan status={h.status} />
       </div>
 
@@ -141,10 +141,10 @@ function Hasil({ h }: { h: Extract<HasilPeriksa, { ok: true }> }) {
 
       {h.status === "DITOLAK" && (
         <div className="rounded-2xl border border-line bg-canvas p-5">
-          <p className="font-bold text-navy-900">Laporan belum dapat kami proses</p>
+          <p className="font-bold text-brand-900">Laporan belum dapat kami proses</p>
           {h.alasanPenolakan && <p className="mt-2 whitespace-pre-wrap break-words text-ink-soft">{h.alasanPenolakan}</p>}
           <p className="mt-3 text-sm text-ink-soft">
-            Bila Anda memerlukan bantuan segera, hubungi <Link href="/kontak-darurat" className="font-bold text-blue-600 underline">kontak darurat</Link>.
+            Bila Anda memerlukan bantuan segera, hubungi <Link href="/kontak-darurat" className="font-bold text-brand-700 underline">kontak darurat</Link>.
           </p>
         </div>
       )}
@@ -165,7 +165,7 @@ function Hasil({ h }: { h: Extract<HasilPeriksa, { ok: true }> }) {
           <button
             type="button"
             onClick={() => window.print()}
-            className={`mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-blue-50 print:hidden ${fokus}`}
+            className={`mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-brand-50 print:hidden ${fokus}`}
           >
             <Printer size={20} aria-hidden="true" />
             Cetak atau simpan tiket (PDF)
@@ -222,14 +222,14 @@ export function CekTiket() {
         <div className="mb-4 flex items-center gap-4">
           <IkonKotak ikon={Ticket} warna="magenta" ukuran="lg" />
           <div>
-            <h1 className="text-xl font-extrabold text-navy-900">Cek tiket</h1>
+            <h1 className="text-xl font-extrabold text-brand-900">Cek tiket</h1>
             <p className="mt-0.5 text-sm text-ink-soft">Masukkan kode pendaftaran dari saat Anda mengirim laporan.</p>
           </div>
         </div>
         {tersimpan && (
           <div className="mb-4 rounded-xl border border-line bg-canvas p-4">
             <p className="text-sm font-semibold text-ink-soft">Kode tersimpan di perangkat ini</p>
-            <p className="mt-1 font-extrabold tabular-nums tracking-wide text-navy-900">{tersimpan}</p>
+            <p className="mt-1 font-extrabold tabular-nums tracking-wide text-brand-900">{tersimpan}</p>
             <div className="mt-3 flex gap-2">
               <button
                 type="button"
@@ -237,7 +237,7 @@ export function CekTiket() {
                   setKode(tersimpan);
                   cari(tersimpan);
                 }}
-                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-blue-600 px-3 font-bold text-white transition-colors hover:bg-blue-700 ${fokus}`}
+                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-brand-600 px-3 font-bold text-white transition-colors hover:bg-brand-700 ${fokus}`}
               >
                 Pakai kode ini
               </button>
@@ -247,7 +247,7 @@ export function CekTiket() {
                   hapusKodeTersimpan();
                   setTersimpan(null);
                 }}
-                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line-strong bg-surface px-3 font-bold text-ink transition-colors hover:bg-blue-50 ${fokus}`}
+                className={`inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line-strong bg-surface px-3 font-bold text-ink transition-colors hover:bg-brand-50 ${fokus}`}
               >
                 Lupakan kode
               </button>
@@ -275,7 +275,7 @@ export function CekTiket() {
             spellCheck={false}
             aria-invalid={hasil && !hasil.ok ? true : undefined}
             aria-describedby={hasil && !hasil.ok ? "galat-kode" : undefined}
-            className="h-14 w-full rounded-xl border border-line-strong bg-surface px-4 text-base font-semibold tabular-nums tracking-wide text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
+            className="h-14 w-full rounded-xl border border-line-strong bg-surface px-4 text-base font-semibold tabular-nums tracking-wide text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
           />
           <div className="mt-2">
             <Galat id="galat-kode" pesan={hasil && !hasil.ok ? hasil.pesan : undefined} />
@@ -283,7 +283,7 @@ export function CekTiket() {
           <button
             type="submit"
             disabled={pending || kode.trim().length === 0}
-            className={`mt-4 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-magenta-600 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 disabled:bg-line-strong disabled:shadow-none ${fokus}`}
+            className={`mt-4 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 font-bold text-white shadow-card transition-colors hover:bg-brand-700 disabled:bg-line-strong disabled:shadow-none ${fokus}`}
           >
             <Search size={20} aria-hidden="true" />
             {pending ? "Memeriksa..." : "Cek tiket"}
@@ -295,7 +295,7 @@ export function CekTiket() {
 
       <p className="mt-8 flex items-center justify-center gap-2 text-sm text-ink-mute print:hidden">
         <Phone size={14} aria-hidden="true" />
-        Kode hilang? Hubungi <Link href="/kontak-darurat" className="font-bold text-blue-600 underline">UPTD PPA</Link>.
+        Kode hilang? Hubungi <Link href="/kontak-darurat" className="font-bold text-brand-700 underline">UPTD PPA</Link>.
       </p>
     </div>
   );

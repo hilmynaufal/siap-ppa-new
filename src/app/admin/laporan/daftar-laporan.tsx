@@ -32,7 +32,7 @@ const fmtTanggal = (iso: string) =>
 const hariJakarta = (iso: string) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 
 const inputTanggal =
-  "h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-medium text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100";
+  "h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-medium text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100";
 
 export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[]; jenis: string[]; kecamatan: string[] }) {
   const [cari, setCari] = useState("");
@@ -116,13 +116,13 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <IkonKotak ikon={Inbox} warna="blue" ukuran="lg" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-extrabold text-navy-900">Laporan masuk</h1>
+          <h1 className="text-2xl font-extrabold text-brand-900">Laporan masuk</h1>
           <p className="mt-0.5 text-sm text-ink-soft">Periksa isi laporan dari Pelapor, lalu verifikasi atau tolak dengan alasan.</p>
         </div>
         <a
           href={tautanEkspor}
           download
-          className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 font-bold text-navy-800 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 font-bold text-brand-800 transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
         >
           <Download size={18} aria-hidden="true" />
           Unduh Excel
@@ -179,7 +179,7 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
       <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] text-left text-[15px] [&_td]:whitespace-nowrap">
-            <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+            <thead className="bg-brand-50 text-sm font-bold text-brand-900">
               <tr>
                 <th scope="col" className="px-5 py-4">No.</th>
                 <th scope="col" className="px-5 py-4">Kode</th>
@@ -216,7 +216,7 @@ export function DaftarLaporan({ laporan, jenis, kecamatan }: { laporan: Baris[];
                       <Link
                         href={`/admin/laporan/${l.id}`}
                         aria-label={`Lihat detail laporan ${l.kode}`}
-                        className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
+                        className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}
                       >
                         <FileSearch size={16} aria-hidden="true" />
                         {l.status === "BARU" ? "Periksa" : "Lihat"}

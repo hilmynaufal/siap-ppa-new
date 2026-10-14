@@ -3,13 +3,13 @@ import type { LucideIcon } from "lucide-react";
 const WARNA = {
   teal: "bg-teal-500 text-white",
   green: "bg-green-500 text-white",
-  amber: "bg-amber-400 text-navy-950",
+  amber: "bg-amber-400 text-brand-950",
   violet: "bg-violet-500 text-white",
   sky: "bg-sky-500 text-white",
   coral: "bg-coral-500 text-white",
-  magenta: "bg-magenta-600 text-white",
-  navy: "bg-navy-800 text-white",
-  blue: "bg-blue-600 text-white",
+  magenta: "bg-brand-600 text-white",
+  navy: "bg-brand-800 text-white",
+  blue: "bg-brand-600 text-white",
 } as const;
 
 const UKURAN = {

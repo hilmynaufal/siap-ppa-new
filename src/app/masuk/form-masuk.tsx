@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { masuk } from "./actions";
 
 const input =
-  "h-12 w-full rounded-xl border border-line-strong bg-surface pl-12 pr-4 text-base text-ink placeholder:text-ink-mute focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
+  "h-12 w-full rounded-xl border border-line-strong bg-surface pl-12 pr-4 text-base text-ink placeholder:text-ink-mute focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
 
 export function FormMasuk() {
   const [state, action, pending] = useActionState(masuk, undefined);
@@ -72,7 +72,7 @@ export function FormMasuk() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-13 min-h-[3.25rem] items-center justify-center gap-2 rounded-xl bg-magenta-600 px-6 text-base font-bold text-white shadow-card transition-colors hover:bg-magenta-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-magenta-100 disabled:bg-line-strong disabled:shadow-none"
+        className="inline-flex h-13 min-h-[3.25rem] items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 text-base font-bold text-white shadow-card transition-colors hover:bg-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:bg-line-strong disabled:shadow-none"
       >
         <LogIn size={20} aria-hidden="true" />
         {pending ? "Memeriksa..." : "Masuk"}

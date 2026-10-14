@@ -64,7 +64,7 @@ const tglWaktu = (iso: string) =>
   new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: ZONA });
 
 const inputTanggal =
-  "h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-medium text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100";
+  "h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-medium text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100";
 
 // ---------------------------------------------------------------- Modal ubah
 
@@ -142,7 +142,7 @@ function ModalUbah({ s, pendamping, onTutup }: { s: Sesi; pendamping: Pendamping
             rows={3}
             maxLength={300}
             {...isi("alasan")}
-            className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
+            className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
             {...attr("alasan")}
           />
         </Bidang>
@@ -203,7 +203,7 @@ function ModalRiwayat({ s, onTutup }: { s: Sesi; onTutup: () => void }) {
           <ol className="flex flex-col gap-3">
             {data.map((r) => (
               <li key={r.id} className="rounded-xl border border-line p-4">
-                <p className="text-sm font-bold text-navy-900">
+                <p className="text-sm font-bold text-brand-900">
                   {tglWaktu(r.dibuatPada)} WIB <span className="font-normal text-ink-soft">· oleh {r.pengubah}</span>
                 </p>
                 <div className="mt-2 flex flex-col gap-1">
@@ -262,15 +262,15 @@ function Kalender({ sesi, onPilih }: { sesi: Sesi[]; onPilih: (s: Sesi) => void 
   return (
     <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
       <div className="flex items-center justify-between border-b border-line-soft px-5 py-3">
-        <h2 className="text-lg font-bold capitalize text-navy-900" aria-live="polite">{judul}</h2>
+        <h2 className="text-lg font-bold capitalize text-brand-900" aria-live="polite">{judul}</h2>
         <div className="flex gap-1.5">
-          <button type="button" onClick={() => pindah(-1)} aria-label="Bulan sebelumnya" className={`grid h-10 w-10 place-items-center rounded-xl border border-line-strong hover:bg-blue-50 ${fokus}`}>
+          <button type="button" onClick={() => pindah(-1)} aria-label="Bulan sebelumnya" className={`grid h-10 w-10 place-items-center rounded-xl border border-line-strong hover:bg-brand-50 ${fokus}`}>
             <ChevronLeft size={18} aria-hidden="true" />
           </button>
-          <button type="button" onClick={() => setBulan(hariIni.slice(0, 7))} className={`h-10 rounded-xl border border-line-strong px-3 text-sm font-bold hover:bg-blue-50 ${fokus}`}>
+          <button type="button" onClick={() => setBulan(hariIni.slice(0, 7))} className={`h-10 rounded-xl border border-line-strong px-3 text-sm font-bold hover:bg-brand-50 ${fokus}`}>
             Hari ini
           </button>
-          <button type="button" onClick={() => pindah(1)} aria-label="Bulan berikutnya" className={`grid h-10 w-10 place-items-center rounded-xl border border-line-strong hover:bg-blue-50 ${fokus}`}>
+          <button type="button" onClick={() => pindah(1)} aria-label="Bulan berikutnya" className={`grid h-10 w-10 place-items-center rounded-xl border border-line-strong hover:bg-brand-50 ${fokus}`}>
             <ChevronRight size={18} aria-hidden="true" />
           </button>
         </div>
@@ -278,7 +278,7 @@ function Kalender({ sesi, onPilih }: { sesi: Sesi[]; onPilih: (s: Sesi) => void 
       <div className="overflow-x-auto">
         <div className="grid min-w-[720px] grid-cols-7 text-sm" role="grid" aria-label={`Kalender ${judul}`}>
           {NAMA_HARI.map((n) => (
-            <div key={n} role="columnheader" className="bg-blue-50 px-2 py-2 text-center font-bold text-navy-900">
+            <div key={n} role="columnheader" className="bg-brand-50 px-2 py-2 text-center font-bold text-brand-900">
               {n}
             </div>
           ))}
@@ -292,7 +292,7 @@ function Kalender({ sesi, onPilih }: { sesi: Sesi[]; onPilih: (s: Sesi) => void 
                 aria-label={`${tgl}, ${item.length} sesi`}
                 className={"min-h-28 border-l border-t border-line-soft p-1.5 " + (dalamBulan ? "bg-surface" : "bg-canvas")}
               >
-                <p className={"mb-1 text-right text-xs font-bold " + (tgl === hariIni ? "text-magenta-600" : dalamBulan ? "text-ink-soft" : "text-line-strong")}>
+                <p className={"mb-1 text-right text-xs font-bold " + (tgl === hariIni ? "text-brand-700" : dalamBulan ? "text-ink-soft" : "text-line-strong")}>
                   {Number(tgl.slice(8))}
                 </p>
                 <ul className="flex flex-col gap-1">
@@ -302,7 +302,7 @@ function Kalender({ sesi, onPilih }: { sesi: Sesi[]; onPilih: (s: Sesi) => void 
                         type="button"
                         onClick={() => onPilih(s)}
                         title={`${s.namaKorban} · ${s.pendamping} · ${s.kodeLaporan}`}
-                        className={`w-full truncate rounded-lg bg-blue-50 px-1.5 py-1 text-left text-xs font-semibold text-navy-800 hover:bg-blue-100 ${fokus}`}
+                        className={`w-full truncate rounded-lg bg-brand-50 px-1.5 py-1 text-left text-xs font-semibold text-brand-800 hover:bg-brand-100 ${fokus}`}
                       >
                         <span className="tabular-nums">{jam(s.mulai)}</span> {s.namaKorban}
                       </button>
@@ -379,7 +379,7 @@ export function DaftarJadwal({ sesi, pendamping }: { sesi: Sesi[]; pendamping: P
         <div className="flex items-center gap-4">
           <IkonKotak ikon={CalendarDays} warna="teal" ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">Jadwal pendampingan</h1>
+            <h1 className="text-2xl font-extrabold text-brand-900">Jadwal pendampingan</h1>
             <p className="mt-0.5 text-sm text-ink-soft">Lihat jadwal, ubah tanggal, jam, atau pendamping, dan telusuri riwayat perubahannya.</p>
           </div>
         </div>
@@ -390,7 +390,7 @@ export function DaftarJadwal({ sesi, pendamping }: { sesi: Sesi[]; pendamping: P
               type="button"
               aria-pressed={tampilan === k}
               onClick={() => setTampilan(k)}
-              className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold transition-colors ${fokus} ` + (tampilan === k ? "bg-blue-600 text-white" : "text-ink-soft hover:bg-blue-50")}
+              className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold transition-colors ${fokus} ` + (tampilan === k ? "bg-brand-600 text-white" : "text-ink-soft hover:bg-brand-50")}
             >
               <Ikon size={16} aria-hidden="true" />
               {label}
@@ -447,7 +447,7 @@ export function DaftarJadwal({ sesi, pendamping }: { sesi: Sesi[]; pendamping: P
           <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1100px] text-left text-[15px] [&_td]:whitespace-nowrap">
-                <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+                <thead className="bg-brand-50 text-sm font-bold text-brand-900">
                   <tr>
                     <th scope="col" className="px-5 py-4">No.</th>
                     <th scope="col" className="px-5 py-4">Waktu</th>
@@ -504,12 +504,12 @@ export function DaftarJadwal({ sesi, pendamping }: { sesi: Sesi[]; pendamping: P
                               disabled={!dapatDiubah(s)}
                               title={dapatDiubah(s) ? undefined : s.sudahCheckIn ? "Pelapor sudah check-in" : "Hanya jadwal Terjadwal yang dapat diubah"}
                               onClick={() => setUbahS(s)}
-                              className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:border-line-soft disabled:bg-canvas disabled:text-line-strong`}
+                              className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100 disabled:cursor-not-allowed disabled:border-line-soft disabled:bg-canvas disabled:text-line-strong`}
                             >
                               <Pencil size={16} aria-hidden="true" />
                               Ubah
                             </button>
-                            <button type="button" onClick={() => setRiwayatS(s)} aria-label={`Riwayat perubahan sesi ${s.kodeLaporan}`} className={`${tombolKecil} border-line-strong bg-surface text-ink hover:bg-blue-50`}>
+                            <button type="button" onClick={() => setRiwayatS(s)} aria-label={`Riwayat perubahan sesi ${s.kodeLaporan}`} className={`${tombolKecil} border-line-strong bg-surface text-ink hover:bg-brand-50`}>
                               <History size={16} aria-hidden="true" />
                               Riwayat
                             </button>

@@ -41,8 +41,8 @@ const JANJI = [
 ] satisfies { ikon: typeof Lock; warna: WarnaIkon; judul: string; isi: string }[];
 
 const WARNA_LENCANA = [
-  "bg-magenta-50 text-magenta-700",
-  "bg-blue-50 text-navy-800",
+  "bg-sun-50 text-brand-700",
+  "bg-brand-50 text-brand-800",
   "bg-success-50 text-success",
   "bg-warning-50 text-warning",
   "bg-info-50 text-info",
@@ -89,7 +89,7 @@ export default async function BerandaPelapor() {
               </p>
               <h1
                 style={{ ...tunda(80), fontSize: "clamp(2.75rem, 7.5vw, 5rem)" }}
-                className="muncul mt-5 font-extrabold leading-[1.05] tracking-tight text-navy-900"
+                className="muncul mt-5 font-extrabold leading-[1.05] tracking-tight text-brand-900"
               >
                 Anda tidak sendiri.
               </h1>
@@ -99,14 +99,14 @@ export default async function BerandaPelapor() {
               <div style={tunda(240)} className="muncul mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/lapor"
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-magenta-600 px-8 text-lg font-bold text-white shadow-card transition-colors hover:bg-magenta-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-magenta-100"
+                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-brand-600 px-8 text-lg font-bold text-white shadow-card transition-colors hover:bg-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                 >
                   <FilePenLine size={22} aria-hidden="true" />
                   Buat Laporan
                 </Link>
                 <Link
                   href="/cek-tiket"
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-8 text-lg font-bold text-navy-800 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-8 text-lg font-bold text-brand-800 transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                 >
                   <Ticket size={22} aria-hidden="true" />
                   Cek Tiket
@@ -121,8 +121,8 @@ export default async function BerandaPelapor() {
         <section aria-labelledby="judul-janji" className="mx-auto max-w-6xl px-4 pb-14 pt-14 md:pb-20 md:pt-20">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
             <div>
-              <p className="text-sm font-bold text-magenta-700">Janji kami</p>
-              <h2 id="judul-janji" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-navy-900 md:text-4xl">
+              <p className="text-sm font-bold text-brand-700">Janji kami</p>
+              <h2 id="judul-janji" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-brand-900 md:text-4xl">
                 Melapor tidak perlu membuat Anda semakin cemas.
               </h2>
             </div>
@@ -131,7 +131,7 @@ export default async function BerandaPelapor() {
                 <li key={j.judul} className="flex items-start gap-4 py-5 first:pt-0 last:pb-0">
                   <IkonKotak ikon={j.ikon} warna={j.warna} ukuran="lg" />
                   <span>
-                    <span className="block text-xl font-bold text-navy-900">{j.judul}</span>
+                    <span className="block text-xl font-bold text-brand-900">{j.judul}</span>
                     <span className="mt-1 block max-w-prose text-ink-soft">{j.isi}</span>
                   </span>
                 </li>
@@ -145,8 +145,8 @@ export default async function BerandaPelapor() {
           <Gelombang warna="var(--color-surface)" balik className="-mb-px" />
           <div className="mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16 lg:pb-24">
             <div>
-              <p className="text-sm font-bold text-magenta-700">Cara melapor</p>
-              <h2 id="judul-alur" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-navy-900 md:text-4xl">
+              <p className="text-sm font-bold text-brand-700">Cara melapor</p>
+              <h2 id="judul-alur" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-brand-900 md:text-4xl">
                 Empat langkah, tanpa tergesa.
               </h2>
               <ol className="mt-8">
@@ -156,7 +156,7 @@ export default async function BerandaPelapor() {
                     <IkonKotak ikon={l.ikon} warna={l.warna} ukuran="lg" />
                     <div className="pt-1">
                       <p className="text-sm font-bold text-ink-mute">Langkah {i + 1}</p>
-                      <h3 className="text-xl font-bold text-navy-900">{l.judul}</h3>
+                      <h3 className="text-xl font-bold text-brand-900">{l.judul}</h3>
                       <p className="mt-1 max-w-prose text-ink-soft">{l.isi}</p>
                     </div>
                   </li>
@@ -172,26 +172,26 @@ export default async function BerandaPelapor() {
 
         {/* Pendampingan */}
         <section aria-labelledby="judul-dapat" className="mx-auto max-w-6xl px-4 py-16 md:py-24">
-          <p className="text-sm font-bold text-magenta-700">Yang Anda dapatkan</p>
-          <h2 id="judul-dapat" className="text-balance mt-2 max-w-2xl text-3xl font-extrabold leading-tight text-navy-900 md:text-4xl">
+          <p className="text-sm font-bold text-brand-700">Yang Anda dapatkan</p>
+          <h2 id="judul-dapat" className="text-balance mt-2 max-w-2xl text-3xl font-extrabold leading-tight text-brand-900 md:text-4xl">
             Ditemani sampai Anda merasa lebih kuat.
           </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-2">
-            <article className="rounded-3xl bg-magenta-50 p-7 md:p-9">
+            <article className="rounded-3xl bg-sun-50 p-7 md:p-9">
               <IkonKotak ikon={HeartHandshake} warna="magenta" ukuran="lg" />
-              <h3 className="mt-5 text-2xl font-extrabold text-navy-900">Pendampingan psikologis</h3>
+              <h3 className="mt-5 text-2xl font-extrabold text-brand-900">Pendampingan psikologis</h3>
               <p className="mt-2 max-w-md text-ink-soft">Ditemani psikolog dan konselor selama proses pemulihan, dengan jadwal yang Anda terima lewat tiket.</p>
             </article>
-            <article className="rounded-3xl bg-blue-50 p-7 md:p-9">
+            <article className="rounded-3xl bg-brand-50 p-7 md:p-9">
               <IkonKotak ikon={Scale} warna="violet" ukuran="lg" />
-              <h3 className="mt-5 text-2xl font-extrabold text-navy-900">Pendampingan hukum</h3>
+              <h3 className="mt-5 text-2xl font-extrabold text-brand-900">Pendampingan hukum</h3>
               <p className="mt-2 max-w-md text-ink-soft">Konsultasi dengan konsultan hukum mitra bila Anda membutuhkannya, tanpa harus mengurus semuanya sendiri.</p>
             </article>
           </div>
 
           {jenis.length > 0 && (
             <div className="mt-14 rounded-3xl border border-line bg-surface p-7 shadow-card md:p-9">
-              <h3 className="text-xl font-extrabold text-navy-900">Yang dapat Anda laporkan</h3>
+              <h3 className="text-xl font-extrabold text-brand-900">Yang dapat Anda laporkan</h3>
               <p className="mt-1 max-w-prose text-ink-soft">Tidak yakin kejadian Anda termasuk yang mana? Ceritakan saja apa yang terjadi.</p>
               <ul className="mt-5 flex flex-wrap gap-2.5">
                 {jenis.map((j, i) => (
@@ -208,8 +208,8 @@ export default async function BerandaPelapor() {
         <section aria-labelledby="judul-tanya" className="bg-canvas">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:py-24 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
             <div>
-              <p className="text-sm font-bold text-magenta-700">Pertanyaan umum</p>
-              <h2 id="judul-tanya" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-navy-900 md:text-4xl">
+              <p className="text-sm font-bold text-brand-700">Pertanyaan umum</p>
+              <h2 id="judul-tanya" className="text-balance mt-2 text-3xl font-extrabold leading-tight text-brand-900 md:text-4xl">
                 Masih ragu? Wajar.
               </h2>
               <p className="mt-3 max-w-sm text-ink-soft">Beberapa hal yang sering ditanyakan sebelum orang memutuskan melapor.</p>
@@ -217,7 +217,7 @@ export default async function BerandaPelapor() {
             <div className="flex flex-col gap-3">
               {PERTANYAAN.map((p) => (
                 <details key={p.t} className="group rounded-2xl border border-line bg-surface shadow-card">
-                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-5 py-3 font-bold text-navy-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-5 py-3 font-bold text-brand-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 [&::-webkit-details-marker]:hidden">
                     {p.t}
                     <ChevronDown size={20} aria-hidden="true" className="shrink-0 text-ink-mute transition-transform group-open:rotate-180" />
                   </summary>
@@ -229,15 +229,15 @@ export default async function BerandaPelapor() {
         </section>
 
         {/* Penutup */}
-        <section aria-labelledby="judul-penutup" className="relative overflow-hidden bg-navy-900 text-white">
+        <section aria-labelledby="judul-penutup" className="relative overflow-hidden bg-brand-900 text-white">
           <div className="mx-auto max-w-6xl px-4 pb-44 pt-16 md:pb-52 md:pt-24">
             <h2 id="judul-penutup" className="text-balance max-w-3xl font-extrabold leading-tight tracking-tight" style={{ fontSize: "clamp(2.25rem, 5.5vw, 3.75rem)" }}>
               Langkah pertama bisa Anda mulai hari ini.
             </h2>
-            <p className="mt-4 max-w-xl text-lg text-blue-100">Butuh beberapa menit saja. Petugas kami yang melanjutkan dari sana.</p>
+            <p className="mt-4 max-w-xl text-lg text-brand-100">Butuh beberapa menit saja. Petugas kami yang melanjutkan dari sana.</p>
             <Link
               href="/lapor"
-              className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-magenta-600 px-8 text-lg font-bold text-white shadow-card transition-colors hover:bg-magenta-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-magenta-100"
+              className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-brand-600 px-8 text-lg font-bold text-white shadow-card transition-colors hover:bg-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
             >
               <FilePenLine size={22} aria-hidden="true" />
               Buat Laporan
@@ -247,21 +247,21 @@ export default async function BerandaPelapor() {
               <div className="mt-14">
                 <div className="mb-4 flex items-baseline justify-between gap-3">
                   <h3 className="text-xl font-extrabold">Kontak darurat aktif</h3>
-                  <Link href="/kontak-darurat" className="rounded-lg text-sm font-bold text-blue-100 underline underline-offset-4 hover:text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+                  <Link href="/kontak-darurat" className="rounded-lg text-sm font-bold text-brand-100 underline underline-offset-4 hover:text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
                     Lihat semua
                   </Link>
                 </div>
                 <ul className="grid gap-4 md:grid-cols-3">
                   {kontak.map((k) => (
                     <li key={k.id} className="rounded-2xl bg-surface p-4 text-ink shadow-modal">
-                      <p className="font-bold text-navy-900">{k.instansi}</p>
+                      <p className="font-bold text-brand-900">{k.instansi}</p>
                       <p className="mt-1 flex items-start gap-2 text-sm text-ink-soft">
                         <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-mute" />
                         {k.alamat}
                       </p>
                       <a
                         href={`tel:${k.telepon.replace(/[^\d+]/g, "")}`}
-                        className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-50 font-bold text-navy-800 transition-colors hover:bg-blue-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                        className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-50 font-bold text-brand-800 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                       >
                         <Phone size={18} aria-hidden="true" />
                         Telepon {k.telepon}
@@ -276,7 +276,7 @@ export default async function BerandaPelapor() {
         </section>
       </main>
 
-      <footer className="bg-navy-950 text-blue-100">
+      <footer className="bg-brand-950 text-brand-100">
         <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-6 text-sm md:flex-row md:items-center md:justify-between">
           <p className="font-bold text-white">SIAP PPA, DALDUK PPA Kabupaten Bandung</p>
           <p>Layanan pelaporan kekerasan terhadap perempuan dan anak.</p>

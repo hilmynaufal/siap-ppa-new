@@ -12,8 +12,8 @@ export function TutupKasus({ laporanId, kode, bisa, alasan, sudahDitutup }: { la
 
   return (
     <section aria-labelledby="h-tutup" className="rounded-2xl border border-line bg-surface p-5 shadow-card lg:mt-6">
-      <h2 id="h-tutup" className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-        <LockKeyhole size={20} aria-hidden="true" className="text-navy-700" />
+      <h2 id="h-tutup" className="mb-3 flex items-center gap-2 text-lg font-bold text-brand-900">
+        <LockKeyhole size={20} aria-hidden="true" className="text-brand-700" />
         Tutup kasus
       </h2>
       {sudahDitutup ? (

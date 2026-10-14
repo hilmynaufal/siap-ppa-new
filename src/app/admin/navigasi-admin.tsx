@@ -45,7 +45,7 @@ export function NavigasiAdmin({ kolaps = false, jumlahBaru = 0 }: { kolaps?: boo
               <p
                 aria-hidden={kolaps}
                 className={
-                  "overflow-hidden whitespace-nowrap px-3 text-xs font-bold uppercase tracking-wider text-blue-100/80 transition-[max-height,opacity,padding] duration-200 ease-out motion-reduce:transition-none " +
+                  "overflow-hidden whitespace-nowrap px-3 text-xs font-bold uppercase tracking-wider text-brand-100/80 transition-[max-height,opacity,padding] duration-200 ease-out motion-reduce:transition-none " +
                   (kolaps ? "max-h-0 pb-0 opacity-0" : "max-h-6 pb-1 opacity-100")
                 }
               >
@@ -69,16 +69,16 @@ export function NavigasiAdmin({ kolaps = false, jumlahBaru = 0 }: { kolaps?: boo
                 title={kolaps ? it.label : undefined}
                 aria-current={aktif ? "page" : undefined}
                 className={
-                  "relative flex min-h-11 items-center rounded-xl text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100/60 " +
+                  "relative flex min-h-11 items-center rounded-xl text-sm font-semibold text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100/60 " +
                   (kolaps ? "justify-center px-0 " : "px-3 ") +
-                  (aktif ? "bg-magenta-100/15" : "hover:bg-white/8")
+                  (aktif ? "bg-brand-100/15" : "hover:bg-white/8")
                 }
               >
                 <it.ikon
                   size={20}
                   strokeWidth={2.25}
                   aria-hidden="true"
-                  className={"shrink-0 " + (aktif ? "text-magenta-100" : "")}
+                  className={"shrink-0 " + (aktif ? "text-brand-100" : "")}
                 />
                 <span
                   className={
@@ -92,8 +92,8 @@ export function NavigasiAdmin({ kolaps = false, jumlahBaru = 0 }: { kolaps?: boo
                   <span
                     className={
                       kolaps
-                        ? "absolute right-1.5 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-magenta-600 px-1 text-[10px] font-bold leading-none text-white"
-                        : "ml-auto grid h-6 min-w-6 place-items-center rounded-full bg-blue-600 px-1.5 text-xs font-bold text-white"
+                        ? "absolute right-1.5 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand-600 px-1 text-[10px] font-bold leading-none text-white"
+                        : "ml-auto grid h-6 min-w-6 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
                     }
                   >
                     <span aria-hidden="true">{jumlahBaru > 99 ? "99+" : jumlahBaru}</span>

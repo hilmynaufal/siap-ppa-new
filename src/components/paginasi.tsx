@@ -18,7 +18,7 @@ export function nomorHalaman(aktif: number, total: number): (number | "...")[] {
 }
 
 const tombol =
-  "grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100";
+  "grid h-10 min-w-10 place-items-center rounded-xl px-2 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 
 export function Paginasi({
   halaman,
@@ -48,7 +48,7 @@ export function Paginasi({
       aria-label={label}
       disabled={mati}
       onClick={() => onHalaman(tujuan)}
-      className={`${tombol} border border-line-strong bg-surface text-ink hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-line-soft disabled:bg-canvas disabled:text-line-strong disabled:hover:bg-canvas`}
+      className={`${tombol} border border-line-strong bg-surface text-ink hover:bg-brand-50 disabled:cursor-not-allowed disabled:border-line-soft disabled:bg-canvas disabled:text-line-strong disabled:hover:bg-canvas`}
     >
       <Ikon size={18} aria-hidden="true" />
     </button>
@@ -65,7 +65,7 @@ export function Paginasi({
           <select
             value={ukuran}
             onChange={(e) => onUkuran(Number(e.target.value))}
-            className="h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-bold text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            className="h-10 rounded-xl border border-line-strong bg-surface px-3 text-sm font-bold text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100"
           >
             {UKURAN_HALAMAN.map((u) => (
               <option key={u} value={u}>
@@ -96,8 +96,8 @@ export function Paginasi({
                     tombol +
                     " tabular-nums " +
                     (n === halaman
-                      ? "bg-blue-600 text-white shadow-card"
-                      : "border border-transparent text-ink-soft hover:bg-blue-50")
+                      ? "bg-brand-600 text-white shadow-card"
+                      : "border border-transparent text-ink-soft hover:bg-brand-50")
                   }
                 >
                   {n}

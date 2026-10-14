@@ -23,14 +23,14 @@ function ModalSandi({ nama, email, kataSandi, onTutup }: { nama?: string; email:
   const [tersalin, setTersalin] = useState(false);
   useTutupDenganEsc(onTutup);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-brand-950/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="judul-sandi" className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal">
         <div className="flex items-start gap-4">
-          <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-400 text-navy-950">
+          <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-400 text-brand-950">
             <KeyRound size={26} />
           </span>
           <div>
-            <h2 id="judul-sandi" className="text-lg font-bold text-navy-900">
+            <h2 id="judul-sandi" className="text-lg font-bold text-brand-900">
               Kata sandi sementara
             </h2>
             <p className="mt-1 text-ink-soft">
@@ -38,7 +38,7 @@ function ModalSandi({ nama, email, kataSandi, onTutup }: { nama?: string; email:
             </p>
           </div>
         </div>
-        <p className="mt-4 select-all rounded-xl bg-blue-50 p-4 text-center text-2xl font-extrabold tracking-wider text-navy-900 tabular-nums" data-testid="kata-sandi">
+        <p className="mt-4 select-all rounded-xl bg-brand-50 p-4 text-center text-2xl font-extrabold tracking-wider text-brand-900 tabular-nums" data-testid="kata-sandi">
           {kataSandi}
         </p>
         <p className="mt-3 flex items-start gap-2 text-sm text-warning">
@@ -56,7 +56,7 @@ function ModalSandi({ nama, email, kataSandi, onTutup }: { nama?: string; email:
                 /* clipboard bisa diblokir; kata sandi tetap dapat disalin manual */
               }
             }}
-            className={`inline-flex h-12 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 font-bold text-ink hover:bg-blue-50 ${fokus}`}
+            className={`inline-flex h-12 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 font-bold text-ink hover:bg-brand-50 ${fokus}`}
           >
             {tersalin ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
             {tersalin ? "Tersalin" : "Salin"}
@@ -113,7 +113,7 @@ function ModalPendamping({ p, jenis, onTutup, onSandi }: { p: Pendamping | null;
         </BidangForm>
         {ubahMode && (
           <label className="mb-4 flex min-h-11 items-center gap-3 text-sm font-bold">
-            <input type="checkbox" name="aktif" defaultChecked={p.aktif} className="h-5 w-5 accent-blue-600" />
+            <input type="checkbox" name="aktif" defaultChecked={p.aktif} className="h-5 w-5 accent-brand-600" />
             Aktif (dapat masuk dan dijadwalkan)
           </label>
         )}
@@ -137,9 +137,9 @@ function ModalAturUlang({ p, onTutup, onSandi }: { p: Pendamping; onTutup: () =>
   }, [state, p, onTutup, onSandi]);
   useTutupDenganEsc(onTutup);
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-brand-950/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="judul-reset" className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal">
-        <h2 id="judul-reset" className="text-lg font-bold text-navy-900">
+        <h2 id="judul-reset" className="text-lg font-bold text-brand-900">
           Atur ulang kata sandi {p.nama}?
         </h2>
         <p className="mt-1 text-ink-soft">Kata sandi lama langsung tidak berlaku. Kata sandi sementara yang baru akan ditampilkan sekali.</p>
@@ -148,7 +148,7 @@ function ModalAturUlang({ p, onTutup, onSandi }: { p: Pendamping; onTutup: () =>
           <input type="hidden" name="email" value={p.email} />
           {state?.pesan && <p role="alert" className="mb-2 text-sm font-medium text-error">{state.pesan}</p>}
           <div className="flex flex-wrap justify-end gap-3">
-            <button type="button" onClick={onTutup} className={`inline-flex h-12 items-center rounded-xl border border-line-strong bg-surface px-5 font-bold text-ink hover:bg-blue-50 ${fokus}`} autoFocus>
+            <button type="button" onClick={onTutup} className={`inline-flex h-12 items-center rounded-xl border border-line-strong bg-surface px-5 font-bold text-ink hover:bg-brand-50 ${fokus}`} autoFocus>
               Batal
             </button>
             <button type="submit" disabled={pending} className={tombolUtama}>
@@ -191,11 +191,11 @@ export function DaftarPendamping({ data, jenis }: { data: Pendamping[]; jenis: O
       ]}
       aksi={(r) => (
         <>
-          <button type="button" onClick={() => setForm({ p: r })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+          <button type="button" onClick={() => setForm({ p: r })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
             <Pencil size={16} aria-hidden="true" />
             Ubah
           </button>
-          <button type="button" onClick={() => setReset(r)} className={`${tombolKecil} border-line-strong bg-surface text-ink hover:bg-blue-50`}>
+          <button type="button" onClick={() => setReset(r)} className={`${tombolKecil} border-line-strong bg-surface text-ink hover:bg-brand-50`}>
             <KeyRound size={16} aria-hidden="true" />
             Atur ulang sandi
           </button>

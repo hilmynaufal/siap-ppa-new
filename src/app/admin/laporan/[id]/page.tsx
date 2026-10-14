@@ -77,7 +77,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
         <div className="flex items-center gap-4">
           <IkonKotak ikon={FileSearch} warna="blue" ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">Laporan {l.kode}</h1>
+            <h1 className="text-2xl font-extrabold text-brand-900">Laporan {l.kode}</h1>
             <p className="mt-0.5 text-sm text-ink-soft">Masuk {fmt(l.dibuatPada)}</p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-korban" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-2 flex items-center gap-3">
               <IkonKotak ikon={ShieldAlert} warna="coral" />
-              <h2 id="h-korban" className="text-lg font-bold text-navy-900">Data korban</h2>
+              <h2 id="h-korban" className="text-lg font-bold text-brand-900">Data korban</h2>
             </div>
             {k ? (
               <dl className="divide-y divide-line-soft">
@@ -128,7 +128,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-kejadian" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-2 flex items-center gap-3">
               <IkonKotak ikon={FileSearch} warna="amber" />
-              <h2 id="h-kejadian" className="text-lg font-bold text-navy-900">Kejadian</h2>
+              <h2 id="h-kejadian" className="text-lg font-bold text-brand-900">Kejadian</h2>
             </div>
             <dl className="divide-y divide-line-soft">
               <Baris label="Jenis kekerasan">{l.jenis}</Baris>
@@ -142,7 +142,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-pelapor" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-2 flex items-center gap-3">
               <IkonKotak ikon={User} warna="sky" />
-              <h2 id="h-pelapor" className="text-lg font-bold text-navy-900">Pelapor</h2>
+              <h2 id="h-pelapor" className="text-lg font-bold text-brand-900">Pelapor</h2>
             </div>
             {l.pelaporAdalahKorban || !l.pelapor ? (
               <p className="text-ink-soft">{l.pelaporAdalahKorban ? "Korban sendiri yang melapor. Kontaknya ada pada data korban." : "Data pelapor tidak tersedia."}</p>
@@ -167,7 +167,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-terlapor" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-2 flex items-center gap-3">
               <IkonKotak ikon={UserX} warna="violet" />
-              <h2 id="h-terlapor" className="text-lg font-bold text-navy-900">Terlapor</h2>
+              <h2 id="h-terlapor" className="text-lg font-bold text-brand-900">Terlapor</h2>
             </div>
             {l.terlapor.length === 0 ? (
               <p className="text-ink-soft">Pelaku belum diketahui atau tidak diisi.</p>
@@ -188,7 +188,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             <section aria-labelledby="h-terkait" className="rounded-2xl border border-warning/30 bg-warning-50 p-5 md:p-6">
               <div className="mb-3 flex items-center gap-3">
                 <IkonKotak ikon={Link2} warna="amber" />
-                <h2 id="h-terkait" className="text-lg font-bold text-navy-900">Laporan terkait</h2>
+                <h2 id="h-terkait" className="text-lg font-bold text-brand-900">Laporan terkait</h2>
               </div>
               <p className="mb-3 text-sm text-ink-soft">Laporan lain memuat NIK yang sama dengan korban atau pelapor laporan ini.</p>
               <ul className="flex flex-col gap-2">
@@ -196,7 +196,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                   <li key={t.id}>
                     <Link
                       href={`/admin/laporan/${t.id}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-4 py-3 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface px-4 py-3 hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                     >
                       <span className="font-semibold tabular-nums text-ink">{t.kode}</span>
                       <span className="text-sm text-ink-soft">{t.keterangan}</span>
@@ -221,7 +221,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
           <section aria-labelledby="h-dokumen" className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
             <div className="mb-3 flex items-center gap-3">
               <IkonKotak ikon={FileText} warna="violet" />
-              <h2 id="h-dokumen" className="text-lg font-bold text-navy-900">Dokumen pendukung</h2>
+              <h2 id="h-dokumen" className="text-lg font-bold text-brand-900">Dokumen pendukung</h2>
             </div>
             {l.dokumen.length === 0 ? (
               <p className="text-ink-soft">Pelapor tidak melampirkan dokumen.</p>
@@ -233,7 +233,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                       href={`/admin/laporan/${l.id}/dokumen/${d.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex min-h-12 items-center gap-3 rounded-xl border border-line px-4 py-2 text-ink transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                      className="flex min-h-12 items-center gap-3 rounded-xl border border-line px-4 py-2 text-ink transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                     >
                       {d.tipeMime === "application/pdf" ? (
                         <FileText size={20} aria-hidden="true" className="shrink-0 text-coral-500" />

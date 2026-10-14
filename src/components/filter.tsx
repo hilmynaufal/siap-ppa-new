@@ -26,16 +26,16 @@ export function FilterChip<T extends string>({
             aria-pressed={aktif}
             onClick={() => onUbah(p.nilai)}
             className={
-              "inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 " +
+              "inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 " +
               (aktif
-                ? "border-blue-600 bg-blue-50 text-navy-800"
-                : "border-line-strong bg-surface text-ink-soft hover:bg-blue-50")
+                ? "border-brand-600 bg-brand-50 text-brand-800"
+                : "border-line-strong bg-surface text-ink-soft hover:bg-brand-50")
             }
           >
             {aktif && <Check size={14} strokeWidth={3} aria-hidden="true" />}
             {p.label}
             {p.jumlah !== undefined && (
-              <span className={"rounded-md px-1.5 text-[11px] tabular-nums " + (aktif ? "bg-blue-100" : "bg-line-soft")}>
+              <span className={"rounded-md px-1.5 text-[11px] tabular-nums " + (aktif ? "bg-brand-100" : "bg-line-soft")}>
                 {p.jumlah}
               </span>
             )}
@@ -76,7 +76,7 @@ export function FilterPilihan({
         id={id}
         value={nilai}
         onChange={(e) => onUbah(e.target.value)}
-        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full min-w-[10.5rem] appearance-none rounded-xl border border-line-strong bg-surface pl-10 pr-10 font-medium text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"}
+        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full min-w-[10.5rem] appearance-none rounded-xl border border-line-strong bg-surface pl-10 pr-10 font-medium text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100"}
       >
         <option value="">{semua}</option>
         {pilihan.map((p) => (
@@ -95,7 +95,7 @@ export function TombolAturUlang({ onKlik }: { onKlik: () => void }) {
     <button
       type="button"
       onClick={onKlik}
-      className="inline-flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-bold text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+      className="inline-flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-bold text-brand-700 transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
     >
       <RotateCcw size={14} aria-hidden="true" />
       Atur ulang

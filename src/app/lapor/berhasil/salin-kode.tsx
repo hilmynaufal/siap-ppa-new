@@ -27,7 +27,7 @@ export function SalinKode({ kode }: { kode: string }) {
       <button
         type="button"
         onClick={salin}
-        className={"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-magenta-600 px-6 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-magenta-100" + (tersalin ? "" : " napas")}
+        className={"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 font-bold text-white shadow-card transition-colors hover:bg-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100" + (tersalin ? "" : " napas")}
       >
         <Copy size={18} aria-hidden="true" />
         Salin kode

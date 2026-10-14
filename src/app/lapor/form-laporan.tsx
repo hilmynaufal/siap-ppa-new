@@ -42,11 +42,11 @@ type BerkasPerJenis = Partial<Record<JenisDokumenLaporan, ItemBerkas>>;
 const LANGKAH = ["Pelapor", "Korban", "Kejadian", "Terlapor", "Dokumen"];
 const MAKS_KRONOLOGI = 2000;
 
-const fokus = "focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100";
+const fokus = "focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 const kontrol =
-  "h-13 w-full rounded-xl border border-line-strong bg-surface px-4 text-base text-ink placeholder:text-ink-mute focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
+  "h-13 w-full rounded-xl border border-line-strong bg-surface px-4 text-base text-ink placeholder:text-ink-mute focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
 const kartuPilihan =
-  "flex h-13 cursor-pointer items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 font-medium has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100";
+  "flex h-13 cursor-pointer items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 font-medium has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100";
 
 function hariIniLokal() {
   const d = new Date();
@@ -93,7 +93,7 @@ function SlotDokumen({
         <label htmlFor={bidang} className="font-bold text-ink">
           {label}
         </label>
-        <span className={"shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold " + (wajib ? "bg-magenta-50 text-magenta-700" : "bg-blue-50 text-navy-700")}>{wajib ? "Wajib" : "Opsional"}</span>
+        <span className={"shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold " + (wajib ? "bg-sun-50 text-brand-700" : "bg-brand-50 text-brand-700")}>{wajib ? "Wajib" : "Opsional"}</span>
       </div>
       <input ref={input} id={bidang} name={bidang} type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={pilih} className="sr-only" tabIndex={-1} />
       {item ? (
@@ -103,13 +103,13 @@ function SlotDokumen({
             <p className="truncate font-bold text-ink">{item.file.name}</p>
             <p className={"text-sm " + (item.galat ? "text-error" : "text-ink-mute")}>{item.galat ?? `${ukuranTeks(item.file.size)} · Siap dikirim`}</p>
           </div>
-          <button type="button" onClick={hapus} aria-label={`${item.galat ? "Singkirkan" : "Hapus"} ${item.file.name}`} className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-blue-50 ${fokus}`}>
+          <button type="button" onClick={hapus} aria-label={`${item.galat ? "Singkirkan" : "Hapus"} ${item.file.name}`} className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-brand-50 ${fokus}`}>
             {item.galat ? <X size={20} aria-hidden="true" /> : <Trash2 size={20} aria-hidden="true" />}
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => input.current?.click()} className={`mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-600/40 bg-blue-50/50 font-bold text-navy-800 transition-colors hover:bg-blue-50 ${fokus}`}>
-          <FilePlus2 size={20} aria-hidden="true" className="text-blue-600" />
+        <button type="button" onClick={() => input.current?.click()} className={`mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-600/40 bg-brand-50/50 font-bold text-brand-800 transition-colors hover:bg-brand-50 ${fokus}`}>
+          <FilePlus2 size={20} aria-hidden="true" className="text-brand-700" />
           Pilih berkas
         </button>
       )}
@@ -233,7 +233,7 @@ function PilihanJenisKelamin({ nama, nilaiAwal, wajib, galat }: { nama: string; 
       <div className="grid grid-cols-2 gap-3">
         {OPSI_JENIS_KELAMIN.map((j) => (
           <label key={j.nilai} className={kartuPilihan}>
-            <input type="radio" name={nama} value={j.nilai} defaultChecked={nilaiAwal === j.nilai} className="h-5 w-5 accent-blue-600" />
+            <input type="radio" name={nama} value={j.nilai} defaultChecked={nilaiAwal === j.nilai} className="h-5 w-5 accent-brand-600" />
             {j.label}
           </label>
         ))}
@@ -382,8 +382,8 @@ export function FormLaporan({
             const n = i + 1;
             return (
               <li key={nama} aria-current={langkah === n ? "step" : undefined}>
-                <span className={"block h-1.5 rounded-md " + (n <= langkah ? "bg-blue-600" : "bg-line")} />
-                <span className={"mt-2 block truncate text-[12px] leading-tight " + (langkah === n ? "font-bold text-navy-900" : "text-ink-mute")}>
+                <span className={"block h-1.5 rounded-md " + (n <= langkah ? "bg-brand-600" : "bg-line")} />
+                <span className={"mt-2 block truncate text-[12px] leading-tight " + (langkah === n ? "font-bold text-brand-900" : "text-ink-mute")}>
                   {n}. {nama}
                 </span>
               </li>
@@ -403,11 +403,11 @@ export function FormLaporan({
 
         {/* Langkah 1: Pelapor */}
         <fieldset className={aktif(1) + " flex flex-col gap-5"}>
-          <legend className="mb-1 text-xl font-extrabold text-navy-900">Data pelapor</legend>
+          <legend className="mb-1 text-xl font-extrabold text-brand-900">Data pelapor</legend>
           <label
-            className={"flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100 " + "border-line-strong bg-surface"}
+            className={"flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 " + "border-line-strong bg-surface"}
           >
-            <input type="checkbox" name="pelaporAdalahKorban" checked={sendiri} onChange={(e) => setSendiri(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-blue-600" />
+            <input type="checkbox" name="pelaporAdalahKorban" checked={sendiri} onChange={(e) => setSendiri(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-brand-600" />
             <span className="font-medium text-ink">
               <strong>Saya sendiri korbannya.</strong> Data pelapor tidak perlu diisi.
             </span>
@@ -450,7 +450,7 @@ export function FormLaporan({
 
         {/* Langkah 2: Korban */}
         <fieldset className={aktif(2) + " flex flex-col gap-5"}>
-          <legend className="mb-1 text-xl font-extrabold text-navy-900">Data korban</legend>
+          <legend className="mb-1 text-xl font-extrabold text-brand-900">Data korban</legend>
           <Bidang id="korbanNama" label="Nama lengkap" wajib galat={galat.korbanNama}>
             <Teks id="korbanNama" autoComplete="off" nilaiAwal={nilaiAwal("korbanNama")} galat={galat.korbanNama} />
           </Bidang>
@@ -477,7 +477,7 @@ export function FormLaporan({
               <Calendar size={20} aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink-mute" />
             </div>
             {usia !== null && usia >= 0 && (
-              <p className="text-sm font-semibold text-navy-800" aria-live="polite" data-testid="usia-korban">
+              <p className="text-sm font-semibold text-brand-800" aria-live="polite" data-testid="usia-korban">
                 Usia: {usia} tahun
               </p>
             )}
@@ -521,7 +521,7 @@ export function FormLaporan({
 
         {/* Langkah 3: Kejadian */}
         <fieldset className={aktif(3) + " flex flex-col gap-5"}>
-          <legend className="mb-1 text-xl font-extrabold text-navy-900">Tentang kejadian</legend>
+          <legend className="mb-1 text-xl font-extrabold text-brand-900">Tentang kejadian</legend>
           <Bidang id="jenisKekerasanId" label="Jenis kekerasan" wajib galat={galat.jenisKekerasanId}>
             <Pilih id="jenisKekerasanId" daftar={opsi(jenis)} kosong="Pilih jenis kekerasan" nilaiAwal={nilaiAwal("jenisKekerasanId")} galat={galat.jenisKekerasanId} />
           </Bidang>
@@ -541,11 +541,11 @@ export function FormLaporan({
 
         {/* Langkah 4: Terlapor */}
         <fieldset className={aktif(4) + " flex flex-col gap-5"}>
-          <legend className="mb-1 text-xl font-extrabold text-navy-900">
+          <legend className="mb-1 text-xl font-extrabold text-brand-900">
             Pelaku / terlapor <span className="text-base font-medium text-ink-mute">(tidak wajib)</span>
           </legend>
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border-2 border-line-strong bg-surface p-4 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100">
-            <input type="checkbox" name="terlaporTidakDiketahui" checked={terlaporTak} onChange={(e) => setTerlaporTak(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-blue-600" />
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border-2 border-line-strong bg-surface p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100">
+            <input type="checkbox" name="terlaporTidakDiketahui" checked={terlaporTak} onChange={(e) => setTerlaporTak(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-brand-600" />
             <span className="font-medium text-ink">
               <strong>Pelaku belum diketahui.</strong> Lewati bagian ini.
             </span>
@@ -571,7 +571,7 @@ export function FormLaporan({
 
         {/* Langkah 5: Dokumen dan persetujuan */}
         <fieldset className={aktif(5) + " flex flex-col gap-5"}>
-          <legend className="mb-1 text-xl font-extrabold text-navy-900">
+          <legend className="mb-1 text-xl font-extrabold text-brand-900">
             Dokumen pendukung
           </legend>
           <p className="-mt-2 text-ink-soft">
@@ -585,8 +585,8 @@ export function FormLaporan({
 
           <div className="border-t border-line-soft pt-5" />
           <div>
-            <label className={"flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100 " + (galat.persetujuan ? "border-error bg-error-50/40" : "border-line-strong bg-surface")}>
-              <input id="persetujuan" name="persetujuan" type="checkbox" defaultChecked={nilaiAwal("persetujuan") === "on"} aria-invalid={!!galat.persetujuan} aria-describedby={describedBy("persetujuan", galat.persetujuan)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-blue-600" />
+            <label className={"flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 " + (galat.persetujuan ? "border-error bg-error-50/40" : "border-line-strong bg-surface")}>
+              <input id="persetujuan" name="persetujuan" type="checkbox" defaultChecked={nilaiAwal("persetujuan") === "on"} aria-invalid={!!galat.persetujuan} aria-describedby={describedBy("persetujuan", galat.persetujuan)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-brand-600" />
               <span className="font-medium text-ink">
                 Saya menyetujui data pribadi dalam laporan ini digunakan oleh DALDUK PPA Kabupaten Bandung hanya untuk penanganan kasus. <span className="text-error">*</span>
               </span>
@@ -608,22 +608,22 @@ export function FormLaporan({
       <div className="sticky bottom-0 border-t border-line bg-surface">
         <div className="mx-auto flex max-w-md gap-3 px-4 py-3">
           {langkah === 1 ? (
-            <Link href="/" className={`inline-flex h-13 flex-1 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-blue-50 ${fokus}`}>
+            <Link href="/" className={`inline-flex h-13 flex-1 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-brand-50 ${fokus}`}>
               <X size={18} aria-hidden="true" />
               Batal
             </Link>
           ) : (
-            <button type="button" onClick={kembali} className={`inline-flex h-13 flex-1 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-blue-50 ${fokus}`}>
+            <button type="button" onClick={kembali} className={`inline-flex h-13 flex-1 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-brand-50 ${fokus}`}>
               Kembali
             </button>
           )}
           {langkah < jumlahLangkah ? (
-            <button type="button" onClick={lanjut} className={`inline-flex h-13 flex-[2] items-center justify-center gap-2 rounded-xl bg-magenta-600 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 ${fokus}`}>
+            <button type="button" onClick={lanjut} className={`inline-flex h-13 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand-600 font-bold text-white shadow-card transition-colors hover:bg-brand-700 ${fokus}`}>
               Lanjut
               <ArrowRight size={18} aria-hidden="true" />
             </button>
           ) : (
-            <button type="submit" disabled={mengirim} className={`inline-flex h-13 flex-[2] items-center justify-center gap-2 rounded-xl bg-magenta-600 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 disabled:bg-line-strong disabled:shadow-none ${fokus}`}>
+            <button type="submit" disabled={mengirim} className={`inline-flex h-13 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand-600 font-bold text-white shadow-card transition-colors hover:bg-brand-700 disabled:bg-line-strong disabled:shadow-none ${fokus}`}>
               <Send size={18} aria-hidden="true" />
               {mengirim ? "Mengirim..." : "Kirim Laporan"}
             </button>

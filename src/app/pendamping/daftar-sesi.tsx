@@ -69,7 +69,7 @@ export function DaftarSesi({ sesi }: { sesi: SesiPendamping[] }) {
       <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left text-[15px]">
-            <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+            <thead className="bg-brand-50 text-sm font-bold text-brand-900">
               <tr>
                 <th scope="col" className="px-5 py-4">Tanggal</th>
                 <th scope="col" className="px-5 py-4">Jam</th>
@@ -101,7 +101,7 @@ export function DaftarSesi({ sesi }: { sesi: SesiPendamping[] }) {
                     <span className="text-sm">{s.alamat}</span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="font-bold tabular-nums text-navy-900">{s.kodeLaporan}</span>
+                    <span className="font-bold tabular-nums text-brand-900">{s.kodeLaporan}</span>
                     <br />
                     <span className="text-sm text-ink-soft">
                       {s.inisialKorban} · Sesi {s.urutan} · {s.jenis}
@@ -122,7 +122,7 @@ export function DaftarSesi({ sesi }: { sesi: SesiPendamping[] }) {
                           <Link
                             href={`/pendamping/sesi/${s.id}#h-laporan`}
                             aria-label={`Isi laporan ${s.kodeLaporan} sesi ${s.urutan}`}
-                            className={`${tombolKecil} border-magenta-600 bg-magenta-600 text-white hover:bg-magenta-700`}
+                            className={`${tombolKecil} border-brand-600 bg-brand-600 text-white hover:bg-brand-700`}
                           >
                             Isi laporan
                           </Link>
@@ -130,7 +130,7 @@ export function DaftarSesi({ sesi }: { sesi: SesiPendamping[] }) {
                         <Link
                           href={`/pendamping/sesi/${s.id}`}
                           aria-label={`Lihat ringkasan kasus ${s.kodeLaporan} sesi ${s.urutan}`}
-                          className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
+                          className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}
                         >
                           Ringkasan kasus
                         </Link>

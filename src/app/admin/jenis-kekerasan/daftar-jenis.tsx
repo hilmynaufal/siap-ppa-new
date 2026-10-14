@@ -123,7 +123,7 @@ function ModalUbah({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
         <input type="hidden" name="id" value={j.id} />
         <BidangNama state={state} defaultValue={j.nama} />
         <label className="mt-3 flex min-h-11 items-center gap-3 text-sm font-semibold">
-          <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-6 w-6 rounded-md accent-magenta-600" />
+          <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-6 w-6 rounded-md accent-brand-600" />
           <span>
             Tampil di formulir
             <span className="block text-xs font-normal text-ink-mute">
@@ -145,7 +145,7 @@ function ModalHapus({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
   useTutupDenganEsc(onTutup);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-brand-950/50 p-4">
       <div
         role="dialog"
         aria-modal="true"
@@ -157,7 +157,7 @@ function ModalHapus({ j, onTutup }: { j: Jenis; onTutup: () => void }) {
             <TriangleAlert size={26} />
           </span>
           <div>
-            <h2 id="judul-hapus" className="text-lg font-bold text-navy-900">
+            <h2 id="judul-hapus" className="text-lg font-bold text-brand-900">
               Hapus &quot;{j.nama}&quot;?
             </h2>
             <p className="mt-1 text-ink-soft">
@@ -199,7 +199,7 @@ export function DaftarJenis({ jenis }: { jenis: Jenis[] }) {
         <div className="flex items-center gap-4">
           <IkonKotak ikon={Shapes} warna="violet" ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">Jenis Kekerasan</h1>
+            <h1 className="text-2xl font-extrabold text-brand-900">Jenis Kekerasan</h1>
             <p className="mt-0.5 text-sm text-ink-soft">
               Kelola kategori kekerasan yang menjadi pilihan pada formulir pelaporan.
             </p>
@@ -213,7 +213,7 @@ export function DaftarJenis({ jenis }: { jenis: Jenis[] }) {
 
       <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-card">
         <table className="w-full min-w-[1000px] text-left text-[15px] [&_td]:whitespace-nowrap">
-          <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+          <thead className="bg-brand-50 text-sm font-bold text-brand-900">
             <tr>
               <th scope="col" className="px-5 py-4">No.</th>
               <th scope="col" className="px-5 py-4">Nama jenis kekerasan</th>
@@ -275,7 +275,7 @@ export function DaftarJenis({ jenis }: { jenis: Jenis[] }) {
                     <button
                       type="button"
                       onClick={() => setUbahJ(j)}
-                      className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}
+                      className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}
                     >
                       <Pencil size={16} aria-hidden="true" />
                       Ubah

@@ -1,6 +1,6 @@
 import type { IrisanDonat } from "@/lib/dasbor";
 
-const PALET = ["#7A4FD6", "#0E9F8E", "#F5B014", "#1E9BE0", "#F26A4B", "#B81B68"];
+const PALET = ["#7A4FD6", "#60AE2D", "#F5B014", "#1E9BE0", "#F26A4B", "#048842"];
 
 /**
  * Donat jenis layanan (SVG murni). Setiap irisan disertai nama, jumlah, dan persen pada daftar di sampingnya,
@@ -17,7 +17,7 @@ export function DonatLayanan({ data, total, satuan = "layanan" }: { data: Irisan
   return (
     <div className="flex flex-wrap items-center gap-6">
       <svg viewBox="0 0 200 200" width="170" height="170" role="img" aria-label={`Donat jenis layanan, total ${total} ${satuan}`} className="shrink-0">
-        <circle cx="100" cy="100" r={R} fill="none" stroke="#E8EEFB" strokeWidth="30" />
+        <circle cx="100" cy="100" r={R} fill="none" stroke="#E6F0E9" strokeWidth="30" />
         {data.map((d, i) => {
           const panjang = (d.jumlah / total) * KELILING;
           return (
@@ -37,10 +37,10 @@ export function DonatLayanan({ data, total, satuan = "layanan" }: { data: Irisan
             </circle>
           );
         })}
-        <text x="100" y="104" textAnchor="middle" fontSize="34" fontWeight="800" fill="#0F2A63">
+        <text x="100" y="104" textAnchor="middle" fontSize="34" fontWeight="800" fill="#0B3D22">
           {total}
         </text>
-        <text x="100" y="124" textAnchor="middle" fontSize="12" fill="#5B6682">
+        <text x="100" y="124" textAnchor="middle" fontSize="12" fill="#566A5D">
           {satuan}
         </text>
       </svg>

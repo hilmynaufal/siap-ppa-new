@@ -29,7 +29,7 @@ export default async function HalamanJadwalPetugas() {
       <div className="mb-6 flex items-center gap-4">
         <IkonKotak ikon={CalendarClock} warna="teal" ukuran="lg" />
         <div>
-          <h1 className="text-2xl font-extrabold text-navy-900">Jadwal Hari Ini</h1>
+          <h1 className="text-2xl font-extrabold text-brand-900">Jadwal Hari Ini</h1>
           <p className="mt-0.5 text-sm text-ink-soft">{tanggal}</p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default async function HalamanJadwalPetugas() {
         Identitas korban dan pelapor tidak ditampilkan. Pelapor menunjukkan QR tiket untuk check-in di halaman Antrean.
       </p>
       <section aria-labelledby="h-jadwal" className="rounded-2xl border border-line bg-surface shadow-card">
-        <h2 id="h-jadwal" className="border-b border-line-soft p-5 text-lg font-bold text-navy-900">
+        <h2 id="h-jadwal" className="border-b border-line-soft p-5 text-lg font-bold text-brand-900">
           Sesi di lokasi Anda ({baris.length})
         </h2>
         {baris.length === 0 ? (
@@ -46,7 +46,7 @@ export default async function HalamanJadwalPetugas() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[40rem] text-left">
-              <thead className="bg-blue-50/60 text-sm font-bold text-ink-soft">
+              <thead className="bg-brand-50/60 text-sm font-bold text-ink-soft">
                 <tr>
                   <th scope="col" className="px-5 py-3">Jam</th>
                   <th scope="col" className="px-3 py-3">No. antrean</th>
@@ -60,7 +60,7 @@ export default async function HalamanJadwalPetugas() {
                 {baris.map((b) => (
                   <tr key={b.nomorAntrean + b.jam}>
                     <td className="px-5 py-3 tabular-nums">{b.jam}</td>
-                    <td className="px-3 py-3 tabular-nums font-semibold text-navy-900">{b.nomorAntrean}</td>
+                    <td className="px-3 py-3 tabular-nums font-semibold text-brand-900">{b.nomorAntrean}</td>
                     <td className="px-3 py-3">{b.jenis}</td>
                     <td className="px-3 py-3">{b.pendamping}</td>
                     <td className="px-3 py-3 tabular-nums text-ink-soft">{b.checkIn ?? "Belum check-in"}</td>

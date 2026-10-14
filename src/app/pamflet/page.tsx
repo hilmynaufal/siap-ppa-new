@@ -2,7 +2,7 @@ import { CalendarCheck, FilePenLine, Lock, Phone, QrCode as IkonQr, ScanLine } f
 import type { Metadata } from "next";
 import QRCode from "qrcode";
 import { IkonKotak } from "@/components/ikon-kotak";
-import { LogoSiap } from "@/components/logo-siap";
+import { LogoSiapLengkap } from "@/components/logo-siap";
 import { SiluetHero } from "@/components/siluet-hero";
 import { TombolCetak } from "@/components/tombol-cetak";
 import { db } from "@/lib/db";
@@ -24,7 +24,7 @@ const LANGKAH = [
 export default async function Pamflet() {
   const [kontak, qrSvg] = await Promise.all([
     kontakDaruratAktif(db, 3),
-    QRCode.toString(TAUTAN_LAPOR, { type: "svg", margin: 0, errorCorrectionLevel: "Q", color: { dark: "#0F2A63", light: "#FFFFFF" } }),
+    QRCode.toString(TAUTAN_LAPOR, { type: "svg", margin: 0, errorCorrectionLevel: "Q", color: { dark: "#0B3D22", light: "#FFFFFF" } }),
   ]);
 
   return (
@@ -39,16 +39,13 @@ export default async function Pamflet() {
       <article className="relative mx-auto flex h-[297mm] w-[210mm] flex-col overflow-hidden bg-surface shadow-modal print:shadow-none">
         {/* Bagian atas */}
         <div className="hero-senja relative flex flex-1 flex-col px-[14mm] pt-[12mm]">
-          <header className="relative z-10 flex items-center gap-3">
-            <LogoSiap ukuran={44} />
-            <div>
-              <p className="text-[15pt] font-extrabold leading-tight text-navy-900">SIAP PPA</p>
-              <p className="text-[9pt] text-ink-soft">DALDUK PPA Kabupaten Bandung</p>
-            </div>
+          <header className="relative z-10 flex flex-col items-start gap-1">
+            <LogoSiapLengkap lebar={170} />
+            <p className="text-[9pt] text-ink-soft">DALDUK PPA Kabupaten Bandung</p>
           </header>
 
           <div className="relative z-10 mt-[10mm]">
-            <h1 className="text-[48pt] font-extrabold leading-[1.02] tracking-tight text-navy-900">
+            <h1 className="text-[48pt] font-extrabold leading-[1.02] tracking-tight text-brand-900">
               Anda tidak
               <br />
               sendiri.
@@ -69,7 +66,7 @@ export default async function Pamflet() {
               />
             </div>
             <div className="min-w-0">
-              <p className="flex items-center gap-2 text-[11pt] font-bold text-magenta-700">
+              <p className="flex items-center gap-2 text-[11pt] font-bold text-brand-700">
                 <IkonQr size={18} aria-hidden="true" />
                 Pindai untuk melapor
               </p>
@@ -77,7 +74,7 @@ export default async function Pamflet() {
                 {LANGKAH.map((l, i) => (
                   <li key={l.teks} className="flex items-center gap-3">
                     <IkonKotak ikon={l.ikon} warna={l.warna} />
-                    <span className="text-[11pt] font-bold leading-tight text-navy-900">
+                    <span className="text-[11pt] font-bold leading-tight text-brand-900">
                       <span className="mr-1 text-ink-mute">{i + 1}.</span>
                       {l.teks}
                     </span>
@@ -89,7 +86,7 @@ export default async function Pamflet() {
                 Tanpa akun. Data dirahasiakan.
               </p>
               <p className="mt-[3mm] break-all text-[9pt] text-ink-soft">
-                Atau buka: <span className="font-bold text-navy-900">{TAUTAN_LAPOR.replace(/^https?:\/\//, "")}</span>
+                Atau buka: <span className="font-bold text-brand-900">{TAUTAN_LAPOR.replace(/^https?:\/\//, "")}</span>
               </p>
             </div>
           </section>
@@ -98,7 +95,7 @@ export default async function Pamflet() {
         </div>
 
         {/* Kontak darurat */}
-        <footer className="relative z-10 bg-navy-900 px-[14mm] pb-[9mm] pt-[6mm] text-white">
+        <footer className="relative z-10 bg-brand-900 px-[14mm] pb-[9mm] pt-[6mm] text-white">
           <p className="text-[11pt] font-extrabold">Dalam keadaan darurat, hubungi:</p>
           {kontak.length > 0 ? (
             <ul className="mt-[3mm] grid grid-cols-3 gap-[4mm]">
@@ -113,7 +110,7 @@ export default async function Pamflet() {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-[10pt] text-blue-100">Kontak darurat dapat dilihat di halaman Kontak Darurat aplikasi.</p>
+            <p className="mt-2 text-[10pt] text-brand-100">Kontak darurat dapat dilihat di halaman Kontak Darurat aplikasi.</p>
           )}
         </footer>
       </article>

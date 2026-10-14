@@ -41,12 +41,12 @@ function ModalLokasi({ l, onTutup }: { l: Lokasi | null; onTutup: () => void }) 
             placeholder="Jalan, nomor, desa/kelurahan, kecamatan"
             defaultValue={nilai("alamat", l?.alamat ?? "")}
             aria-invalid={!!g.alamat}
-            className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
+            className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
           />
         </BidangForm>
         {ubahMode && (
           <label className="mb-4 flex min-h-11 items-center gap-3 text-sm font-bold">
-            <input type="checkbox" name="aktif" defaultChecked={l.aktif} className="h-5 w-5 accent-blue-600" />
+            <input type="checkbox" name="aktif" defaultChecked={l.aktif} className="h-5 w-5 accent-brand-600" />
             Aktif (tampil di pilihan jadwal)
           </label>
         )}
@@ -88,7 +88,7 @@ export function DaftarLokasi({ data }: { data: Lokasi[] }) {
       ]}
       aksi={(r) => (
         <>
-          <button type="button" onClick={() => setForm({ l: r })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+          <button type="button" onClick={() => setForm({ l: r })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
             <Pencil size={16} aria-hidden="true" />
             Ubah
           </button>

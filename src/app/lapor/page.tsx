@@ -28,7 +28,7 @@ export default async function HalamanLapor() {
           <div className="m-4 flex items-start gap-4 rounded-2xl border border-line bg-canvas p-5">
             <IkonKotak ikon={HeartHandshake} warna="coral" ukuran="md" />
             <div>
-              <h1 className="text-lg font-bold text-navy-900">Formulir sedang disiapkan</h1>
+              <h1 className="text-lg font-bold text-brand-900">Formulir sedang disiapkan</h1>
               <p className="mt-1 text-ink-soft">
                 Pilihan jenis kekerasan belum tersedia. Silakan coba lagi nanti, atau hubungi kontak darurat bila Anda membutuhkan bantuan segera.
               </p>

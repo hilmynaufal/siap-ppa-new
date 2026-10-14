@@ -52,7 +52,7 @@ export function NikTersamar({ laporanId, pihak, tersamar, ada }: { laporanId: st
           type="button"
           onClick={nik ? () => setNik(null) : buka}
           disabled={pending}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 disabled:opacity-60"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-60"
         >
           {nik ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
           {nik ? `Sembunyikan (${sisa}d)` : "Tampilkan"}

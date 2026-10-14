@@ -95,14 +95,14 @@ export function ModalHapus({
   useTutupDenganEsc(onTutup);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-brand-950/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="judul-hapus" className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal">
         <div className="flex items-start gap-4">
           <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-error-50 text-error">
             <TriangleAlert size={26} />
           </span>
           <div>
-            <h2 id="judul-hapus" className="text-lg font-bold text-navy-900">
+            <h2 id="judul-hapus" className="text-lg font-bold text-brand-900">
               {judul}
             </h2>
             <p className="mt-1 text-ink-soft">{pesan}</p>

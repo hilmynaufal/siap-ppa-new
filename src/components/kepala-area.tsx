@@ -8,7 +8,7 @@ export function KepalaArea({ nama, peran }: { nama: string; peran: string }) {
       <div className="flex items-center gap-3">
         <LogoSiap />
         <div>
-          <p className="font-extrabold leading-tight text-navy-900">SIAP PPA</p>
+          <p className="font-extrabold leading-tight text-brand-900">SIAP PPA</p>
           <p className="text-sm font-medium text-ink-mute">{peran}</p>
         </div>
       </div>
@@ -17,7 +17,7 @@ export function KepalaArea({ nama, peran }: { nama: string; peran: string }) {
         <form action={keluar}>
           <button
             type="submit"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 text-sm font-bold text-ink transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-5 text-sm font-bold text-ink transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
           >
             <LogOut size={18} aria-hidden="true" />
             Keluar

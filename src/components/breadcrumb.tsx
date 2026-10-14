@@ -14,13 +14,13 @@ export function Breadcrumb({ remah }: { remah: Remah[] }) {
             <li key={r.label} className="flex items-center gap-1.5">
               {i > 0 && <ChevronRight size={16} aria-hidden="true" className="text-ink-mute" />}
               {terakhir || !r.href ? (
-                <span aria-current={terakhir ? "page" : undefined} className="font-semibold text-navy-900">
+                <span aria-current={terakhir ? "page" : undefined} className="font-semibold text-brand-900">
                   {r.label}
                 </span>
               ) : (
                 <Link
                   href={r.href}
-                  className="inline-flex items-center gap-1.5 rounded-lg font-medium text-ink-soft transition-colors hover:text-blue-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                  className="inline-flex items-center gap-1.5 rounded-lg font-medium text-ink-soft transition-colors hover:text-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                 >
                   {i === 0 && <Home size={16} aria-hidden="true" />}
                   {r.label}

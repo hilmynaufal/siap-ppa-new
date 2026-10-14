@@ -16,7 +16,7 @@ export default async function HalamanAntreanPublik({ searchParams }: { searchPar
   const { lokasi, jenis } = await opsiAntrean(db);
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="mb-2 flex items-center gap-3 text-2xl font-extrabold text-navy-900">
+      <h1 className="mb-2 flex items-center gap-3 text-2xl font-extrabold text-brand-900">
         <Monitor size={28} aria-hidden="true" />
         Layar antrean
       </h1>
@@ -26,7 +26,7 @@ export default async function HalamanAntreanPublik({ searchParams }: { searchPar
         {lokasi.flatMap((l) =>
           jenis.map((j) => (
             <li key={`${l.id}-${j.id}`}>
-              <Link href={`/antrean?lokasi=${l.id}&jenis=${j.id}`} className="flex min-h-14 flex-col justify-center rounded-xl border border-line bg-surface px-5 py-3 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+              <Link href={`/antrean?lokasi=${l.id}&jenis=${j.id}`} className="flex min-h-14 flex-col justify-center rounded-xl border border-line bg-surface px-5 py-3 hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
                 <span className="font-bold text-ink">{j.nama}</span>
                 <span className="text-sm text-ink-soft">{l.nama}</span>
               </Link>

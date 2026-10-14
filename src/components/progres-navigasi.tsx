@@ -90,7 +90,7 @@ export function ProgresNavigasi() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px]" role="progressbar" aria-label="Memuat halaman" aria-hidden={!tampil} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(lebar)}>
       <div
-        className="h-full rounded-r-full bg-magenta-600 shadow-[0_0_8px_rgb(214_36_124_/_0.6)] transition-[width,opacity] duration-200 ease-out"
+        className="h-full rounded-r-full bg-brand-600 shadow-[0_0_8px_rgb(214_36_124_/_0.6)] transition-[width,opacity] duration-200 ease-out"
         style={{ width: `${lebar}%`, opacity: tampil ? 1 : 0 }}
       />
     </div>

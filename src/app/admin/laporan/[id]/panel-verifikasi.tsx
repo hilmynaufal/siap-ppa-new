@@ -54,7 +54,7 @@ function ModalTolak({ id, kode, onTutup }: { id: string; kode: string; onTutup: 
           defaultValue={state?.alasan ?? ""}
           aria-invalid={state?.pesan ? true : undefined}
           aria-describedby={state?.pesan ? "galat-alasan" : undefined}
-          className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
+          className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50"
         />
         <p className="mt-1 text-sm text-ink-mute">Jelaskan singkat mengapa laporan tidak dapat diproses.</p>
         <div className="mt-2">
@@ -181,8 +181,8 @@ export function PanelVerifikasi({ opsi, id, kode, status, verifikator, diverifik
 
   return (
     <aside aria-labelledby="h-verifikasi" className="rounded-2xl border border-line bg-surface p-5 shadow-card lg:sticky lg:top-24">
-      <h2 id="h-verifikasi" className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-        <ClipboardCheck size={20} aria-hidden="true" className="text-magenta-600" />
+      <h2 id="h-verifikasi" className="mb-3 flex items-center gap-2 text-lg font-bold text-brand-900">
+        <ClipboardCheck size={20} aria-hidden="true" className="text-brand-700" />
         Verifikasi
       </h2>
 
