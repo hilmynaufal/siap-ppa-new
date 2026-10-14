@@ -47,7 +47,7 @@ export function DaftarPublik({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
                   <p className="text-sm font-bold text-teal-700">
                     {k.kecamatan ? `Kec. ${k.kecamatan}` : TINGKAT_KABUPATEN}
                   </p>
-                  <p className="mt-0.5 font-bold text-navy-900">{k.instansi}</p>
+                  <p className="mt-0.5 font-bold text-brand-900">{k.instansi}</p>
                   <p className="mt-1 flex items-start gap-2 text-sm text-ink-soft">
                     <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-mute" />
                     {k.alamat}
@@ -57,7 +57,7 @@ export function DaftarPublik({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
                 <a
                   href={`tel:${k.telepon.replace(/[^\d+]/g, "")}`}
                   aria-label={`Telepon ${k.instansi}`}
-                  className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-blue-50 text-navy-800 transition-colors hover:bg-blue-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+                  className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
                 >
                   <Phone size={24} aria-hidden="true" />
                 </a>

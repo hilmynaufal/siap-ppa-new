@@ -22,8 +22,8 @@ export function NavigasiPetugas() {
             href={i.href}
             aria-current={aktif ? "page" : undefined}
             className={
-              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-bold focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 " +
-              (aktif ? "bg-navy-900 text-white" : "text-ink hover:bg-blue-50")
+              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-bold focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 " +
+              (aktif ? "bg-brand-900 text-white" : "text-ink hover:bg-brand-50")
             }
           >
             <i.ikon size={18} aria-hidden="true" />

@@ -67,7 +67,7 @@ export function PemindaiQr({ onKode }: { onKode: (kode: string) => void }) {
 
   return (
     <div>
-      <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl bg-navy-900 text-white">
+      <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl bg-brand-900 text-white">
         <video ref={video} muted playsInline aria-label="Tampilan kamera pemindai QR" className={aktif ? "absolute inset-0 h-full w-full object-cover" : "hidden"} />
         {!aktif && (
           <div className="flex flex-col items-center gap-3 px-6 text-center">
@@ -83,7 +83,7 @@ export function PemindaiQr({ onKode }: { onKode: (kode: string) => void }) {
           setAktif((a) => !a);
         }}
         aria-pressed={aktif}
-        className={`mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface text-sm font-bold text-ink hover:bg-blue-50 ${fokus}`}
+        className={`mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface text-sm font-bold text-ink hover:bg-brand-50 ${fokus}`}
       >
         {aktif ? <CameraOff size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}
         {aktif ? "Matikan kamera" : "Nyalakan kamera"}

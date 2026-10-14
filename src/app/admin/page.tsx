@@ -15,7 +15,7 @@ const ZONA = "Asia/Jakarta";
 const masuk = (iso: string) => new Date(iso).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: ZONA });
 const tanggalPanjang = (tgl: string) => new Date(`${tgl}T00:00:00+07:00`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: ZONA });
 
-const FOKUS = "focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100";
+const FOKUS = "focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 
 function Kartu({ titik, judul, nilai, ket, href }: { titik: string; judul: string; nilai: number; ket: string; href: string }) {
   return (
@@ -24,7 +24,7 @@ function Kartu({ titik, judul, nilai, ket, href }: { titik: string; judul: strin
         <span aria-hidden="true" className={`h-3 w-3 rounded-full ${titik}`} />
         {judul}
       </p>
-      <p className="mt-2 text-4xl font-extrabold tabular-nums text-navy-900" data-testid={`kartu-${judul.toLowerCase().replace(/\s+/g, "-")}`}>
+      <p className="mt-2 text-4xl font-extrabold tabular-nums text-brand-900" data-testid={`kartu-${judul.toLowerCase().replace(/\s+/g, "-")}`}>
         {nilai}
       </p>
       <p className="mt-1 text-sm text-ink-soft">{ket}</p>
@@ -40,11 +40,11 @@ function Tindakan({ ikon: Ikon, warna, judul, jumlah, href, nol }: { ikon: Lucid
       </span>
       <span className="min-w-0">
         <span className="block text-sm font-semibold text-ink-soft">{judul}</span>
-        <span className="block text-lg font-extrabold tabular-nums text-navy-900">{jumlah > 0 ? jumlah : nol}</span>
+        <span className="block text-lg font-extrabold tabular-nums text-brand-900">{jumlah > 0 ? jumlah : nol}</span>
       </span>
     </>
   );
-  const kelas = `flex items-center gap-3 rounded-xl border border-line bg-surface p-4 ${jumlah > 0 && href ? `hover:bg-blue-50 ${FOKUS}` : "opacity-75"}`;
+  const kelas = `flex items-center gap-3 rounded-xl border border-line bg-surface p-4 ${jumlah > 0 && href ? `hover:bg-brand-50 ${FOKUS}` : "opacity-75"}`;
   return jumlah > 0 && href ? (
     <Link href={href} className={kelas}>
       {isi}
@@ -58,7 +58,7 @@ function Panel({ id, judul, aksi, ket, children, kelas = "" }: { id: string; jud
   return (
     <section aria-labelledby={id} className={`rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6 ${kelas}`}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id={id} className="text-lg font-bold text-navy-900">
+        <h2 id={id} className="text-lg font-bold text-brand-900">
           {judul}
         </h2>
         {aksi ?? (ket && <span className="text-sm text-ink-soft">{ket}</span>)}
@@ -79,13 +79,13 @@ export default async function Dasbor() {
       <div className="mb-6 flex items-center gap-4">
         <IkonKotak ikon={LayoutDashboard} warna="blue" ukuran="lg" />
         <div>
-          <h1 className="text-2xl font-extrabold text-navy-900">Dasbor</h1>
+          <h1 className="text-2xl font-extrabold text-brand-900">Dasbor</h1>
           <p className="mt-0.5 text-sm text-ink-soft">Ringkasan layanan, {periode}.</p>
         </div>
       </div>
 
       <section aria-label="Ringkasan angka" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kartu titik="bg-blue-600" judul="Baru" nilai={k.baru} ket="Menunggu verifikasi" href="/admin/laporan" />
+        <Kartu titik="bg-brand-600" judul="Baru" nilai={k.baru} ket="Menunggu verifikasi" href="/admin/laporan" />
         <Kartu titik="bg-green-500" judul="Terverifikasi" nilai={k.terverifikasi} ket={periode} href="/admin/laporan" />
         <Kartu titik="bg-error" judul="Ditolak" nilai={k.ditolak} ket={periode} href="/admin/laporan" />
         <Kartu titik="bg-violet-500" judul="Total laporan" nilai={k.total} ket={periode} href="/admin/laporan" />
@@ -110,7 +110,7 @@ export default async function Dasbor() {
           <DonatLayanan data={r.donat} total={r.totalDonat} />
         </Panel>
 
-        <Panel id="h-terbaru" judul="Laporan terbaru" aksi={<Link href="/admin/laporan" className={`rounded font-bold text-blue-600 underline ${FOKUS}`}>Lihat semua laporan</Link>}>
+        <Panel id="h-terbaru" judul="Laporan terbaru" aksi={<Link href="/admin/laporan" className={`rounded font-bold text-brand-700 underline ${FOKUS}`}>Lihat semua laporan</Link>}>
           {r.terbaru.length === 0 ? (
             <p className="flex items-start gap-3 rounded-xl border border-dashed border-line-strong p-4 text-sm text-ink-soft">
               <Inbox size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
@@ -131,7 +131,7 @@ export default async function Dasbor() {
                 <tbody className="divide-y divide-line-soft">
                   {r.terbaru.map((l) => (
                     <tr key={l.id}>
-                      <td className="px-2 py-3 font-bold tabular-nums text-navy-900">
+                      <td className="px-2 py-3 font-bold tabular-nums text-brand-900">
                         <Link href={`/admin/laporan/${l.id}`} className={`rounded underline-offset-2 hover:underline ${FOKUS}`}>
                           {l.kode}
                         </Link>
@@ -160,7 +160,7 @@ export default async function Dasbor() {
             <ul className="-mx-1 flex max-h-[26rem] flex-col divide-y divide-line-soft overflow-y-auto">
               {r.jadwal.map((j, i) => (
                 <li key={`${j.nomorAntrean}-${i}`} className="flex gap-4 px-1 py-3">
-                  <p className="w-14 shrink-0 text-lg font-extrabold tabular-nums text-navy-900">
+                  <p className="w-14 shrink-0 text-lg font-extrabold tabular-nums text-brand-900">
                     {j.jam}
                     <span className="block text-xs font-medium text-ink-mute">WIB</span>
                   </p>

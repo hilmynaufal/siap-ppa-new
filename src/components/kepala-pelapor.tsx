@@ -23,7 +23,7 @@ export function KepalaPelapor({
           <Link
             href={kembaliHref}
             aria-label="Kembali ke beranda"
-            className="flex min-w-0 items-center gap-1 rounded-xl py-2 pr-2 text-navy-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+            className="flex min-w-0 items-center gap-1 rounded-xl py-2 pr-2 text-brand-900 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
           >
             <span className="grid h-11 w-11 place-items-center">
               <ArrowLeft size={22} aria-hidden="true" />
@@ -31,10 +31,10 @@ export function KepalaPelapor({
             <span className="truncate text-lg font-extrabold">{judul}</span>
           </Link>
         ) : (
-          <Link href="/" className="flex min-w-0 items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+          <Link href="/" className="flex min-w-0 items-center gap-3 rounded-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
             <LogoSiap />
             <span className="min-w-0">
-              <span className="block font-extrabold leading-tight text-navy-900">SIAP PPA</span>
+              <span className="block font-extrabold leading-tight text-brand-900">SIAP PPA</span>
               <span className="block truncate text-xs text-ink-mute">DALDUK PPA Kab. Bandung</span>
             </span>
           </Link>

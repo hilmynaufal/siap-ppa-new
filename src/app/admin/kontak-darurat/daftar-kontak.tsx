@@ -153,7 +153,7 @@ function ModalKontak({ kontak, kecamatan, onTutup }: { kontak: Kontak | null; ke
         </BidangForm>
         {ubahMode && (
           <label className="mb-1 flex min-h-11 items-center gap-3 text-sm font-semibold">
-            <input type="checkbox" name="aktif" defaultChecked={kontak.aktif} className="h-6 w-6 rounded-md accent-magenta-600" />
+            <input type="checkbox" name="aktif" defaultChecked={kontak.aktif} className="h-6 w-6 rounded-md accent-brand-600" />
             <span>
               Aktif
               <span className="block text-xs font-normal text-ink-mute">Tampil di halaman Pelapor.</span>
@@ -179,14 +179,14 @@ function ModalHapusKontak({ k, onTutup }: { k: Kontak; onTutup: () => void }) {
   useTutupDenganEsc(onTutup);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-navy-950/50 p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-brand-950/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="judul-hapus-kontak" className="w-full max-w-[520px] rounded-2xl bg-surface p-6 shadow-modal">
         <div className="flex items-start gap-4">
           <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-error-50 text-error">
             <TriangleAlert size={26} />
           </span>
           <div>
-            <h2 id="judul-hapus-kontak" className="text-lg font-bold text-navy-900">
+            <h2 id="judul-hapus-kontak" className="text-lg font-bold text-brand-900">
               Hapus &quot;{k.instansi}&quot;?
             </h2>
             <p className="mt-1 text-ink-soft">
@@ -250,7 +250,7 @@ export function DaftarKontak({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
         <div className="flex items-center gap-4">
           <IkonKotak ikon={ContactRound} warna="teal" ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">Kontak Darurat</h1>
+            <h1 className="text-2xl font-extrabold text-brand-900">Kontak Darurat</h1>
             <p className="mt-0.5 text-sm text-ink-soft">
               Kelola nomor UPTD PPA dan Satgas yang tampil di halaman Pelapor.
             </p>
@@ -300,7 +300,7 @@ export function DaftarKontak({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
       <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] text-left text-[15px] [&_td]:whitespace-nowrap">
-            <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+            <thead className="bg-brand-50 text-sm font-bold text-brand-900">
               <tr>
                 <th scope="col" className="px-5 py-4">No.</th>
                 <th scope="col" className="px-5 py-4">Nama instansi</th>
@@ -337,7 +337,7 @@ export function DaftarKontak({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-2">
-                      <button type="button" onClick={() => setForm({ kontak: k })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+                      <button type="button" onClick={() => setForm({ kontak: k })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
                         <Pencil size={16} aria-hidden="true" />
                         Ubah
                       </button>

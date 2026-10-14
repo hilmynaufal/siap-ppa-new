@@ -47,7 +47,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 md:px-8 md:py-8">
-      <Link href="/pendamping" className="mb-4 inline-flex min-h-11 items-center gap-2 rounded-xl text-sm font-bold text-blue-600 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+      <Link href="/pendamping" className="mb-4 inline-flex min-h-11 items-center gap-2 rounded-xl text-sm font-bold text-brand-700 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
         <ArrowLeft size={16} aria-hidden="true" />
         Kembali ke Kelola Pendampingan
       </Link>
@@ -56,7 +56,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
         <div className="flex items-center gap-4">
           <IkonKotak ikon={ShieldAlert} warna="coral" ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">
+            <h1 className="text-2xl font-extrabold text-brand-900">
               Kasus <span className="tabular-nums">{k.kode}</span>
             </h1>
             <p className="mt-0.5 text-sm text-ink-soft">
@@ -78,7 +78,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
       <div className="grid items-start gap-6 lg:grid-cols-[24rem_1fr]">
         <div className="flex flex-col gap-6">
           <section aria-labelledby="h-ringkasan" className="rounded-2xl border border-line bg-surface p-5 shadow-card">
-            <h2 id="h-ringkasan" className="mb-2 text-lg font-bold text-navy-900">
+            <h2 id="h-ringkasan" className="mb-2 text-lg font-bold text-brand-900">
               Ringkasan kasus
             </h2>
             <dl className="divide-y divide-line-soft">
@@ -95,7 +95,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
           </section>
 
           <section aria-labelledby="h-sesi" className="rounded-2xl border border-line bg-surface p-5 shadow-card">
-            <h2 id="h-sesi" className="mb-3 text-lg font-bold text-navy-900">
+            <h2 id="h-sesi" className="mb-3 text-lg font-bold text-brand-900">
               Sesi ini
             </h2>
             <dl className="flex flex-col gap-3 text-sm">
@@ -119,7 +119,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
               {s.nomorAntrean && (
                 <div>
                   <dt className="font-semibold text-ink-soft">Nomor antrean</dt>
-                  <dd className="flex items-center gap-2 font-bold tabular-nums text-navy-900">
+                  <dd className="flex items-center gap-2 font-bold tabular-nums text-brand-900">
                     <Ticket size={16} aria-hidden="true" />
                     {s.nomorAntrean}
                   </dd>
@@ -134,17 +134,17 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
           <section aria-labelledby="h-linimasa" className="rounded-2xl border border-line bg-surface p-5 shadow-card">
             <div className="mb-3 flex items-center gap-3">
               <IkonKotak ikon={CalendarClock} warna="teal" />
-              <h2 id="h-linimasa" className="text-lg font-bold text-navy-900">
+              <h2 id="h-linimasa" className="text-lg font-bold text-brand-900">
                 Riwayat sesi kasus ini ({s.linimasa.length})
               </h2>
             </div>
             <ol className="flex flex-col gap-3">
               {s.linimasa.map((x) => (
-                <li key={x.id} className={"rounded-xl border p-4 " + (x.saatIni ? "border-blue-600 bg-blue-50" : "border-line")} aria-current={x.saatIni ? "step" : undefined}>
+                <li key={x.id} className={"rounded-xl border p-4 " + (x.saatIni ? "border-brand-600 bg-brand-50" : "border-line")} aria-current={x.saatIni ? "step" : undefined}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-bold text-navy-900">
-                        Sesi {x.urutan} · {x.jenis} {x.saatIni && <span className="text-sm font-semibold text-blue-600">(sesi ini)</span>}
+                      <p className="font-bold text-brand-900">
+                        Sesi {x.urutan} · {x.jenis} {x.saatIni && <span className="text-sm font-semibold text-brand-700">(sesi ini)</span>}
                       </p>
                       <p className="text-sm text-ink-soft">
                         {tglPendek(x.mulai)}, {jam(x.mulai)} · {x.pendamping}
@@ -155,7 +155,7 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
                   </div>
                   {!x.saatIni && laporan[x.id] && (
                     <details className="mt-3">
-                      <summary className="inline-flex min-h-11 cursor-pointer items-center font-bold text-blue-600 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">Lihat laporan</summary>
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center font-bold text-brand-700 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">Lihat laporan</summary>
                       <div className="mt-3">
                         <TampilLaporan laporan={laporan[x.id]} />
                       </div>

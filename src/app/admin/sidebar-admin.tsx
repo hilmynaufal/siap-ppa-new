@@ -63,7 +63,7 @@ export function SidebarAdmin({ awalKolaps, jumlahBaru = 0 }: { awalKolaps: boole
           if (!e.currentTarget.contains(e.relatedTarget)) tutup();
         }}
         className={
-          "absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-navy-900 transition-[width,box-shadow] duration-200 ease-out motion-reduce:transition-none " +
+          "absolute inset-y-0 left-0 flex flex-col overflow-hidden bg-brand-900 transition-[width,box-shadow] duration-200 ease-out motion-reduce:transition-none " +
           (kolaps && sementara ? "shadow-modal" : "")
         }
         style={{ width: terbentang ? LEBAR_LEBAR : LEBAR_RAIL }}
@@ -79,7 +79,7 @@ export function SidebarAdmin({ awalKolaps, jumlahBaru = 0 }: { awalKolaps: boole
             aria-label={label}
             title={terbentang ? undefined : label}
             className={
-              "flex h-11 w-full items-center rounded-xl text-sm font-semibold text-blue-100 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100/60 " +
+              "flex h-11 w-full items-center rounded-xl text-sm font-semibold text-brand-100 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100/60 " +
               (terbentang ? "px-3" : "justify-center")
             }
           >

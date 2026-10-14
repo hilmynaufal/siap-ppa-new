@@ -16,10 +16,10 @@ export function Foto({ foto, ukuran = "h-24 w-24" }: { foto: LaporanView["foto"]
     <ul className="flex flex-wrap gap-3" aria-label="Foto pendukung">
       {foto.map((f) => (
         <li key={f.id} className="w-24">
-          <a href={`/foto-pendampingan/${f.id}`} target="_blank" rel="noopener noreferrer" className="block rounded-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100" aria-label={`Buka foto ${f.nama}`}>
+          <a href={`/foto-pendampingan/${f.id}`} target="_blank" rel="noopener noreferrer" className="block rounded-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100" aria-label={`Buka foto ${f.nama}`}>
             {/* Berkas dilayani lewat rute berotorisasi; tidak ada optimasi gambar Next yang perlu dipakai. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/foto-pendampingan/${f.id}`} alt={f.nama} loading="lazy" className={`${ukuran} rounded-xl border border-line bg-blue-50 object-cover`} />
+            <img src={`/foto-pendampingan/${f.id}`} alt={f.nama} loading="lazy" className={`${ukuran} rounded-xl border border-line bg-brand-50 object-cover`} />
           </a>
           <p className="mt-1 truncate text-xs text-ink-soft" title={f.nama}>
             {f.nama}
@@ -34,7 +34,7 @@ function Bagian({ label, children }: { label: string; children: React.ReactNode 
   return (
     <div>
       <h3 className="mb-1 text-sm font-bold text-ink-soft">{label}</h3>
-      <div className="rounded-xl bg-blue-50/60 px-4 py-3 text-ink">{children}</div>
+      <div className="rounded-xl bg-brand-50/60 px-4 py-3 text-ink">{children}</div>
     </div>
   );
 }

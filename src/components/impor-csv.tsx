@@ -73,7 +73,7 @@ export function ImporCsv({
             <a
               href={urlTemplat}
               download={namaTemplat}
-              className={`inline-flex min-h-11 items-center gap-2 self-start rounded-xl px-1 text-sm font-bold text-blue-600 hover:underline ${fokus}`}
+              className={`inline-flex min-h-11 items-center gap-2 self-start rounded-xl px-1 text-sm font-bold text-brand-700 hover:underline ${fokus}`}
             >
               <Download size={16} aria-hidden="true" />
               Unduh templat CSV
@@ -90,7 +90,7 @@ export function ImporCsv({
                 type="file"
                 accept=".csv,text/csv,text/plain"
                 onChange={(e) => setBerkas(e.target.files?.[0] ?? null)}
-                className={`block w-full rounded-xl border border-line-strong bg-surface p-2 text-sm file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:font-bold file:text-navy-800 ${fokus}`}
+                className={`block w-full rounded-xl border border-line-strong bg-surface p-2 text-sm file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:font-bold file:text-brand-800 ${fokus}`}
               />
               <div className="mt-2">
                 <Galat id="galat-impor" pesan={pesan} />

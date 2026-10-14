@@ -96,7 +96,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
     <>
       <div className="mb-6 flex items-center gap-4">
         <IkonKotak ikon={Ticket} warna="magenta" ukuran="lg" />
-        <h1 className="text-2xl font-extrabold text-navy-900">Antrean Hari Ini</h1>
+        <h1 className="text-2xl font-extrabold text-brand-900">Antrean Hari Ini</h1>
       </div>
 
       <section aria-label="Penyaring antrean" className="mb-6 grid gap-4 rounded-2xl border border-line bg-surface p-5 shadow-card md:grid-cols-3">
@@ -137,7 +137,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
       ) : (
         <div className="grid items-start gap-6 xl:grid-cols-[1fr_24rem]">
           <div className="flex flex-col gap-6">
-            <section aria-label="Nomor sedang dipanggil" className="flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-magenta-600 p-6 text-white shadow-card">
+            <section aria-label="Nomor sedang dipanggil" className="flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-brand-600 p-6 text-white shadow-card">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white/80">Sedang dipanggil</p>
                 <p className="mt-1 break-all text-3xl font-extrabold tabular-nums md:text-5xl" data-testid="sedang-dipanggil">
@@ -150,7 +150,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
                 )}
               </div>
               <div className="flex w-full flex-col gap-2 sm:w-56">
-                <button type="button" disabled={pending || !bisaPanggil} onClick={() => jalankan(() => ak.panggil(lokasiId, jenisId, tanggal))} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white font-bold text-navy-900 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60 ${fokus}`}>
+                <button type="button" disabled={pending || !bisaPanggil} onClick={() => jalankan(() => ak.panggil(lokasiId, jenisId, tanggal))} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white font-bold text-brand-900 transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 ${fokus}`}>
                   <Megaphone size={18} aria-hidden="true" />
                   Panggil berikutnya
                 </button>
@@ -173,7 +173,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
 
             <section aria-labelledby="h-daftar-antrean" className="rounded-2xl border border-line bg-surface shadow-card">
               <div className="flex items-center justify-between gap-3 border-b border-line-soft p-5">
-                <h2 id="h-daftar-antrean" className="text-lg font-bold text-navy-900">
+                <h2 id="h-daftar-antrean" className="text-lg font-bold text-brand-900">
                   Daftar antrean
                 </h2>
                 <p className="text-sm text-ink-soft">
@@ -185,7 +185,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[40rem] text-left">
-                    <thead className="bg-blue-50/60 text-sm font-bold text-ink-soft">
+                    <thead className="bg-brand-50/60 text-sm font-bold text-ink-soft">
                       <tr>
                         <th scope="col" className="px-5 py-3">No. antrean</th>
                         <th scope="col" className="px-3 py-3">Jadwal</th>
@@ -197,8 +197,8 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
                     </thead>
                     <tbody className="divide-y divide-line-soft">
                       {data.baris.map((b) => (
-                        <tr key={b.id} className={b.id === dipanggil?.id ? "bg-blue-50" : undefined}>
-                          <td className={"px-5 py-3 tabular-nums " + (b.id === dipanggil?.id ? "font-extrabold text-navy-900" : "")}>{b.nomorAntrean}</td>
+                        <tr key={b.id} className={b.id === dipanggil?.id ? "bg-brand-50" : undefined}>
+                          <td className={"px-5 py-3 tabular-nums " + (b.id === dipanggil?.id ? "font-extrabold text-brand-900" : "")}>{b.nomorAntrean}</td>
                           <td className="px-3 py-3 tabular-nums">{b.jadwal}</td>
                           <td className="px-3 py-3">{b.pendamping}</td>
                           <td className="px-3 py-3 tabular-nums text-ink-soft">{b.checkIn ?? "Belum check-in"}</td>
@@ -207,7 +207,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
                           </td>
                           <td className="px-3 py-3 text-right">
                             {b.bisaLewati && b.id !== dipanggil?.id && (
-                              <button type="button" disabled={pending} onClick={() => jalankan(() => ak.lewati(b.id))} aria-label={`Lewati ${b.nomorAntrean}`} className={`inline-flex h-10 items-center rounded-lg border border-line-strong px-3 text-sm font-bold text-ink hover:bg-blue-50 disabled:opacity-60 ${fokus}`}>
+                              <button type="button" disabled={pending} onClick={() => jalankan(() => ak.lewati(b.id))} aria-label={`Lewati ${b.nomorAntrean}`} className={`inline-flex h-10 items-center rounded-lg border border-line-strong px-3 text-sm font-bold text-ink hover:bg-brand-50 disabled:opacity-60 ${fokus}`}>
                                 Lewati
                               </button>
                             )}
@@ -222,7 +222,7 @@ export function PanelAntrean({ aksi: ak, basePath, kunciLokasi, kunciTanggal, op
           </div>
 
           <section aria-labelledby="h-checkin" className="rounded-2xl border border-line bg-surface p-5 shadow-card">
-            <h2 id="h-checkin" className="mb-4 text-lg font-bold text-navy-900">
+            <h2 id="h-checkin" className="mb-4 text-lg font-bold text-brand-900">
               Check-in
             </h2>
             <PemindaiQr onKode={checkIn} />

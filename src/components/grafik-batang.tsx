@@ -44,8 +44,8 @@ export function GrafikBatang({ data }: { data: TitikGrafik[] }) {
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Grafik batang laporan per status, ${data.length} bulan terakhir`} className="block">
         {garis.map((n) => (
           <g key={n}>
-            <line x1={KIRI} x2={W - 8} y1={y(n)} y2={y(n)} stroke="#E8EEFB" strokeWidth="1" />
-            <text x={KIRI - 8} y={y(n) + 4} textAnchor="end" fontSize="11" fill="#5B6682">
+            <line x1={KIRI} x2={W - 8} y1={y(n)} y2={y(n)} stroke="#E6F0E9" strokeWidth="1" />
+            <text x={KIRI - 8} y={y(n) + 4} textAnchor="end" fontSize="11" fill="#566A5D">
               {n}
             </text>
           </g>
@@ -63,14 +63,14 @@ export function GrafikBatang({ data }: { data: TitikGrafik[] }) {
                       <title>{`${d.label}: ${s.label} ${n}`}</title>
                     </rect>
                     {n > 0 && (
-                      <text x={x + lebarBatang / 2} y={y(n) - 4} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1B2540">
+                      <text x={x + lebarBatang / 2} y={y(n) - 4} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1A2B22">
                         {n}
                       </text>
                     )}
                   </g>
                 );
               })}
-              <text x={KIRI + i * lebarGrup + lebarGrup / 2} y={H - 12} textAnchor="middle" fontSize="12" fontWeight={i === data.length - 1 ? 700 : 500} fill="#1B2540">
+              <text x={KIRI + i * lebarGrup + lebarGrup / 2} y={H - 12} textAnchor="middle" fontSize="12" fontWeight={i === data.length - 1 ? 700 : 500} fill="#1A2B22">
                 {d.label}
               </text>
             </g>

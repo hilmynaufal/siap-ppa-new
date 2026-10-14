@@ -33,7 +33,7 @@ export function LayarAntrean({ lokasiId, jenisId, awal }: { lokasiId: string; je
   }, [lokasiId, jenisId]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-navy-900 text-white" aria-live="polite">
+    <main className="flex min-h-screen flex-col bg-brand-900 text-white" aria-live="polite">
       <header className="flex items-center justify-between gap-6 border-b border-white/10 px-[4vw] py-[2vh]">
         <div>
           <h1 className="text-[3.2vw] font-extrabold leading-tight">{data.jenis}</h1>
@@ -51,7 +51,7 @@ export function LayarAntrean({ lokasiId, jenisId, awal }: { lokasiId: string; je
           {data.dipanggil ? (
             <>
               <p className="flex items-baseline gap-[2vw] font-extrabold leading-none" data-testid="nomor-dipanggil">
-                <span className="text-[9vw] text-blue-100">{data.dipanggil.awalan}</span>
+                <span className="text-[9vw] text-brand-100">{data.dipanggil.awalan}</span>
                 <span className="text-[19vw] tabular-nums">{data.dipanggil.urutan}</span>
               </p>
               <p className="mt-[2vh] text-[2.6vw] font-bold">Silakan menuju meja petugas</p>
@@ -67,7 +67,7 @@ export function LayarAntrean({ lokasiId, jenisId, awal }: { lokasiId: string; je
           <ul className="flex flex-col gap-[2.4vh]">
             {data.berikutnya.map((b) => (
               <li key={b.nomor} className="flex items-baseline gap-[1.6vw] rounded-2xl bg-white/5 px-[2vw] py-[2vh] font-extrabold" data-testid="nomor-berikutnya">
-                <span className="text-[3vw] text-blue-100">{b.awalan}</span>
+                <span className="text-[3vw] text-brand-100">{b.awalan}</span>
                 <span className="text-[6vw] tabular-nums leading-none">{b.urutan}</span>
               </li>
             ))}
@@ -76,7 +76,7 @@ export function LayarAntrean({ lokasiId, jenisId, awal }: { lokasiId: string; je
         </section>
       </div>
 
-      <footer className="bg-magenta-600 px-[4vw] py-[3vh] text-[2.4vw] font-bold">Tunjukkan QR tiket kepada petugas saat nomor Anda dipanggil.</footer>
+      <footer className="bg-brand-600 px-[4vw] py-[3vh] text-[2.4vw] font-bold">Tunjukkan QR tiket kepada petugas saat nomor Anda dipanggil.</footer>
     </main>
   );
 }

@@ -2,25 +2,25 @@
 
 /*
  * Token desain SIAP PPA New (lihat DESIGN.md). Tema terang saja; tidak ada mode gelap.
- * Netral bernuansa biru, tanpa hitam atau putih murni.
+ * Palet hijau diturunkan dari logo UPTD PPA (#048842, #60ae2d, kuning #f2b218).
+ * Netral bernuansa hijau, tanpa hitam atau putih murni.
  */
 @theme {
   --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
 
-  /* Identitas */
-  --color-navy-950: #0a1b44;
-  --color-navy-900: #0f2a63;
-  --color-navy-800: #17387f;
-  --color-navy-700: #214a9e;
-  --color-blue-600: #2f6fed;
-  --color-blue-100: #dbe7ff;
-  --color-blue-50: #eaf1ff;
+  /* Identitas: hijau logo. 600 = hijau tua logo, aksi utama dan fokus (teks putih di atasnya 4,6:1). */
+  --color-brand-950: #062f1a;
+  --color-brand-900: #0b3d22;
+  --color-brand-800: #0f5a32;
+  --color-brand-700: #046b35;
+  --color-brand-600: #048842;
+  --color-brand-100: #d6efdc;
+  --color-brand-50: #ecf7ee;
 
-  /* Aksi utama */
-  --color-magenta-600: #d6247c;
-  --color-magenta-700: #b81b68;
-  --color-magenta-100: #ffd6ea;
-  --color-magenta-50: #ffeaf4;
+  /* Hijau muda logo (grafik, hiasan; bukan untuk teks putih) dan kuning hangat sebagai penyorot */
+  --color-leaf-500: #60ae2d;
+  --color-sun-400: #f2b218;
+  --color-sun-50: #fff3d1;
 
   /* Darurat: hanya untuk tombol kontak darurat */
   --color-emergency: #c8102e;
@@ -35,15 +35,15 @@
   --color-sky-500: #1e9be0;
   --color-coral-500: #f26a4b;
 
-  /* Netral bernuansa biru */
-  --color-ink: #1b2540;
-  --color-ink-soft: #46506b;
-  --color-ink-mute: #5b6682;
-  --color-canvas: #f2f6ff;
-  --color-surface: #fbfcff;
-  --color-line: #d9e2f5;
-  --color-line-soft: #e8eefb;
-  --color-line-strong: #bccae6;
+  /* Netral bernuansa hijau */
+  --color-ink: #1a2b22;
+  --color-ink-soft: #455a4d;
+  --color-ink-mute: #566a5d;
+  --color-canvas: #f1f7f2;
+  --color-surface: #fbfdfb;
+  --color-line: #d8e6dc;
+  --color-line-soft: #e6f0e9;
+  --color-line-strong: #b9d0c0;
 
   /* Status */
   --color-success: #1e7a46;
@@ -60,8 +60,8 @@
   --radius-card: 1rem;
   --radius-tile: 0.625rem;
 
-  --shadow-card: 0 1px 2px rgb(27 37 64 / 0.06), 0 8px 24px rgb(27 37 64 / 0.06);
-  --shadow-modal: 0 24px 64px rgb(27 37 64 / 0.3);
+  --shadow-card: 0 1px 2px rgb(26 43 34 / 0.06), 0 8px 24px rgb(26 43 34 / 0.06);
+  --shadow-modal: 0 24px 64px rgb(26 43 34 / 0.3);
 }
 
 :root {
@@ -126,7 +126,7 @@ body {
 
 @layer utilities {
   .hero-lembut {
-    background: linear-gradient(135deg, var(--color-blue-100) 0%, var(--color-magenta-50) 100%);
+    background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-sun-50) 100%);
   }
 }
 
@@ -141,7 +141,7 @@ body {
     animation: napas 2.4s ease-in-out infinite;
   }
   .hero-senja {
-    background: linear-gradient(180deg, var(--color-blue-100) 0%, var(--color-blue-50) 55%, var(--color-magenta-50) 100%);
+    background: linear-gradient(180deg, var(--color-brand-100) 0%, var(--color-brand-50) 55%, var(--color-sun-50) 100%);
   }
 }
 @keyframes napas {

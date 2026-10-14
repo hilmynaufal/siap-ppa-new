@@ -14,7 +14,7 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-canvas">
       <KepalaArea nama={pengguna.nama} peran="Admin" />
-      <details className="sticky top-[4.5rem] z-20 bg-navy-900 md:hidden">
+      <details className="sticky top-[4.5rem] z-20 bg-brand-900 md:hidden">
         <summary className="flex h-12 cursor-pointer list-none items-center gap-2 px-4 font-bold text-surface">
           <Menu size={20} aria-hidden="true" />
           Menu

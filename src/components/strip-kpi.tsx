@@ -26,7 +26,7 @@ export function StripKpi({ judul, item }: { judul: string; item: ItemKpi[] }) {
         <div key={k.label} className="flex items-start justify-between gap-4 bg-surface p-5">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-soft">{k.label}</p>
-            <p className="mt-0.5 text-3xl font-extrabold leading-tight text-navy-900 tabular-nums">{k.nilai}</p>
+            <p className="mt-0.5 text-3xl font-extrabold leading-tight text-brand-900 tabular-nums">{k.nilai}</p>
             <div className="mt-1 text-sm text-ink-mute">{k.keterangan}</div>
           </div>
           <IkonKotak ikon={k.ikon} warna={k.warna} ukuran="md" />

@@ -41,7 +41,7 @@ function ModalReferensi({ r, judul, tambah, ubah, onTutup }: { r: Baris | null; 
         </BidangForm>
         {ubahMode && (
           <label className="mb-4 flex min-h-11 items-center gap-3 text-sm font-bold">
-            <input type="checkbox" name="aktif" defaultChecked={r.aktif} className="h-5 w-5 accent-blue-600" />
+            <input type="checkbox" name="aktif" defaultChecked={r.aktif} className="h-5 w-5 accent-brand-600" />
             Aktif (tampil di formulir)
           </label>
         )}
@@ -105,7 +105,7 @@ export function DaftarReferensi({
       ]}
       aksi={(r) => (
         <>
-          <button type="button" onClick={() => setForm({ r })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+          <button type="button" onClick={() => setForm({ r })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
             <Pencil size={16} aria-hidden="true" />
             Ubah
           </button>

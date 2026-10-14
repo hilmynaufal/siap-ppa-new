@@ -45,12 +45,12 @@ export function UsulanSesi({ laporanId, kode, usulan, opsi, bisaMemutuskan }: { 
   return (
     <section aria-labelledby="h-usulan" className="mb-6 rounded-2xl border border-line bg-surface p-5 shadow-card">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 id="h-usulan" className="flex items-center gap-2 text-lg font-bold text-navy-900">
-          <CalendarPlus size={20} aria-hidden="true" className="text-navy-700" />
+        <h2 id="h-usulan" className="flex items-center gap-2 text-lg font-bold text-brand-900">
+          <CalendarPlus size={20} aria-hidden="true" className="text-brand-700" />
           Usulan sesi lanjutan
         </h2>
         {menunggu.length > 0 && (
-          <span className="grid h-7 min-w-7 place-items-center rounded-full bg-navy-700 px-2 text-sm font-bold text-white" aria-label={`${menunggu.length} usulan menunggu`}>
+          <span className="grid h-7 min-w-7 place-items-center rounded-full bg-brand-700 px-2 text-sm font-bold text-white" aria-label={`${menunggu.length} usulan menunggu`}>
             {menunggu.length}
           </span>
         )}
@@ -73,7 +73,7 @@ export function UsulanSesi({ laporanId, kode, usulan, opsi, bisaMemutuskan }: { 
             <p className="mb-2 text-sm text-ink-soft">
               Dari {u.dari} · Sesi {u.urutanSesi} · {tgl(u.tanggal)}
             </p>
-            <p className="mb-3 whitespace-pre-wrap break-words rounded-xl bg-blue-50/60 px-4 py-3 text-ink">{u.rekomendasi}</p>
+            <p className="mb-3 whitespace-pre-wrap break-words rounded-xl bg-brand-50/60 px-4 py-3 text-ink">{u.rekomendasi}</p>
             {bisaMemutuskan ? (
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => setSetuju(u)} className={`${tombolUtama} !h-11 !px-4 text-sm`}>

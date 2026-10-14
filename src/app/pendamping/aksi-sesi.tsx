@@ -37,7 +37,7 @@ export function AksiSesi({ id, status, bisaMulai, kecil, kode }: Props) {
               disabled={pending || !bisaMulai}
               title={bisaMulai ? undefined : "Sesi baru dapat dimulai pada hari pelaksanaan"}
               onClick={() => kirim("BERLANGSUNG")}
-              className={`inline-flex ${tinggi(kecil)} items-center justify-center gap-2 rounded-xl bg-magenta-600 font-bold text-white shadow-card transition-colors hover:bg-magenta-700 disabled:cursor-not-allowed disabled:bg-line-strong disabled:shadow-none ${fokus}`}
+              className={`inline-flex ${tinggi(kecil)} items-center justify-center gap-2 rounded-xl bg-brand-600 font-bold text-white shadow-card transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-line-strong disabled:shadow-none ${fokus}`}
             >
               <Play size={16} aria-hidden="true" />
               Mulai sesi
@@ -47,7 +47,7 @@ export function AksiSesi({ id, status, bisaMulai, kecil, kode }: Props) {
               disabled={pending || !bisaMulai}
               title={bisaMulai ? undefined : "Dapat ditandai pada hari pelaksanaan"}
               onClick={() => setKonfirmasi(true)}
-              className={`inline-flex ${tinggi(kecil)} items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-line-strong ${fokus}`}
+              className={`inline-flex ${tinggi(kecil)} items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface font-bold text-ink transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:text-line-strong ${fokus}`}
             >
               <UserX size={16} aria-hidden="true" />
               Tandai tidak hadir

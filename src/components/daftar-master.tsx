@@ -78,7 +78,7 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
         <div className="flex items-center gap-4">
           <IkonKotak ikon={ikon} warna={warna} ukuran="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold text-navy-900">{judul}</h1>
+            <h1 className="text-2xl font-extrabold text-brand-900">{judul}</h1>
             <p className="mt-0.5 text-sm text-ink-soft">{deskripsi}</p>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function DaftarMaster<T extends { id: string; aktif: boolean }>({
       <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[15px] [&_td]:whitespace-nowrap" style={{ minWidth: lebarMin }}>
-            <thead className="bg-blue-50 text-sm font-bold text-navy-900">
+            <thead className="bg-brand-50 text-sm font-bold text-brand-900">
               <tr>
                 <th scope="col" className="px-5 py-4">No.</th>
                 {kolom.map((k) => (

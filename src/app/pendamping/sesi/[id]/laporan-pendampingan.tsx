@@ -37,7 +37,7 @@ function Kolom({ id, label, wajib = true, galat, children }: { id: string; label
   );
 }
 
-const areaTeks = "w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error aria-[invalid=true]:bg-error-50/40";
+const areaTeks = "w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:bg-error-50/40";
 
 function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal }: Omit<Props, "statusSesi"> & { onBatal?: () => void }) {
   const revisi = laporan !== null;
@@ -144,8 +144,8 @@ function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal 
         <textarea id="rekomendasi" rows={4} maxLength={2000} {...isi("rekomendasi")} className={areaTeks} {...attr("rekomendasi")} />
       </Kolom>
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-4 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-100">
-        <input type="checkbox" checked={ajukan} disabled={usulanTerkunci} onChange={(e) => setAjukan(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-blue-600" />
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-4 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100">
+        <input type="checkbox" checked={ajukan} disabled={usulanTerkunci} onChange={(e) => setAjukan(e.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 rounded-md accent-brand-600" />
         <span>
           <span className="block font-bold text-ink">Ajukan sebagai usulan sesi lanjutan</span>
           <span className="block text-sm text-ink-soft">
@@ -173,9 +173,9 @@ function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal 
               type="button"
               disabled={total >= MAKS_FOTO}
               onClick={() => berkas.current?.click()}
-              className={`flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-600/40 bg-blue-50/50 p-2 text-center text-sm font-bold text-navy-800 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 ${fokus}`}
+              className={`flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-600/40 bg-brand-50/50 p-2 text-center text-sm font-bold text-brand-800 transition-colors hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 ${fokus}`}
             >
-              <ImagePlus size={24} aria-hidden="true" className="text-blue-600" />
+              <ImagePlus size={24} aria-hidden="true" className="text-brand-700" />
               Tambah foto
             </button>
           </li>
@@ -183,7 +183,7 @@ function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal 
             const dibuang = hapus.includes(f.id);
             return (
               <li key={f.id} className="min-w-0">
-                <div className={"relative aspect-square overflow-hidden rounded-xl border border-line bg-blue-50 " + (dibuang ? "opacity-40" : "")}>
+                <div className={"relative aspect-square overflow-hidden rounded-xl border border-line bg-brand-50 " + (dibuang ? "opacity-40" : "")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/foto-pendampingan/${f.id}`} alt={f.nama} className="h-full w-full object-cover" />
                 </div>
@@ -195,7 +195,7 @@ function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal 
                     type="button"
                     onClick={() => setHapus((x) => (dibuang ? x.filter((i) => i !== f.id) : [...x, f.id]))}
                     aria-label={`${dibuang ? "Batalkan penghapusan" : "Hapus"} foto ${f.nama}`}
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-blue-50 ${fokus}`}
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-brand-50 ${fokus}`}
                   >
                     {dibuang ? <Undo2 size={16} aria-hidden="true" /> : <Trash2 size={16} aria-hidden="true" />}
                   </button>
@@ -205,14 +205,14 @@ function FormLaporan({ sesiId, urutan, opsiJenis, jenisAwalId, laporan, onBatal 
           })}
           {baru.map((b, i) => (
             <li key={`${b.file.name}-${i}`} className="min-w-0">
-              <div className={"grid aspect-square place-items-center rounded-xl border-2 " + (b.galat ? "border-error bg-error-50/40 text-error" : "border-line bg-blue-50 text-blue-600")}>
+              <div className={"grid aspect-square place-items-center rounded-xl border-2 " + (b.galat ? "border-error bg-error-50/40 text-error" : "border-line bg-brand-50 text-brand-700")}>
                 {b.galat ? <AlertCircle size={28} aria-hidden="true" /> : <IkonGambar size={28} aria-hidden="true" />}
               </div>
               <div className="mt-1 flex items-center justify-between gap-1">
                 <span className="min-w-0 truncate text-xs font-semibold text-ink" title={b.file.name}>
                   {b.file.name}
                 </span>
-                <button type="button" onClick={() => setBaru((x) => x.filter((it) => it !== b))} aria-label={`${b.galat ? "Singkirkan" : "Hapus"} ${b.file.name}`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-blue-50 ${fokus}`}>
+                <button type="button" onClick={() => setBaru((x) => x.filter((it) => it !== b))} aria-label={`${b.galat ? "Singkirkan" : "Hapus"} ${b.file.name}`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-brand-50 ${fokus}`}>
                   {b.galat ? <X size={16} aria-hidden="true" /> : <Trash2 size={16} aria-hidden="true" />}
                 </button>
               </div>
@@ -289,12 +289,12 @@ export function PanelLaporanPendampingan(props: Props) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IkonKotak ikon={ClipboardList} warna="blue" />
-          <h2 id="h-laporan" className="text-lg font-bold text-navy-900">
+          <h2 id="h-laporan" className="text-lg font-bold text-brand-900">
             Laporan pendampingan · Sesi {urutan}
           </h2>
         </div>
         {laporan && !sedangRevisi && (
-          <button type="button" onClick={() => setRevisiUntuk(laporan.versi)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-600 bg-surface px-4 text-sm font-bold text-navy-800 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+          <button type="button" onClick={() => setRevisiUntuk(laporan.versi)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-600 bg-surface px-4 text-sm font-bold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
             <Pencil size={16} aria-hidden="true" />
             Ajukan revisi
           </button>
@@ -307,8 +307,8 @@ export function PanelLaporanPendampingan(props: Props) {
           <FormLaporan key={`revisi-${laporan.versi}`} {...props} onBatal={() => setRevisiUntuk(null)} />
         ) : (
           <>
-            <p className="mb-4 flex items-start gap-3 rounded-xl bg-blue-50 p-4 text-sm text-ink">
-              <Lock size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-navy-700" />
+            <p className="mb-4 flex items-start gap-3 rounded-xl bg-brand-50 p-4 text-sm text-ink">
+              <Lock size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-brand-700" />
               <span>
                 <strong>Laporan terkunci (baca saja).</strong> Ajukan revisi bila ada yang perlu diubah.
               </span>
@@ -319,7 +319,7 @@ export function PanelLaporanPendampingan(props: Props) {
       ) : bisaLapor ? (
         <FormLaporan {...props} />
       ) : (
-        <p className="flex items-start gap-3 rounded-xl bg-blue-50 p-4 text-ink-soft" data-testid="laporan-belum-bisa">
+        <p className="flex items-start gap-3 rounded-xl bg-brand-50 p-4 text-ink-soft" data-testid="laporan-belum-bisa">
           <Info size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
           {statusSesi === "TERJADWAL" ? "Laporan dapat diisi setelah sesi dimulai." : "Sesi ini tidak berlangsung, jadi tidak ada laporan yang perlu diisi."}
         </p>

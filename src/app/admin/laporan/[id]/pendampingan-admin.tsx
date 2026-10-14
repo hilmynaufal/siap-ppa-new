@@ -147,7 +147,7 @@ function ModalBatal({ laporanId, s, onTutup }: { laporanId: string; s: SesiAdmin
           maxLength={300}
           defaultValue={state?.alasan ?? ""}
           aria-invalid={state?.pesan ? true : undefined}
-          className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100 aria-[invalid=true]:border-error"
+          className="w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-base text-ink focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error"
         />
         <div className="mt-2">
           <Galat id="galat-batal" pesan={state?.pesan} />
@@ -177,12 +177,12 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <IkonKotak ikon={CalendarClock} warna="teal" />
-          <h2 id="h-sesi-admin" className="text-lg font-bold text-navy-900">
+          <h2 id="h-sesi-admin" className="text-lg font-bold text-brand-900">
             Sesi pendampingan ({sesi.length})
           </h2>
         </div>
         {bisaTambah && lengkap && (
-          <button type="button" onClick={() => setTambah(true)} className={`${tombolKecil} border-blue-600 bg-surface text-navy-800 hover:bg-blue-50`}>
+          <button type="button" onClick={() => setTambah(true)} className={`${tombolKecil} border-brand-600 bg-surface text-brand-800 hover:bg-brand-50`}>
             <Plus size={16} aria-hidden="true" />
             Tambah sesi
           </button>
@@ -195,10 +195,10 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
           {sesi.map((x) => (
             <li key={x.id} className="rounded-xl border border-line p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-navy-900">
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-brand-900">
                   Sesi {x.urutan} · {x.jenis}
                   {x.nomorAntrean && (
-                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-sm tabular-nums text-navy-800">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1 text-sm tabular-nums text-brand-800">
                       <Ticket size={14} aria-hidden="true" />
                       {x.nomorAntrean}
                     </span>
@@ -224,7 +224,7 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
               </div>
               {x.laporan ? (
                 <details className="mt-2 border-t border-line-soft pt-2">
-                  <summary className="inline-flex min-h-11 cursor-pointer items-center font-bold text-blue-600 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">Lihat laporan</summary>
+                  <summary className="inline-flex min-h-11 cursor-pointer items-center font-bold text-brand-700 underline focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">Lihat laporan</summary>
                   <div className="mt-3">
                     <TampilLaporan laporan={x.laporan} />
                   </div>

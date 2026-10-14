@@ -20,7 +20,7 @@ export default async function BerandaPendamping() {
       <div className="mb-6 flex items-center gap-4">
         <IkonKotak ikon={ClipboardList} warna="teal" ukuran="lg" />
         <div>
-          <h1 className="text-2xl font-extrabold text-navy-900">Kelola Pendampingan</h1>
+          <h1 className="text-2xl font-extrabold text-brand-900">Kelola Pendampingan</h1>
           <p className="mt-0.5 text-sm text-ink-soft">Sesi yang ditugaskan Admin kepada Anda.</p>
         </div>
       </div>
@@ -30,16 +30,16 @@ export default async function BerandaPendamping() {
       {notif.length > 0 && (
         <section aria-labelledby="h-notif" className="mt-8">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 id="h-notif" className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <BellRing size={20} aria-hidden="true" className="text-magenta-600" />
+            <h2 id="h-notif" className="flex items-center gap-2 text-lg font-bold text-brand-900">
+              <BellRing size={20} aria-hidden="true" className="text-brand-700" />
               Pemberitahuan
               {belumDibaca > 0 && (
-                <span className="rounded-lg bg-magenta-600 px-2 py-0.5 text-xs font-bold text-white">{belumDibaca} baru</span>
+                <span className="rounded-lg bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">{belumDibaca} baru</span>
               )}
             </h2>
             {belumDibaca > 0 && (
               <form action={tandaiSemuaDibaca}>
-                <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-blue-600 hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100">
+                <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-brand-700 hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
                   <CheckCheck size={16} aria-hidden="true" />
                   Tandai sudah dibaca
                 </button>
@@ -48,7 +48,7 @@ export default async function BerandaPendamping() {
           </div>
           <ul className="flex flex-col gap-2">
             {notif.map((n) => (
-              <li key={n.id} className={"rounded-xl border p-4 " + (n.dibaca ? "border-line bg-surface" : "border-magenta-100 bg-magenta-100/10")}>
+              <li key={n.id} className={"rounded-xl border p-4 " + (n.dibaca ? "border-line bg-surface" : "border-brand-100 bg-brand-100/10")}>
                 <p className="break-words text-ink">{n.pesan}</p>
                 <p className="mt-1 text-xs text-ink-mute">
                   {new Date(n.pada).toLocaleString("id-ID", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB

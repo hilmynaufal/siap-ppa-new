@@ -38,7 +38,7 @@ function ModalJenis({ j, onTutup }: { j: Jenis | null; onTutup: () => void }) {
         </BidangForm>
         {ubahMode && (
           <label className="mb-4 flex min-h-11 items-center gap-3 text-sm font-bold">
-            <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-5 w-5 accent-blue-600" />
+            <input type="checkbox" name="aktif" defaultChecked={j.aktif} className="h-5 w-5 accent-brand-600" />
             Aktif (tampil di pilihan jadwal)
           </label>
         )}
@@ -72,7 +72,7 @@ export function DaftarJenisPendampingan({ data }: { data: Jenis[] }) {
       placeholderCari="Cari kode atau nama..."
       kosong={'Belum ada jenis pendampingan. Pilih "Tambah jenis" untuk memulai.'}
       kolom={[
-        { judul: "Kode", sel: (r) => <span className="font-bold tabular-nums text-navy-900">{r.kode}</span> },
+        { judul: "Kode", sel: (r) => <span className="font-bold tabular-nums text-brand-900">{r.kode}</span> },
         { judul: "Nama", sel: (r) => <span className="font-semibold text-ink">{r.nama}</span> },
         { judul: "Pendamping", sel: (r) => <span className="tabular-nums text-ink-soft">{r.jumlahPendamping}</span> },
         { judul: "Sesi", sel: (r) => <span className="tabular-nums text-ink-soft">{r.jumlahSesi}</span> },
@@ -80,7 +80,7 @@ export function DaftarJenisPendampingan({ data }: { data: Jenis[] }) {
       ]}
       aksi={(r) => (
         <>
-          <button type="button" onClick={() => setForm({ j: r })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+          <button type="button" onClick={() => setForm({ j: r })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
             <Pencil size={16} aria-hidden="true" />
             Ubah
           </button>

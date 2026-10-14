@@ -28,14 +28,14 @@ export function BilahCari({
         onChange={(e) => onUbah(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-ink placeholder:text-ink-mute focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"}
+        className={(besar ? "h-12 text-base " : "h-10 text-sm ") + "w-full rounded-xl border border-line-strong bg-surface pl-10 pr-10 text-ink placeholder:text-ink-mute focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100"}
       />
       {nilai && (
         <button
           type="button"
           onClick={() => onUbah("")}
           aria-label="Hapus pencarian"
-          className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-ink-soft transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-100"
+          className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-ink-soft transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
         >
           <X size={16} aria-hidden="true" />
         </button>

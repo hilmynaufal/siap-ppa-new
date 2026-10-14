@@ -105,7 +105,7 @@ export function DaftarDesa({ data, kecamatan }: { data: Desa[]; kecamatan: Opsi[
       ]}
       aksi={(r) => (
         <>
-          <button type="button" onClick={() => setForm({ d: r })} className={`${tombolKecil} border-blue-100 bg-blue-50 text-navy-700 hover:bg-blue-100`}>
+          <button type="button" onClick={() => setForm({ d: r })} className={`${tombolKecil} border-brand-100 bg-brand-50 text-brand-700 hover:bg-brand-100`}>
             <Pencil size={16} aria-hidden="true" />
             Ubah
           </button>
