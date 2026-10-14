@@ -1,7 +1,7 @@
 import { CalendarCheck, HeartHandshake, QrCode, Ticket } from "lucide-react";
 import { redirect } from "next/navigation";
 import { IkonKotak } from "@/components/ikon-kotak";
-import { LogoSiap } from "@/components/logo-siap";
+import { LogoSiapLengkap } from "@/components/logo-siap";
 import { berandaUntuk } from "@/lib/akses";
 import { penggunaSaatIni } from "@/lib/auth";
 import { FormMasuk } from "./form-masuk";
@@ -22,10 +22,7 @@ export default async function HalamanMasuk() {
   return (
     <main className="grid min-h-screen md:grid-cols-2">
       <section className="hero-lembut flex flex-col justify-center gap-6 px-6 py-10 md:px-14">
-        <div className="flex items-center gap-3">
-          <LogoSiap />
-          <span className="text-lg font-extrabold text-navy-900">SIAP PPA</span>
-        </div>
+        <LogoSiapLengkap lebar={200} />
         <div>
           <h1 className="text-3xl font-extrabold leading-tight text-navy-900 md:text-4xl">
             Satu akses layanan, perlindungan lebih baik

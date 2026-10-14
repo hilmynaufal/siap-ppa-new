@@ -2,7 +2,7 @@ import { CalendarCheck, FilePenLine, Lock, Phone, QrCode as IkonQr, ScanLine } f
 import type { Metadata } from "next";
 import QRCode from "qrcode";
 import { IkonKotak } from "@/components/ikon-kotak";
-import { LogoSiap } from "@/components/logo-siap";
+import { LogoSiapLengkap } from "@/components/logo-siap";
 import { SiluetHero } from "@/components/siluet-hero";
 import { TombolCetak } from "@/components/tombol-cetak";
 import { db } from "@/lib/db";
@@ -39,12 +39,9 @@ export default async function Pamflet() {
       <article className="relative mx-auto flex h-[297mm] w-[210mm] flex-col overflow-hidden bg-surface shadow-modal print:shadow-none">
         {/* Bagian atas */}
         <div className="hero-senja relative flex flex-1 flex-col px-[14mm] pt-[12mm]">
-          <header className="relative z-10 flex items-center gap-3">
-            <LogoSiap ukuran={44} />
-            <div>
-              <p className="text-[15pt] font-extrabold leading-tight text-navy-900">SIAP PPA</p>
-              <p className="text-[9pt] text-ink-soft">DALDUK PPA Kabupaten Bandung</p>
-            </div>
+          <header className="relative z-10 flex flex-col items-start gap-1">
+            <LogoSiapLengkap lebar={170} />
+            <p className="text-[9pt] text-ink-soft">DALDUK PPA Kabupaten Bandung</p>
           </header>
 
           <div className="relative z-10 mt-[10mm]">
