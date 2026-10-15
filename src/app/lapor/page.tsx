@@ -12,13 +12,14 @@ export const metadata = { title: "Buat Laporan | SIAP PPA" };
 export const dynamic = "force-dynamic";
 
 export default async function HalamanLapor() {
-  const [jenis, kecamatan, kontak, desa, hubungan, pekerjaan] = await Promise.all([
+  const [jenis, kecamatan, kontak, desa, hubungan, pekerjaan, pendampingan] = await Promise.all([
     db.jenisKekerasan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     db.kecamatan.findMany({ orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     kontakDaruratAktif(db, 1),
     pilihanDesa(db),
     pilihanReferensi(db, "hubungan"),
     pilihanReferensi(db, "pekerjaan"),
+    db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
   ]);
 
   return (
@@ -36,7 +37,7 @@ export default async function HalamanLapor() {
             </div>
           </div>
         ) : (
-          <FormLaporan jenis={jenis} kecamatan={kecamatan} desa={desa} hubungan={hubungan} pekerjaan={pekerjaan} />
+          <FormLaporan jenis={jenis} kecamatan={kecamatan} desa={desa} hubungan={hubungan} pekerjaan={pekerjaan} pendampingan={pendampingan} />
         )}
       </main>
     </div>

@@ -49,6 +49,7 @@ export const KOLOM_EKSPOR = [
   "Desa/kelurahan korban",
   "Terlapor",
   "Kronologi",
+  "Pendampingan diminta",
   "Dokumen terlampir",
   "Dokumen wajib belum ada",
   "Alasan penolakan",
@@ -93,6 +94,7 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
       pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       terlapor: { include: { hubungan: { select: { nama: true } } } },
+      pendampinganDiminta: { select: { jenisPendamping: { select: { nama: true } } } },
     },
   });
 
@@ -137,6 +139,7 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
       k?.desa?.nama,
       terlapor,
       r.kronologi,
+      r.pendampinganDiminta.map((x) => x.jenisPendamping.nama).sort().join(", "),
       lampiran.join(", "),
       lama ? "" : kurang.join(", "),
       r.alasanPenolakan,

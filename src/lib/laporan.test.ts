@@ -15,6 +15,7 @@ import {
   galatSampaiLangkah,
   hitungUsia,
   langkahDariBidang,
+  nilaiDariFormData,
   periksaBerkas,
   type DataLaporan,
 } from "./laporan";
@@ -54,6 +55,7 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   jenisKekerasanId: "jenis",
   tanggalKejadian: "2026-10-03",
   kronologi: "Kronologi uji yang cukup panjang.",
+  jenisPendampinganIds: "",
   terlaporTidakDiketahui: "",
   terlaporNama: "",
   terlaporJenisKelamin: "",
@@ -160,6 +162,24 @@ describe("skema formulir", () => {
 
     expect(bentukDataLaporan(SkemaLaporan.parse(form({ terlaporTidakDiketahui: "on", terlaporNama: "Diabaikan" }))).terlapor).toBeNull();
   });
+
+  it("jenis pendampingan tidak wajib, boleh lebih dari satu, dan kotak centang digabung dari FormData", () => {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(form())) fd.set(k, v);
+    fd.delete("jenisPendampinganIds");
+    fd.append("jenisPendampinganIds", "psi");
+    fd.append("jenisPendampinganIds", "hkm");
+    fd.append("jenisPendampinganIds", "psi");
+    const nilai = nilaiDariFormData(fd);
+    expect(nilai.jenisPendampinganIds).toBe("psi,hkm,psi");
+    expect(nilai.korbanNama).toBe("Korban Uji");
+    expect(bentukDataLaporan(SkemaLaporan.parse(nilai)).jenisPendampinganIds).toEqual(["psi", "hkm"]);
+
+    expect(bentukDataLaporan(SkemaLaporan.parse(form())).jenisPendampinganIds).toEqual([]);
+    expect(langkahDariBidang("jenisPendampinganIds")).toBe(3);
+    const banyak = Array.from({ length: 11 }, (_, i) => `j${i}`).join(",");
+    expect(galat(form({ jenisPendampinganIds: banyak })).jenisPendampinganIds).toBe("Terlalu banyak pilihan.");
+  });
 });
 
 describe("berkas pendukung", () => {
@@ -186,6 +206,8 @@ let kecamatanId = "";
 let kecamatanLainId = "";
 let hubunganId = "";
 let desaId = "";
+let pendampinganId = "";
+let pendampinganNonaktifId = "";
 
 function data(ekstra: Partial<DataLaporan> = {}): DataLaporan {
   const d = bentukDataLaporan(
@@ -202,12 +224,16 @@ beforeAll(async () => {
   kecamatanLainId = lain.id;
   hubunganId = (await db.hubunganKorban.findFirstOrThrow({ where: { aktif: true } })).id;
   desaId = (await db.desa.create({ data: { kecamatanId, nama: `${awalan} Desa` } })).id;
+  const kode = Date.now().toString(36).toUpperCase();
+  pendampinganId = (await db.jenisPendampingan.create({ data: { kode: `U${kode}`, nama: `${awalan} Psikologis` } })).id;
+  pendampinganNonaktifId = (await db.jenisPendampingan.create({ data: { kode: `N${kode}`, nama: `${awalan} Nonaktif`, aktif: false } })).id;
 });
 
 afterAll(async () => {
   await db.laporan.deleteMany({ where: { jenisKekerasanId: jenisId } });
   await db.jenisKekerasan.deleteMany({ where: { id: jenisId } });
   await db.desa.deleteMany({ where: { id: desaId } });
+  await db.jenisPendampingan.deleteMany({ where: { id: { in: [pendampinganId, pendampinganNonaktifId] } } });
   await db.$disconnect();
   rmSync(dir, { recursive: true, force: true });
 });
@@ -241,6 +267,14 @@ describe("simpanLaporan", () => {
     for (const d of l.dokumen) expect(existsSync(path.join(dir, d.jalurBerkas))).toBe(true);
     expect(l.dokumen.map((d) => d.tipeMime).sort()).toEqual(["application/pdf", "image/jpeg"]);
     expect(l.dokumen.map((d) => d.jenis).sort()).toEqual(["KTP", "SURAT_NIKAH"]);
+  });
+
+  it("menyimpan jenis pendampingan yang diminta Pelapor", async () => {
+    const hasil = await simpanLaporan(db, data({ jenisPendampinganIds: [pendampinganId] }), [], dir);
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    const l = await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode }, include: { pendampinganDiminta: true } });
+    expect(l.pendampinganDiminta.map((p) => p.jenisPendampingId)).toEqual([pendampinganId]);
   });
 
   it("korban sendiri yang melapor: tanpa baris pelapor dan tanpa terlapor", async () => {
@@ -297,6 +331,13 @@ describe("periksaPilihanLaporan", () => {
       korbanPekerjaanId: expect.any(String),
       pelaporHubunganId: expect.any(String),
     });
+  });
+
+  it("jenis pendampingan harus ada dan masih aktif", async () => {
+    expect(await periksaPilihanLaporan(db, data({ jenisPendampinganIds: [pendampinganId] }))).toEqual({});
+    for (const salah of [["tidak-ada"], [pendampinganId, pendampinganNonaktifId]]) {
+      expect((await periksaPilihanLaporan(db, data({ jenisPendampinganIds: salah }))).jenisPendampinganIds, salah.join()).toContain("tidak tersedia");
+    }
   });
 
   it("desa wajib bila kecamatannya sudah punya data desa, dan harus sesuai kecamatan", async () => {

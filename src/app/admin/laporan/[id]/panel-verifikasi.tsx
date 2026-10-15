@@ -11,7 +11,15 @@ export type OpsiJadwal = {
   jenis: { id: string; nama: string }[];
   pendamping: { id: string; nama: string; jenisPendampingId: string | null }[];
   lokasi: { id: string; nama: string }[];
+  /** Id jenis pendampingan yang diminta Pelapor saat melapor. */
+  diminta?: string[];
 };
+
+/** Nama jenis di pilihan jadwal, ditandai bila diminta Pelapor. */
+export const namaJenis = (opsi: OpsiJadwal, j: { id: string; nama: string }) => (opsi.diminta?.includes(j.id) ? `${j.nama} (diminta Pelapor)` : j.nama);
+
+/** Jenis awal formulir jadwal: pilihan Pelapor bila hanya satu dan masih aktif. */
+export const jenisAwal = (opsi: OpsiJadwal) => (opsi.diminta?.length === 1 && opsi.jenis.some((j) => j.id === opsi.diminta![0]) ? opsi.diminta[0] : "");
 
 type Props = {
   opsi: OpsiJadwal;
@@ -95,7 +103,7 @@ function Bidang({ id, label, galat, children }: { id: string; label: string; gal
 function FormVerifikasi({ id, opsi }: { id: string; opsi: OpsiJadwal }) {
   const [state, aksi, pending] = useActionState(verifikasi, undefined as AksiVerifikasi);
   // Semua isian dikendalikan state agar tidak hilang saat formulir di-reset React setelah aksi selesai (mis. karena galat).
-  const [v, setV] = useState({ jenisPendampingId: "", pendampingId: "", lokasiId: "", tanggal: "", jamMulai: "", jamSelesai: "" });
+  const [v, setV] = useState({ jenisPendampingId: jenisAwal(opsi), pendampingId: "", lokasiId: "", tanggal: "", jamMulai: "", jamSelesai: "" });
   const isi = (k: keyof typeof v) => ({ value: v[k], onChange: (e: { target: { value: string } }) => setV((x) => ({ ...x, [k]: e.target.value })) });
   const jenisId = v.jenisPendampingId;
   const pendampingCocok = useMemo(
@@ -135,7 +143,7 @@ function FormVerifikasi({ id, opsi }: { id: string; opsi: OpsiJadwal }) {
         <select id="jenisPendampingId" name="jenisPendampingId" onChange={(e) => setV((x) => ({ ...x, jenisPendampingId: e.target.value, pendampingId: "" }))} value={v.jenisPendampingId} className={input} {...attr("jenisPendampingId")}>
           <option value="">Pilih jenis</option>
           {opsi.jenis.map((j) => (
-            <option key={j.id} value={j.id}>{j.nama}</option>
+            <option key={j.id} value={j.id}>{namaJenis(opsi, j)}</option>
           ))}
         </select>
       </Bidang>

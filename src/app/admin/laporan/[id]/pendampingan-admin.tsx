@@ -8,7 +8,7 @@ import { TampilLaporan } from "@/components/tampil-laporan";
 import type { LaporanView } from "@/lib/laporan-pendampingan";
 import { Galat, Modal, fokus, input, tombolKecil, tombolNetral, tombolUtama } from "@/components/ui-form";
 import { batalkanSesiAksi, tambahSesiAksi, type AksiSesi } from "../actions";
-import type { OpsiJadwal } from "./panel-verifikasi";
+import { jenisAwal, namaJenis, type OpsiJadwal } from "./panel-verifikasi";
 
 export type SesiAdmin = {
   id: string;
@@ -48,7 +48,7 @@ export type AwalJadwal = { jenisPendampingId?: string; pendampingId?: string; lo
 /** Formulir jadwal sesi. Dengan `usulanId` formulir menyetujui usulan sesi lanjutan sekaligus menjadwalkannya. */
 export function ModalTambah({ laporanId, kode, opsi, onTutup, usulanId, awal }: { laporanId: string; kode: string; opsi: OpsiJadwal; onTutup: () => void; usulanId?: string; awal?: AwalJadwal }) {
   const [state, aksi, pending] = useActionState(tambahSesiAksi, undefined as AksiSesi);
-  const [v, setV] = useState({ jenisPendampingId: awal?.jenisPendampingId ?? "", pendampingId: awal?.pendampingId ?? "", lokasiId: awal?.lokasiId ?? "", tanggal: "", jamMulai: "", jamSelesai: "" });
+  const [v, setV] = useState({ jenisPendampingId: awal?.jenisPendampingId ?? jenisAwal(opsi), pendampingId: awal?.pendampingId ?? "", lokasiId: awal?.lokasiId ?? "", tanggal: "", jamMulai: "", jamSelesai: "" });
   const isi = (k: keyof typeof v) => ({ value: v[k], onChange: (e: { target: { value: string } }) => setV((x) => ({ ...x, [k]: e.target.value })) });
   const g = (state?.galat ?? {}) as Record<string, string | undefined>;
   const attr = (k: string) => ({ "aria-invalid": g[k] ? true : undefined, "aria-describedby": g[k] ? `galat-${k}` : undefined });
@@ -76,7 +76,7 @@ export function ModalTambah({ laporanId, kode, opsi, onTutup, usulanId, awal }: 
             <option value="">Pilih jenis</option>
             {opsi.jenis.map((j) => (
               <option key={j.id} value={j.id}>
-                {j.nama}
+                {namaJenis(opsi, j)}
               </option>
             ))}
           </select>

@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Calendar,
   CheckCircle2,
+  HeartHandshake,
   ChevronDown,
   FilePlus2,
   Lock,
@@ -17,7 +18,6 @@ import { useActionState, useEffect, useRef, useState, type ReactNode } from "rea
 import {
   DOKUMEN_LAPORAN,
   FORMAT_BERKAS,
-  NAMA_BIDANG,
   OPSI_JENIS_KELAMIN,
   OPSI_PENDIDIKAN,
   OPSI_STATUS_PERKAWINAN,
@@ -27,7 +27,9 @@ import {
   hitungUsia,
   langkahDariBidang,
   bidangDokumen,
+  nilaiDariFormData,
   periksaBerkas,
+  pisahIds,
   type Galat,
   type JenisDokumenLaporan,
   type Langkah,
@@ -47,6 +49,9 @@ const kontrol =
   "h-13 w-full rounded-xl border border-line-strong bg-surface px-4 text-base text-ink placeholder:text-ink-mute focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100 aria-[invalid=true]:border-error aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-error-50";
 const kartuPilihan =
   "flex h-13 cursor-pointer items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 font-medium has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100";
+
+// Seperti kartuPilihan, tetapi tingginya mengikuti isi agar nama yang panjang tetap terbaca.
+const kartuCentang = kartuPilihan.replace("h-13", "min-h-13 py-3");
 
 function hariIniLokal() {
   const d = new Date();
@@ -254,12 +259,14 @@ export function FormLaporan({
   desa,
   hubungan,
   pekerjaan,
+  pendampingan,
 }: {
   jenis: Opsi[];
   kecamatan: Opsi[];
   desa: OpsiDesa[];
   hubungan: Opsi[];
   pekerjaan: Opsi[];
+  pendampingan: Opsi[];
 }) {
   const [state, aksi, mengirim] = useActionState(kirimLaporan, undefined);
   const form = useRef<HTMLFormElement>(null);
@@ -304,8 +311,7 @@ export function FormLaporan({
   const desaPelapor = desaDi(kecPelapor);
 
   function nilaiFormulir() {
-    const fd = new FormData(form.current!);
-    return Object.fromEntries(NAMA_BIDANG.map((k) => [k, String(fd.get(k) ?? "")]));
+    return nilaiDariFormData(new FormData(form.current!));
   }
 
   /** Desa/kelurahan korban wajib bila kecamatannya sudah punya data desa (server memeriksa hal yang sama). */
@@ -537,6 +543,37 @@ export function FormLaporan({
               {panjang} / {MAKS_KRONOLOGI} karakter
             </p>
           </Bidang>
+          {pendampingan.length > 0 && (
+            <fieldset className="flex flex-col gap-2" aria-describedby={galat.jenisPendampinganIds ? "jenisPendampinganIds-galat" : "jenisPendampinganIds-petunjuk"}>
+              <legend className="mb-2 text-sm font-bold text-ink">
+                Pendampingan yang dibutuhkan <span className="font-medium text-ink-mute">(tidak wajib)</span>
+              </legend>
+              <p id="jenisPendampinganIds-petunjuk" className="-mt-1 mb-1 text-sm text-ink-mute">
+                Boleh pilih lebih dari satu. Jika belum tahu, kosongkan saja; petugas akan membantu menentukannya.
+              </p>
+              <div className="flex flex-col gap-3">
+                {pendampingan.map((p) => (
+                  <label key={p.id} className={kartuCentang}>
+                    <input
+                      type="checkbox"
+                      name="jenisPendampinganIds"
+                      value={p.id}
+                      defaultChecked={pisahIds(nilaiAwal("jenisPendampinganIds")).includes(p.id)}
+                      className="h-5 w-5 shrink-0 rounded-md accent-brand-600"
+                    />
+                    <HeartHandshake size={18} aria-hidden="true" className="shrink-0 text-brand-700" />
+                    {p.nama}
+                  </label>
+                ))}
+              </div>
+              {galat.jenisPendampinganIds && (
+                <p id="jenisPendampinganIds-galat" role="alert" className="flex items-start gap-2 text-sm font-medium text-error">
+                  <AlertCircle size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                  {galat.jenisPendampinganIds}
+                </p>
+              )}
+            </fieldset>
+          )}
         </fieldset>
 
         {/* Langkah 4: Terlapor */}
