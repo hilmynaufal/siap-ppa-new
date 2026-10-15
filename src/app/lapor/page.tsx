@@ -23,7 +23,7 @@ export default async function HalamanLapor() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <KepalaPelapor judul="Buat Laporan" kembaliHref="/" telepon={kontak[0]?.telepon} whatsapp={tautanWaDarurat()} />
+      <KepalaPelapor judul="Buat Laporan" kembaliHref="/" telepon={kontak[0]?.telepon} whatsapp={tautanWaDarurat(kontak[0]?.telepon)} />
       <main className="mx-auto max-w-md">
         {jenis.length === 0 ? (
           <div className="m-4 flex items-start gap-4 rounded-2xl border border-line bg-canvas p-5">

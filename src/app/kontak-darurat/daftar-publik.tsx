@@ -1,9 +1,13 @@
 "use client";
 
-import { MapPin, Phone, SearchX } from "lucide-react";
+import { MapPin, MessageCircle, Phone, SearchX } from "lucide-react";
 import { useMemo, useState } from "react";
 import { BilahCari } from "@/components/bilah-cari";
 import { FilterPilihan } from "@/components/filter";
+import { nomorPonsel, PESAN_DARURAT, tautanWhatsapp } from "@/lib/whatsapp";
+
+const KELAS_AKSI =
+  "grid h-14 w-14 place-items-center rounded-xl bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 
 type Kontak = { id: string; instansi: string; telepon: string; alamat: string; kecamatan: string | null };
 
@@ -54,13 +58,22 @@ export function DaftarPublik({ kontak, kecamatan }: { kontak: Kontak[]; kecamata
                   </p>
                   <p className="mt-1 font-bold tabular-nums text-ink">{k.telepon}</p>
                 </div>
-                <a
-                  href={`tel:${k.telepon.replace(/[^\d+]/g, "")}`}
-                  aria-label={`Telepon ${k.instansi}`}
-                  className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-800 transition-colors hover:bg-brand-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
-                >
-                  <Phone size={24} aria-hidden="true" />
-                </a>
+                <div className="flex shrink-0 flex-col gap-2">
+                  {nomorPonsel(k.telepon) && (
+                    <a
+                      href={tautanWhatsapp(k.telepon, PESAN_DARURAT) ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`WhatsApp ${k.instansi} (membuka WhatsApp)`}
+                      className={KELAS_AKSI}
+                    >
+                      <MessageCircle size={24} aria-hidden="true" />
+                    </a>
+                  )}
+                  <a href={`tel:${k.telepon.replace(/[^\d+]/g, "")}`} aria-label={`Telepon ${k.instansi}`} className={KELAS_AKSI}>
+                    <Phone size={24} aria-hidden="true" />
+                  </a>
+                </div>
               </li>
             ))}
           </ul>
