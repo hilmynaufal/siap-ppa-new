@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { KepalaPelapor } from "@/components/kepala-pelapor";
 import { db } from "@/lib/db";
 import { kontakDaruratAktif } from "@/lib/kontak-darurat";
+import { tautanWaDarurat } from "@/lib/whatsapp";
 import { POLA_KODE } from "@/lib/laporan";
 import { SalinKode } from "./salin-kode";
 
@@ -23,7 +24,7 @@ export default async function HalamanBerhasil({ searchParams }: { searchParams: 
 
   return (
     <div className="min-h-screen bg-surface">
-      <KepalaPelapor telepon={kontak[0]?.telepon} />
+      <KepalaPelapor telepon={kontak[0]?.telepon} whatsapp={tautanWaDarurat(kontak[0]?.telepon)} />
       <main className="mx-auto max-w-md px-4 pb-10 pt-8">
         <div className="text-center">
           <span className="mx-auto grid h-20 w-20 place-items-center rounded-2xl bg-success-50 text-success">
