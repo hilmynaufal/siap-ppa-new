@@ -156,13 +156,14 @@ model JenisKekerasan {
 
 /// Bidang pendampingan; `kode` menjadi awalan nomor antrean (PSI, HKM).
 model JenisPendampingan {
-  id       String     @id @default(cuid())
-  kode     String     @unique
-  nama     String     @unique
-  aktif    Boolean    @default(true)
+  id       String                @id @default(cuid())
+  kode     String                @unique
+  nama     String                @unique
+  aktif    Boolean               @default(true)
   pengguna Pengguna[]
   sesi     Sesi[]
   tiket    Tiket[]
+  diminta  PendampinganDiminta[]
 
   @@map("jenis_pendampingan")
 }
@@ -271,13 +272,15 @@ model Laporan {
   ditutupPada         DateTime?     @map("ditutup_pada")
   dibuatPada          DateTime      @default(now()) @map("dibuat_pada")
 
-  jenisKekerasan JenisKekerasan   @relation(fields: [jenisKekerasanId], references: [id])
-  verifikator    Pengguna?        @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
-  pelapor        Pelapor?
-  korban         Korban?
-  terlapor       Terlapor[]
-  dokumen        DokumenLaporan[]
-  sesi           Sesi[]
+  jenisKekerasan      JenisKekerasan        @relation(fields: [jenisKekerasanId], references: [id])
+  verifikator         Pengguna?             @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
+  pelapor             Pelapor?
+  korban              Korban?
+  terlapor            Terlapor[]
+  dokumen             DokumenLaporan[]
+  sesi                Sesi[]
+  /// Jenis pendampingan yang dipilih Pelapor saat melapor (boleh lebih dari satu atau kosong).
+  pendampinganDiminta PendampinganDiminta[]
 
   @@index([status, dibuatPada])
   @@map("laporan")
@@ -346,6 +349,18 @@ model Terlapor {
 
   @@index([laporanId])
   @@map("terlapor")
+}
+
+/// Jenis pendampingan yang diminta Pelapor; Admin tetap menentukan jenis setiap sesi.
+model PendampinganDiminta {
+  laporanId         String            @map("laporan_id")
+  jenisPendampingId String            @map("jenis_pendamping_id")
+  laporan           Laporan           @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  jenisPendamping   JenisPendampingan @relation(fields: [jenisPendampingId], references: [id], onDelete: Restrict)
+
+  @@id([laporanId, jenisPendampingId])
+  @@index([jenisPendampingId])
+  @@map("pendampingan_diminta")
 }
 
 /// jenis kosong untuk berkas yang diunggah sebelum formulir membedakan jenis dokumen.

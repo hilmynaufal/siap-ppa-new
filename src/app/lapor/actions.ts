@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import {
   DOKUMEN_LAPORAN,
   bidangDokumen,
-  NAMA_BIDANG,
+  nilaiDariFormData,
   SkemaLaporan,
   bentukDataLaporan,
   galatPerBidang,
@@ -28,7 +28,7 @@ export async function kirimLaporan(_s: KirimState, formData: FormData): Promise<
   if (String(formData.get("situs") ?? "") !== "") redirect("/");
 
   // Isian dikembalikan ke browser pengirimnya sendiri saat ada galat, agar tidak perlu mengetik ulang.
-  const nilai = Object.fromEntries(NAMA_BIDANG.map((k) => [k, String(formData.get(k) ?? "")]));
+  const nilai = nilaiDariFormData(formData);
   const hasil = SkemaLaporan.safeParse(nilai);
   const pulihkan = (v: Record<string, string>) => v;
   if (!hasil.success) {

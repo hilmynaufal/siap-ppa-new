@@ -1,4 +1,4 @@
-import { FileImage, FileSearch, FileText, Link2, MapPin, Phone, ShieldAlert, User, UserX } from "lucide-react";
+import { FileImage, FileSearch, FileText, HeartHandshake, Link2, MapPin, Phone, ShieldAlert, User, UserX } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
@@ -65,6 +65,8 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   ]);
 
   const sesi = sesiDasar.map((x) => ({ ...x, laporan: laporanSesi[x.id] ?? null }));
+  // Pilihan Pelapor ditandai di formulir jadwal; Admin tetap bebas memilih jenis lain.
+  const opsi = { jenis, pendamping, lokasi, diminta: l.pendampinganDiminta.map((p) => p.id) };
   const kasusAktif = l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN";
 
   return (
@@ -135,6 +137,20 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <Baris label="Tanggal kejadian">{l.tanggalKejadian ? fmt(l.tanggalKejadian, false) : "Tidak diisi"}</Baris>
               <Baris label="Kronologi">
                 <p className="whitespace-pre-wrap break-words">{l.kronologi}</p>
+              </Baris>
+              <Baris label="Pendampingan diminta">
+                {l.pendampinganDiminta.length === 0 ? (
+                  <span className="text-ink-soft">Tidak dipilih Pelapor (diserahkan kepada petugas)</span>
+                ) : (
+                  <ul className="flex flex-wrap gap-2" aria-label="Jenis pendampingan yang diminta Pelapor">
+                    {l.pendampinganDiminta.map((p) => (
+                      <li key={p.id} className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-800">
+                        <HeartHandshake size={14} aria-hidden="true" />
+                        {p.nama}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </Baris>
             </dl>
           </section>
@@ -213,7 +229,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               laporanId={l.id}
               kode={l.kode}
               sesi={sesi}
-              opsi={{ jenis, pendamping, lokasi }}
+              opsi={opsi}
               bisaTambah={l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN"}
             />
           )}
@@ -254,9 +270,9 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
         </div>
 
         <div>
-        {(kasusAktif || l.status === "DITUTUP") && <UsulanSesi laporanId={l.id} kode={l.kode} usulan={usulan} opsi={{ jenis, pendamping, lokasi }} bisaMemutuskan={kasusAktif} />}
+        {(kasusAktif || l.status === "DITUTUP") && <UsulanSesi laporanId={l.id} kode={l.kode} usulan={usulan} opsi={opsi} bisaMemutuskan={kasusAktif} />}
         <PanelVerifikasi
-          opsi={{ jenis, pendamping, lokasi }}
+          opsi={opsi}
           id={l.id}
           kode={l.kode}
           status={l.status}

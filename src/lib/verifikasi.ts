@@ -54,6 +54,7 @@ export async function detailLaporan(db: PrismaClient, id: string) {
       pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       terlapor: { include: { hubungan: { select: { nama: true } } } },
+      pendampinganDiminta: { select: { jenisPendamping: { select: { id: true, nama: true } } }, orderBy: { jenisPendamping: { nama: "asc" } } },
     },
   });
   if (!r) return null;
@@ -105,6 +106,8 @@ export async function detailLaporan(db: PrismaClient, id: string) {
     diverifikasiPada: r.diverifikasiPada?.toISOString() ?? null,
     dibuatPada: r.dibuatPada.toISOString(),
     dokumen: r.dokumen,
+    /** Jenis pendampingan yang dipilih Pelapor di formulir. */
+    pendampinganDiminta: r.pendampinganDiminta.map((x) => x.jenisPendamping),
   };
 }
 

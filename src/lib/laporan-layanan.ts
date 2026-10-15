@@ -99,6 +99,9 @@ export async function simpanLaporan(
             },
           },
           terlapor: terlapor ? { create: terlapor } : undefined,
+          pendampinganDiminta: data.jenisPendampinganIds.length
+            ? { create: data.jenisPendampinganIds.map((jenisPendampingId) => ({ jenisPendampingId })) }
+            : undefined,
         },
         select: { id: true },
       });
@@ -135,7 +138,7 @@ export async function simpanLaporan(
 }
 
 /**
- * Memastikan semua pilihan (jenis kekerasan, kecamatan, desa, hubungan, pekerjaan) benar-benar ada dan masih aktif,
+ * Memastikan semua pilihan (jenis kekerasan, kecamatan, desa, hubungan, pekerjaan, jenis pendampingan) benar-benar ada dan masih aktif,
  * desa memang berada di kecamatannya, dan desa diwajibkan bila kecamatan itu sudah punya data desa.
  * Mengembalikan galat per bidang formulir (objek kosong bila semuanya benar).
  */
@@ -145,13 +148,16 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   const desaId = [d.korban.desaId, d.pelapor?.desaId].filter((x): x is string => !!x);
   const hubunganId = [d.pelapor?.hubunganId, d.terlapor?.hubunganId].filter((x): x is string => !!x);
 
-  const [jenis, kecamatan, desa, hubungan, pekerjaan, jumlahDesa] = await Promise.all([
+  const [jenis, kecamatan, desa, hubungan, pekerjaan, jumlahDesa, pendampingan] = await Promise.all([
     db.jenisKekerasan.findFirst({ where: { id: d.jenisKekerasanId, aktif: true }, select: { id: true } }),
     db.kecamatan.findMany({ where: { id: { in: kec } }, select: { id: true } }),
     db.desa.findMany({ where: { id: { in: desaId } }, select: { id: true, kecamatanId: true } }),
     db.hubunganKorban.findMany({ where: { id: { in: hubunganId }, aktif: true }, select: { id: true } }),
     d.korban.pekerjaanId ? db.pekerjaan.findFirst({ where: { id: d.korban.pekerjaanId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
     db.desa.groupBy({ by: ["kecamatanId"], where: { kecamatanId: { in: kec } }, _count: true }),
+    d.jenisPendampinganIds.length
+      ? db.jenisPendampingan.count({ where: { id: { in: d.jenisPendampinganIds }, aktif: true } })
+      : Promise.resolve(0),
   ]);
   const ada = (daftar: { id: string }[], id: string | null | undefined) => !id || daftar.some((x) => x.id === id);
   const punyaDesa = new Set(jumlahDesa.map((j) => j.kecamatanId));
@@ -159,6 +165,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   if (!jenis) galat.jenisKekerasanId = "Pilih jenis kekerasan dari daftar.";
   if (!ada(kecamatan, d.korban.kecamatanId)) galat.korbanKecamatanId = "Pilih kecamatan dari daftar.";
   if (!pekerjaan) galat.korbanPekerjaanId = "Pilih pekerjaan dari daftar.";
+  if (pendampingan < d.jenisPendampinganIds.length) galat.jenisPendampinganIds = "Ada jenis pendampingan yang tidak tersedia. Pilih lagi dari daftar.";
   if (d.pelapor && !ada(hubungan, d.pelapor.hubunganId)) galat.pelaporHubunganId = "Pilih hubungan dari daftar.";
   if (d.terlapor?.hubunganId && !ada(hubungan, d.terlapor.hubunganId)) galat.terlaporHubunganId = "Pilih hubungan dari daftar.";
   if (d.pelapor?.kecamatanId && !ada(kecamatan, d.pelapor.kecamatanId)) galat.pelaporKecamatanId = "Pilih kecamatan dari daftar.";
