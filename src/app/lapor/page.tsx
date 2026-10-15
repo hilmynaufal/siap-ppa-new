@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { pilihanDesa } from "@/lib/desa";
 import { kontakDaruratAktif } from "@/lib/kontak-darurat";
 import { pilihanReferensi } from "@/lib/referensi";
+import { tautanWaDarurat } from "@/lib/whatsapp";
 import { FormLaporan } from "./form-laporan";
 
 export const metadata = { title: "Buat Laporan | SIAP PPA" };
@@ -22,7 +23,7 @@ export default async function HalamanLapor() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <KepalaPelapor judul="Buat Laporan" kembaliHref="/" telepon={kontak[0]?.telepon} />
+      <KepalaPelapor judul="Buat Laporan" kembaliHref="/" telepon={kontak[0]?.telepon} whatsapp={tautanWaDarurat()} />
       <main className="mx-auto max-w-md">
         {jenis.length === 0 ? (
           <div className="m-4 flex items-start gap-4 rounded-2xl border border-line bg-canvas p-5">
