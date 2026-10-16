@@ -124,9 +124,14 @@ erDiagram
     String hubungan_id FK "opsional"
     String alamat "opsional"
   }
+  pendampingan_diminta {
+    String laporan_id FK
+    String jenis_pendamping_id FK
+  }
   dokumen_laporan {
     String id PK
     String laporan_id FK
+    enum_jenis_dokumen jenis "opsional"
     String nama_berkas
     String jalur_berkas
     String tipe_mime
@@ -244,6 +249,8 @@ erDiagram
   desa |o--o{ korban : "desa"
   laporan ||--o{ terlapor : "laporan"
   hubungan_korban |o--o{ terlapor : "hubungan"
+  laporan ||--o{ pendampingan_diminta : "laporan"
+  jenis_pendampingan ||--o{ pendampingan_diminta : "jenisPendamping"
   laporan ||--o{ dokumen_laporan : "laporan"
   laporan ||--o{ sesi : "laporan"
   jenis_pendampingan ||--o{ sesi : "jenisPendamping"
