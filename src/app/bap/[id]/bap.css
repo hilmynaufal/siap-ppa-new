@@ -214,3 +214,17 @@
     margin-top: 0;
   }
 }
+
+/* Lampiran: satu dokumen per halaman kertas; gambar diperkecil agar muat satu halaman Legal. */
+.bap-lampiran-halaman {
+  margin: 6px 0 0;
+  text-align: center;
+}
+.bap-lampiran-gambar {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 300mm;
+  object-fit: contain;
+  border: 1px solid #000;
+}
