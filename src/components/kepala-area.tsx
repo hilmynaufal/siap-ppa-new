@@ -1,8 +1,10 @@
-import { LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
+import Link from "next/link";
 import { keluar } from "@/app/masuk/actions";
 import { LogoSiap } from "./logo-siap";
 
-export function KepalaArea({ nama, peran }: { nama: string; peran: string }) {
+/** Kepala area masuk. Nama pengguna menuju halaman Profil (`profilHref`); di layar sempit tampil sebagai ikon. */
+export function KepalaArea({ nama, peran, profilHref }: { nama: string; peran: string; profilHref: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-[4.5rem] items-center justify-between gap-4 border-b border-line bg-surface px-4 md:px-8">
       <div className="flex items-center gap-3">
@@ -13,7 +15,14 @@ export function KepalaArea({ nama, peran }: { nama: string; peran: string }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <span className="hidden text-sm font-semibold text-ink sm:inline">{nama}</span>
+        <Link
+          href={profilHref}
+          aria-label={`Profil: ${nama}`}
+          className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold text-ink transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+        >
+          <UserRound size={18} aria-hidden="true" className="text-brand-700" />
+          <span className="hidden max-w-[16rem] truncate sm:inline">{nama}</span>
+        </Link>
         <form action={keluar}>
           <button
             type="submit"

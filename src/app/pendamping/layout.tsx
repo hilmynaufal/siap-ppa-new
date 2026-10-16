@@ -5,7 +5,7 @@ export default async function LayoutPendamping({ children }: { children: React.R
   const pengguna = await wajibPeran("PENDAMPING");
   return (
     <div className="min-h-screen bg-canvas">
-      <KepalaArea nama={pengguna.nama} peran="Pendamping" />
+      <KepalaArea nama={pengguna.nama} peran="Pendamping" profilHref="/pendamping/profil" />
       {children}
     </div>
   );
