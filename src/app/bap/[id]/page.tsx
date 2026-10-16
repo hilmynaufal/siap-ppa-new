@@ -4,6 +4,7 @@ import { wajibPeran } from "@/lib/auth";
 import { muatBap, type DataBap, type DiriBap } from "@/lib/bap";
 import { bolehAksesKasus } from "@/lib/data-bap";
 import { db } from "@/lib/db";
+import { LampiranPdf } from "./lampiran-pdf";
 import { TombolCetak } from "./tombol-cetak";
 import "./bap.css";
 
@@ -265,6 +266,28 @@ export default async function HalamanBap({ params }: { params: Promise<{ id: str
             </tr>
           </tbody>
         </table>
+
+        {/* Lampiran: setiap dokumen pendukung di halamannya sendiri; PDF digambar per halaman. */}
+        {b.lampiran.map((d, i) => {
+          const judul = `LAMPIRAN ${i + 1}: ${d.label.toUpperCase()}`;
+          const src = `/bap/${id}/dokumen/${d.id}`;
+          return (
+            <section key={d.id} className="bap-lampiran bap-halaman-baru" aria-label={judul}>
+              <p className="bap-judul-kecil">{judul}</p>
+              <p className="bap-catatan">
+                Laporan {b.kode} · {d.namaBerkas}
+              </p>
+              {d.pdf ? (
+                <LampiranPdf src={src} judul={judul} />
+              ) : (
+                <figure className="bap-lampiran-halaman">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- berkas privat lewat rute berizin, dicetak apa adanya */}
+                  <img src={src} alt={`${d.label}: ${d.namaBerkas}`} className="bap-lampiran-gambar" />
+                </figure>
+              )}
+            </section>
+          );
+        })}
       </article>
     </div>
   );

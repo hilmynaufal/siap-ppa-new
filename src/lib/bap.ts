@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { DOKUMEN_LAPORAN, labelDokumen } from "./laporan";
 import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia } from "./laporan-skema";
 import { dekripsiNik } from "./nik";
 import { bacaPengaturanBap } from "./pengaturan";
@@ -38,6 +39,11 @@ export type DiriBap = {
 };
 
 type Pilihan = { id: string; nama: string };
+
+const urutanDokumen = (jenis: string | null) => {
+  const i = DOKUMEN_LAPORAN.findIndex((d) => d.jenis === jenis);
+  return i < 0 ? DOKUMEN_LAPORAN.length : i;
+};
 
 function diri(x: {
   nama?: string | null;
@@ -92,6 +98,7 @@ export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: s
       korban: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, desa: { select: { nama: true } }, kecamatan: { select: { nama: true } } } },
       terlapor: { orderBy: { id: "asc" }, take: 1, include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } } } },
       pendampinganDiminta: { select: { jenisPendamping: { select: { nama: true } } }, orderBy: { jenisPendamping: { nama: "asc" } } },
+      dokumen: { select: { id: true, jenis: true, namaBerkas: true, tipeMime: true } },
     },
   });
   if (!r) return null;
@@ -133,6 +140,10 @@ export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: s
     alasanKebutuhan: r.alasanKebutuhan ?? "",
     lembagaRujukan: r.lembagaRujukan ?? "",
     pilihan: { hubungan, jenisKekerasan, jenisKelamin: OPSI_JENIS_KELAMIN },
+    /** Dokumen pendukung untuk halaman lampiran, berurutan seperti di formulir (KK, KTP, akta, ...). */
+    lampiran: [...r.dokumen]
+      .sort((a, b) => urutanDokumen(a.jenis) - urutanDokumen(b.jenis) || a.namaBerkas.localeCompare(b.namaBerkas))
+      .map((d) => ({ id: d.id, label: labelDokumen(d.jenis), namaBerkas: d.namaBerkas, pdf: d.tipeMime === "application/pdf" })),
     pengaturan,
   };
 }
