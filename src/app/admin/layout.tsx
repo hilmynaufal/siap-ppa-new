@@ -13,7 +13,7 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
   const awalKolaps = (await cookies()).get(COOKIE_SIDEBAR)?.value === "kolaps";
   return (
     <div className="min-h-screen bg-canvas">
-      <KepalaArea nama={pengguna.nama} peran="Admin" />
+      <KepalaArea nama={pengguna.nama} peran="Admin" profilHref="/admin/profil" />
       <details className="sticky top-[4.5rem] z-20 bg-brand-900 md:hidden">
         <summary className="flex h-12 cursor-pointer list-none items-center gap-2 px-4 font-bold text-surface">
           <Menu size={20} aria-hidden="true" />

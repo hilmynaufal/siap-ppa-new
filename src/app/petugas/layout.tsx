@@ -8,7 +8,7 @@ export default async function LayoutPetugas({ children }: { children: React.Reac
   const lokasi = pengguna.lokasiId ? await db.lokasi.findUnique({ where: { id: pengguna.lokasiId }, select: { nama: true } }) : null;
   return (
     <div className="min-h-screen bg-canvas">
-      <KepalaArea nama={pengguna.nama} peran={lokasi ? `Petugas · ${lokasi.nama}` : "Petugas"} />
+      <KepalaArea nama={pengguna.nama} peran={lokasi ? `Petugas · ${lokasi.nama}` : "Petugas"} profilHref="/petugas/profil" />
       <NavigasiPetugas />
       {children}
     </div>
