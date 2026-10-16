@@ -64,6 +64,7 @@ export async function simpanLaporan(
           jenisKekerasanId: data.jenisKekerasanId,
           tanggalKejadian: new Date(`${data.tanggalKejadian}T00:00:00`),
           kronologi: data.kronologi,
+          tempatKejadian: data.tempatKejadian,
           persetujuanData: true,
           persetujuanPada: new Date(),
           // NIK tidak pernah disimpan sebagai teks biasa: terenkripsi, ditambah indeks HMAC untuk pencarian.
@@ -92,6 +93,10 @@ export async function simpanLaporan(
               pendidikan: korban.pendidikan as Pendidikan | null,
               pekerjaanId: korban.pekerjaanId,
               statusPerkawinan: korban.statusPerkawinan as StatusPerkawinan | null,
+              namaPanggilan: korban.namaPanggilan,
+              agamaId: korban.agamaId,
+              noBpjs: korban.noBpjs,
+              statusBpjs: korban.statusBpjs,
               kontak: korban.kontak,
               alamat: korban.alamat,
               kecamatanId: korban.kecamatanId,
@@ -138,7 +143,7 @@ export async function simpanLaporan(
 }
 
 /**
- * Memastikan semua pilihan (jenis kekerasan, kecamatan, desa, hubungan, pekerjaan, jenis pendampingan) benar-benar ada dan masih aktif,
+ * Memastikan semua pilihan (jenis kekerasan, kecamatan, desa, hubungan, pekerjaan, agama, jenis pendampingan) benar-benar ada dan masih aktif,
  * desa memang berada di kecamatannya, dan desa diwajibkan bila kecamatan itu sudah punya data desa.
  * Mengembalikan galat per bidang formulir (objek kosong bila semuanya benar).
  */
@@ -148,7 +153,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   const desaId = [d.korban.desaId, d.pelapor?.desaId].filter((x): x is string => !!x);
   const hubunganId = [d.pelapor?.hubunganId, d.terlapor?.hubunganId].filter((x): x is string => !!x);
 
-  const [jenis, kecamatan, desa, hubungan, pekerjaan, jumlahDesa, pendampingan] = await Promise.all([
+  const [jenis, kecamatan, desa, hubungan, pekerjaan, jumlahDesa, pendampingan, agama] = await Promise.all([
     db.jenisKekerasan.findFirst({ where: { id: d.jenisKekerasanId, aktif: true }, select: { id: true } }),
     db.kecamatan.findMany({ where: { id: { in: kec } }, select: { id: true } }),
     db.desa.findMany({ where: { id: { in: desaId } }, select: { id: true, kecamatanId: true } }),
@@ -158,6 +163,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
     d.jenisPendampinganIds.length
       ? db.jenisPendampingan.count({ where: { id: { in: d.jenisPendampinganIds }, aktif: true } })
       : Promise.resolve(0),
+    d.korban.agamaId ? db.agama.findFirst({ where: { id: d.korban.agamaId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
   ]);
   const ada = (daftar: { id: string }[], id: string | null | undefined) => !id || daftar.some((x) => x.id === id);
   const punyaDesa = new Set(jumlahDesa.map((j) => j.kecamatanId));
@@ -165,6 +171,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   if (!jenis) galat.jenisKekerasanId = "Pilih jenis kekerasan dari daftar.";
   if (!ada(kecamatan, d.korban.kecamatanId)) galat.korbanKecamatanId = "Pilih kecamatan dari daftar.";
   if (!pekerjaan) galat.korbanPekerjaanId = "Pilih pekerjaan dari daftar.";
+  if (!agama) galat.korbanAgamaId = "Pilih agama dari daftar.";
   if (pendampingan < d.jenisPendampinganIds.length) galat.jenisPendampinganIds = "Ada jenis pendampingan yang tidak tersedia. Pilih lagi dari daftar.";
   if (d.pelapor && !ada(hubungan, d.pelapor.hubunganId)) galat.pelaporHubunganId = "Pilih hubungan dari daftar.";
   if (d.terlapor?.hubunganId && !ada(hubungan, d.terlapor.hubunganId)) galat.terlaporHubunganId = "Pilih hubungan dari daftar.";

@@ -55,6 +55,12 @@ describe("hak akses per peran", () => {
     expect(putuskanAkses("/pendamping/sesi", "PENDAMPING")).toEqual({ aksi: "izinkan" });
     expect(putuskanAkses("/admin", "PENDAMPING")).toEqual({ aksi: "ke-beranda", peran: "PENDAMPING" });
   });
+  it("BAP hanya untuk Admin dan Pendamping (kepemilikan kasus diperiksa di halaman)", () => {
+    expect(putuskanAkses("/bap/abc", null)).toEqual({ aksi: "ke-masuk" });
+    expect(putuskanAkses("/bap/abc", "ADMIN")).toEqual({ aksi: "izinkan" });
+    expect(putuskanAkses("/bap/abc", "PENDAMPING")).toEqual({ aksi: "izinkan" });
+    expect(putuskanAkses("/bap/abc", "PETUGAS")).toEqual({ aksi: "ke-beranda", peran: "PETUGAS" });
+  });
   it("Petugas hanya ke /petugas dan diarahkan ke beranda sendiri dari area lain", () => {
     expect(putuskanAkses("/petugas", "PETUGAS")).toEqual({ aksi: "izinkan" });
     expect(putuskanAkses("/petugas/jadwal", "PETUGAS")).toEqual({ aksi: "izinkan" });

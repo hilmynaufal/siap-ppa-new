@@ -6,6 +6,13 @@ import { bersihkanNik, nikValid } from "./nik-format";
 export const OPSI_JENIS_KELAMIN = [
   { nilai: "PEREMPUAN", label: "Perempuan" },
   { nilai: "LAKI_LAKI", label: "Laki-laki" },
+  { nilai: "LAINNYA", label: "Lainnya" },
+] as const;
+
+export const OPSI_STATUS_BPJS = [
+  { nilai: "AKTIF", label: "Aktif" },
+  { nilai: "TIDAK_AKTIF", label: "Tidak aktif" },
+  { nilai: "TIDAK_TAHU", label: "Tidak tahu" },
 ] as const;
 
 export const OPSI_PENDIDIKAN = [
@@ -30,6 +37,11 @@ const nilaiOpsi = (o: readonly { nilai: string }[]) => new Set(o.map((x) => x.ni
 const JK = nilaiOpsi(OPSI_JENIS_KELAMIN);
 const PDD = nilaiOpsi(OPSI_PENDIDIKAN);
 const SPK = nilaiOpsi(OPSI_STATUS_PERKAWINAN);
+const BPJS = nilaiOpsi(OPSI_STATUS_BPJS);
+
+/** Nomor kartu BPJS Kesehatan: 13 digit; spasi dan tanda hubung diabaikan. */
+export const bersihkanNoBpjs = (v: string) => v.replace(/[\s.-]/g, "");
+export const noBpjsValid = (v: string) => /^\d{13}$/.test(bersihkanNoBpjs(v));
 
 /** Usia penuh (tahun) pada tanggal `pada` dari tanggal lahir YYYY-MM-DD. */
 export function hitungUsia(tanggalLahir: string, pada = new Date()): number | null {
@@ -48,8 +60,11 @@ export type Langkah = 1 | 2 | 3 | 4 | 5;
 
 export const BIDANG_LANGKAH = {
   1: ["pelaporAdalahKorban", "pelaporNama", "pelaporNik", "pelaporHubunganId", "pelaporKontak", "pelaporAlamat", "pelaporKecamatanId", "pelaporDesaId"],
-  2: ["korbanNama", "korbanNik", "korbanJenisKelamin", "korbanTempatLahir", "korbanTanggalLahir", "korbanPendidikan", "korbanPekerjaanId", "korbanStatusPerkawinan", "korbanKontak", "korbanAlamat", "korbanKecamatanId", "korbanDesaId"],
-  3: ["jenisKekerasanId", "tanggalKejadian", "kronologi", "jenisPendampinganIds"],
+  2: [
+    "korbanNama", "korbanNamaPanggilan", "korbanNik", "korbanJenisKelamin", "korbanTempatLahir", "korbanTanggalLahir", "korbanPendidikan",
+    "korbanPekerjaanId", "korbanAgamaId", "korbanStatusPerkawinan", "korbanNoBpjs", "korbanStatusBpjs", "korbanKontak", "korbanAlamat", "korbanKecamatanId", "korbanDesaId",
+  ],
+  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "jenisPendampinganIds"],
   4: ["terlaporTidakDiketahui", "terlaporNama", "terlaporJenisKelamin", "terlaporUsia", "terlaporHubunganId", "terlaporAlamat"],
   5: ["persetujuan"],
 } as const satisfies Record<Langkah, readonly string[]>;
@@ -78,13 +93,13 @@ export function langkahDariBidang(b: string): Langkah {
 const POLA_HP = /^\+?[\d\s-]{8,20}$/;
 const teks = (maks: number) => z.string().trim().max(maks, { error: `Terlalu panjang (maksimal ${maks} huruf).` });
 
-function tanggalValid(s: string) {
+export function tanggalValid(s: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const [y, m, d] = s.split("-").map(Number);
   const t = new Date(Date.UTC(y, m - 1, d));
   return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
 }
-function tidakDiMasaDepan(s: string) {
+export function tidakDiMasaDepan(s: string) {
   const hariIni = new Date();
   hariIni.setHours(23, 59, 59, 999);
   return new Date(`${s}T00:00:00`) <= hariIni;
@@ -101,19 +116,24 @@ const bentuk = {
   pelaporKecamatanId: teks(60),
   pelaporDesaId: teks(60),
   korbanNama: teks(120),
+  korbanNamaPanggilan: teks(60),
   korbanNik: teks(40),
   korbanJenisKelamin: teks(20),
   korbanTempatLahir: teks(100),
   korbanTanggalLahir: teks(10),
   korbanPendidikan: teks(20),
   korbanPekerjaanId: teks(60),
+  korbanAgamaId: teks(60),
   korbanStatusPerkawinan: teks(20),
+  korbanNoBpjs: teks(30),
+  korbanStatusBpjs: teks(20),
   korbanKontak: teks(30),
   korbanAlamat: teks(300),
   korbanKecamatanId: teks(60),
   korbanDesaId: teks(60),
   jenisKekerasanId: teks(60),
   tanggalKejadian: teks(10),
+  tempatKejadian: teks(300),
   kronologi: z.string().trim().max(2000, { error: "Kronologi maksimal 2000 karakter." }),
   jenisPendampinganIds: teks(1000),
   terlaporTidakDiketahui: z.string().trim(),
@@ -153,6 +173,8 @@ export const SkemaLaporan = z.object(bentuk).superRefine((d, ctx) => {
   else if ((hitungUsia(d.korbanTanggalLahir) ?? 0) > 120) tambah("korbanTanggalLahir", "Tanggal lahir tidak masuk akal.");
   if (!kosong(d.korbanPendidikan) && !PDD.has(d.korbanPendidikan)) tambah("korbanPendidikan", "Pilihan tidak dikenal.");
   if (!kosong(d.korbanStatusPerkawinan) && !SPK.has(d.korbanStatusPerkawinan)) tambah("korbanStatusPerkawinan", "Pilihan tidak dikenal.");
+  if (!kosong(d.korbanNoBpjs) && !noBpjsValid(d.korbanNoBpjs)) tambah("korbanNoBpjs", "Nomor BPJS harus 13 digit angka.");
+  if (!kosong(d.korbanStatusBpjs) && !BPJS.has(d.korbanStatusBpjs)) tambah("korbanStatusBpjs", "Pilihan tidak dikenal.");
   if (sendiri) {
     if (kosong(d.korbanKontak)) tambah("korbanKontak", "Nomor HP/WhatsApp wajib diisi agar petugas dapat menghubungi Anda.");
     else if (!POLA_HP.test(d.korbanKontak)) tambah("korbanKontak", "Nomor HP tidak valid. Contoh: 0812 3456 7890.");
@@ -202,7 +224,8 @@ export function galatSampaiLangkah(galat: Galat, n: Langkah): Galat {
   return hasil;
 }
 
-type JenisKelaminKode = "PEREMPUAN" | "LAKI_LAKI";
+type JenisKelaminKode = (typeof OPSI_JENIS_KELAMIN)[number]["nilai"];
+type StatusBpjsKode = (typeof OPSI_STATUS_BPJS)[number]["nilai"];
 
 /** Data laporan yang sudah bersih dan terstruktur, siap disimpan. NIK sudah dibersihkan tetapi belum dienkripsi. */
 export type DataLaporan = {
@@ -210,13 +233,17 @@ export type DataLaporan = {
   pelapor: { nama: string; nik: string; hubunganId: string; kontak: string; alamat: string | null; kecamatanId: string | null; desaId: string | null } | null;
   korban: {
     nama: string;
+    namaPanggilan: string | null;
     nik: string;
     jenisKelamin: JenisKelaminKode;
     tempatLahir: string | null;
     tanggalLahir: string;
     pendidikan: string | null;
     pekerjaanId: string | null;
+    agamaId: string | null;
     statusPerkawinan: string | null;
+    noBpjs: string | null;
+    statusBpjs: StatusBpjsKode | null;
     kontak: string | null;
     alamat: string;
     kecamatanId: string;
@@ -224,6 +251,7 @@ export type DataLaporan = {
   };
   jenisKekerasanId: string;
   tanggalKejadian: string;
+  tempatKejadian: string | null;
   kronologi: string;
   /** Jenis pendampingan yang diminta Pelapor; kosong bila diserahkan kepada petugas. */
   jenisPendampinganIds: string[];
@@ -253,13 +281,17 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
         },
     korban: {
       nama: d.korbanNama,
+      namaPanggilan: atau(d.korbanNamaPanggilan),
       nik: bersihkanNik(d.korbanNik),
       jenisKelamin: d.korbanJenisKelamin as JenisKelaminKode,
       tempatLahir: atau(d.korbanTempatLahir),
       tanggalLahir: d.korbanTanggalLahir,
       pendidikan: atau(d.korbanPendidikan),
       pekerjaanId: atau(d.korbanPekerjaanId),
+      agamaId: atau(d.korbanAgamaId),
       statusPerkawinan: atau(d.korbanStatusPerkawinan),
+      noBpjs: d.korbanNoBpjs === "" ? null : bersihkanNoBpjs(d.korbanNoBpjs),
+      statusBpjs: atau(d.korbanStatusBpjs) as StatusBpjsKode | null,
       kontak: atau(d.korbanKontak),
       alamat: d.korbanAlamat,
       kecamatanId: d.korbanKecamatanId,
@@ -267,6 +299,7 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
     },
     jenisKekerasanId: d.jenisKekerasanId,
     tanggalKejadian: d.tanggalKejadian,
+    tempatKejadian: atau(d.tempatKejadian),
     kronologi: d.kronologi,
     jenisPendampinganIds: pisahIds(d.jenisPendampinganIds),
     terlapor: adaTerlapor

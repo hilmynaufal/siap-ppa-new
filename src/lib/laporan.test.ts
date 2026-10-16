@@ -41,19 +41,24 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   pelaporKecamatanId: "",
   pelaporDesaId: "",
   korbanNama: "Korban Uji",
+  korbanNamaPanggilan: "",
   korbanNik: NIK_KORBAN,
   korbanJenisKelamin: "PEREMPUAN",
   korbanTempatLahir: "Bandung",
   korbanTanggalLahir: "2010-05-20",
   korbanPendidikan: "SMP",
   korbanPekerjaanId: "",
+  korbanAgamaId: "",
   korbanStatusPerkawinan: "BELUM_KAWIN",
+  korbanNoBpjs: "",
+  korbanStatusBpjs: "",
   korbanKontak: "",
   korbanAlamat: "Jl. Fiktif No. 1",
   korbanKecamatanId: "kec",
   korbanDesaId: "",
   jenisKekerasanId: "jenis",
   tanggalKejadian: "2026-10-03",
+  tempatKejadian: "",
   kronologi: "Kronologi uji yang cukup panjang.",
   jenisPendampinganIds: "",
   terlaporTidakDiketahui: "",
@@ -163,6 +168,18 @@ describe("skema formulir", () => {
     expect(bentukDataLaporan(SkemaLaporan.parse(form({ terlaporTidakDiketahui: "on", terlaporNama: "Diabaikan" }))).terlapor).toBeNull();
   });
 
+  it("isian opsional korban (nama panggilan, agama, BPJS) dan TKP; jenis kelamin Lainnya diterima", () => {
+    expect(galat(form({ korbanJenisKelamin: "LAINNYA" }))).toEqual({});
+    expect(galat(form({ korbanNoBpjs: "12345" })).korbanNoBpjs).toBe("Nomor BPJS harus 13 digit angka.");
+    expect(galat(form({ korbanStatusBpjs: "X" })).korbanStatusBpjs).toContain("tidak dikenal");
+    const d = bentukDataLaporan(SkemaLaporan.parse(form({ korbanNamaPanggilan: "Neng", korbanNoBpjs: "0001 2345 6789 0", korbanStatusBpjs: "TIDAK_TAHU", tempatKejadian: "Rumah" })));
+    expect(d.korban).toMatchObject({ namaPanggilan: "Neng", noBpjs: "0001234567890", statusBpjs: "TIDAK_TAHU", agamaId: null });
+    expect(d.tempatKejadian).toBe("Rumah");
+    expect(bentukDataLaporan(SkemaLaporan.parse(form())).tempatKejadian).toBeNull();
+    expect(langkahDariBidang("korbanAgamaId")).toBe(2);
+    expect(langkahDariBidang("tempatKejadian")).toBe(3);
+  });
+
   it("jenis pendampingan tidak wajib, boleh lebih dari satu, dan kotak centang digabung dari FormData", () => {
     const fd = new FormData();
     for (const [k, v] of Object.entries(form())) fd.set(k, v);
@@ -267,6 +284,21 @@ describe("simpanLaporan", () => {
     for (const d of l.dokumen) expect(existsSync(path.join(dir, d.jalurBerkas))).toBe(true);
     expect(l.dokumen.map((d) => d.tipeMime).sort()).toEqual(["application/pdf", "image/jpeg"]);
     expect(l.dokumen.map((d) => d.jenis).sort()).toEqual(["KTP", "SURAT_NIKAH"]);
+  });
+
+  it("menyimpan isian opsional korban dan TKP", async () => {
+    const agamaId = (await db.agama.findFirstOrThrow({ where: { aktif: true } })).id;
+    const d = data({ tempatKejadian: "Sekolah" });
+    d.korban = { ...d.korban, namaPanggilan: "Neng", agamaId, noBpjs: "0001234567890", statusBpjs: "AKTIF" };
+    const hasil = await simpanLaporan(db, d, [], dir);
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    const l = await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode }, include: { korban: true } });
+    expect(l.tempatKejadian).toBe("Sekolah");
+    expect(l.korban).toMatchObject({ namaPanggilan: "Neng", agamaId, noBpjs: "0001234567890", statusBpjs: "AKTIF" });
+    expect(await periksaPilihanLaporan(db, d)).toEqual({});
+    d.korban.agamaId = "tidak-ada";
+    expect((await periksaPilihanLaporan(db, d)).korbanAgamaId).toBe("Pilih agama dari daftar.");
   });
 
   it("menyimpan jenis pendampingan yang diminta Pelapor", async () => {

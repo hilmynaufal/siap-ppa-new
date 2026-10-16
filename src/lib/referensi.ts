@@ -4,13 +4,14 @@ import type { HasilMaster } from "./master-layanan";
 
 /**
  * Daftar rujukan sederhana yang dipakai formulir laporan dan dikelola Admin.
- * Hubungan dengan korban dan Pekerjaan bentuknya sama, jadi memakai satu kumpulan fungsi.
+ * Hubungan dengan korban, Pekerjaan, dan Agama bentuknya sama, jadi memakai satu kumpulan fungsi.
  */
-export type JenisReferensi = "hubungan" | "pekerjaan";
+export type JenisReferensi = "hubungan" | "pekerjaan" | "agama";
 
 export const LABEL_REFERENSI: Record<JenisReferensi, { tunggal: string; jamak: string }> = {
   hubungan: { tunggal: "hubungan", jamak: "Hubungan dengan Korban" },
   pekerjaan: { tunggal: "pekerjaan", jamak: "Pekerjaan" },
+  agama: { tunggal: "agama", jamak: "Agama" },
 };
 
 export const SkemaReferensi = z.object({
@@ -25,9 +26,9 @@ export const SkemaReferensi = z.object({
   ),
 });
 
-// Dua tabel ini berbentuk identik (id, nama, aktif, urutan), sehingga delegasi Prisma-nya dipakai bergantian.
+// Tabel-tabel ini berbentuk identik (id, nama, aktif, urutan), sehingga delegasi Prisma-nya dipakai bergantian.
 function tabel(db: PrismaClient, jenis: JenisReferensi) {
-  return (jenis === "hubungan" ? db.hubunganKorban : db.pekerjaan) as typeof db.hubunganKorban;
+  return ({ hubungan: db.hubunganKorban, pekerjaan: db.pekerjaan, agama: db.agama } as const)[jenis] as typeof db.hubunganKorban;
 }
 
 const kode = (e: unknown) => (typeof e === "object" && e !== null ? (e as { code?: string }).code : undefined);
