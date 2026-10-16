@@ -1,8 +1,9 @@
 import * as z from "zod";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { KANAL_APLIKASI } from "./kanal";
 import { formatNomorAntrean, validasiJadwal, type GalatJadwal } from "./tiket";
 
-export const KANAL_APLIKASI = "APLIKASI";
+export { KANAL_APLIKASI };
 export const ALASAN_JADWAL_MIN = 5;
 export const ALASAN_JADWAL_MAKS = 300;
 

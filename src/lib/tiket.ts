@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import * as z from "zod";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { POLA_KODE } from "./laporan";
+import { KANAL_APLIKASI, KANAL_WHATSAPP } from "./kanal";
 
 /** Zona waktu layanan. Jakarta tidak memakai waktu musim panas, jadi selisihnya tetap +07:00. */
 const ZONA = "+07:00";
@@ -182,7 +183,8 @@ export async function cekTiket(db: PrismaClient, kodeMentah: string, sekarang = 
           lokasi: { select: { nama: true, alamat: true } },
           pendamping: { select: { nama: true } },
           tiket: true,
-          notifikasi: { where: { penerima: "PELAPOR" }, orderBy: { dibuatPada: "desc" }, take: 3, select: { pesan: true, dibuatPada: true } },
+          // Hanya pemberitahuan dalam aplikasi; catatan pesan WhatsApp untuk Admin tidak ditampilkan ulang.
+          notifikasi: { where: { penerima: "PELAPOR", kanal: KANAL_APLIKASI }, orderBy: { dibuatPada: "desc" }, take: 3, select: { pesan: true, dibuatPada: true } },
         },
       },
     },
@@ -249,6 +251,7 @@ export async function jadwalLaporan(db: PrismaClient, laporanId: string) {
       lokasi: { select: { nama: true, alamat: true } },
       pendamping: { select: { nama: true } },
       tiket: { select: { nomorAntrean: true, statusAntrean: true } },
+      notifikasi: { where: { kanal: KANAL_WHATSAPP }, orderBy: { dibuatPada: "desc" }, take: 1, select: { dibuatPada: true } },
     },
   });
   return rows.map((s) => ({
@@ -262,5 +265,7 @@ export async function jadwalLaporan(db: PrismaClient, laporanId: string) {
     mulai: s.mulai.toISOString(),
     selesai: s.selesai.toISOString(),
     status: s.status,
+    /** Terakhir kali Admin membuka WhatsApp untuk mengirim info jadwal sesi ini. */
+    waTerakhir: s.notifikasi[0]?.dibuatPada.toISOString() ?? null,
   }));
 }

@@ -46,3 +46,9 @@ export function hapusKodeTersimpan() {
     // Tidak ada yang bisa dihapus bila penyimpanan tidak tersedia.
   }
 }
+
+/** Kode pendaftaran dari fragmen tautan Cek Tiket (`#kode=PPA-...`); null bila tidak ada atau tidak berformat benar. */
+export function kodeDariFragmen(hash: string): string | null {
+  const nilai = new URLSearchParams(hash.replace(/^#/, "")).get("kode")?.trim().toUpperCase() ?? "";
+  return POLA_KODE.test(nilai) ? nilai : null;
+}

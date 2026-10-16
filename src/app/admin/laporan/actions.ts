@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { wajibPeran } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { bukaNik, cariLaporanByNik, type HasilBukaNik, type HasilCariNik, type PihakNik } from "@/lib/nik-akses";
@@ -8,9 +9,10 @@ import { BIDANG_JADWAL, type GalatJadwal } from "@/lib/tiket";
 import { setujuiUsulan, tolakUsulan } from "@/lib/laporan-pendampingan";
 import { batalkanSesi, tambahSesi, tutupKasus, type HasilSesi } from "@/lib/sesi";
 import { tolakLaporan, verifikasiLaporan, type HasilVerifikasi } from "@/lib/verifikasi";
+import { catatWaDibuka, infoWaSesi, type InfoWa } from "@/lib/wa-jadwal";
 
 export type AksiVerifikasi =
-  | { ok?: boolean; pesan?: string; alasan?: string; galat?: GalatJadwal; nilai?: Record<string, string> }
+  | { ok?: boolean; pesan?: string; alasan?: string; galat?: GalatJadwal; nilai?: Record<string, string>; wa?: InfoWa | null }
   | undefined;
 
 function selesai(hasil: HasilVerifikasi, id: string, alasan?: string, nilai?: Record<string, string>): AksiVerifikasi {
@@ -26,7 +28,11 @@ export async function verifikasi(_s: AksiVerifikasi, fd: FormData): Promise<Aksi
   const admin = await wajibPeran("ADMIN");
   const id = String(fd.get("id") ?? "");
   const nilai = Object.fromEntries(BIDANG_JADWAL.map((k) => [k, String(fd.get(k) ?? "")]));
-  return selesai(await verifikasiLaporan(db, id, admin.id, nilai), id, undefined, nilai);
+  const hasil = await verifikasiLaporan(db, id, admin.id, nilai);
+  const keluaran = selesai(hasil, id, undefined, nilai);
+  // Info WhatsApp untuk modal "berhasil": Admin dapat langsung mengirim jadwal dan tautan Cek Tiket.
+  if (hasil.ok && hasil.sesiId) return { ...keluaran, wa: await infoWaSesi(db, hasil.sesiId, await asalAplikasi()) };
+  return keluaran;
 }
 
 export async function tolak(_s: AksiVerifikasi, fd: FormData): Promise<AksiVerifikasi> {
@@ -90,4 +96,32 @@ export async function tutupKasusAksi(_s: AksiSesi, fd: FormData): Promise<AksiSe
   const admin = await wajibPeran("ADMIN");
   const id = String(fd.get("id") ?? "");
   return hasilSesi(await tutupKasus(db, id, admin.id), id);
+}
+
+/** Asal URL aplikasi untuk tautan di pesan: APP_URL bila diatur, selain itu dari permintaan yang sedang berjalan. */
+async function asalAplikasi() {
+  if (process.env.APP_URL) return process.env.APP_URL;
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+export type HasilInfoWa = { ok: true; info: InfoWa } | { ok: false; pesan: string };
+
+/** Pesan WhatsApp berisi jadwal sesi dan tautan Cek Tiket, untuk dikirim Admin. */
+export async function infoWaAksi(sesiId: string): Promise<HasilInfoWa> {
+  await wajibPeran("ADMIN");
+  const info = await infoWaSesi(db, String(sesiId ?? ""), await asalAplikasi());
+  return info ? { ok: true, info } : { ok: false, pesan: "Sesi tidak ditemukan." };
+}
+
+/** Dicatat saat Admin membuka WhatsApp; pesan disusun ulang di server, bukan diterima dari browser. */
+export async function catatWaAksi(sesiId: string): Promise<void> {
+  const admin = await wajibPeran("ADMIN");
+  const info = await infoWaSesi(db, String(sesiId ?? ""), await asalAplikasi());
+  if (!info) return;
+  await catatWaDibuka(db, info.sesiId, admin.id, info.pesan);
+  const s = await db.sesi.findUnique({ where: { id: info.sesiId }, select: { laporanId: true } });
+  if (s) revalidatePath(`/admin/laporan/${s.laporanId}`);
 }

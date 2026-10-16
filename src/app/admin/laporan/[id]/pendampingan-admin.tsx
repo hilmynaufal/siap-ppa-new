@@ -8,6 +8,7 @@ import { TampilLaporan } from "@/components/tampil-laporan";
 import type { LaporanView } from "@/lib/laporan-pendampingan";
 import { Galat, Modal, fokus, input, tombolKecil, tombolNetral, tombolUtama } from "@/components/ui-form";
 import { batalkanSesiAksi, tambahSesiAksi, type AksiSesi } from "../actions";
+import { TombolKirimWa } from "./kirim-wa";
 import { jenisAwal, namaJenis, type OpsiJadwal } from "./panel-verifikasi";
 
 export type SesiAdmin = {
@@ -22,6 +23,7 @@ export type SesiAdmin = {
   selesai: string;
   status: StatusSesiUi;
   laporan: LaporanView | null;
+  waTerakhir: string | null;
 };
 
 const ZONA = "Asia/Jakarta";
@@ -216,10 +218,13 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
               <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-ink-soft">Pendamping: {x.pendamping}</p>
                 {x.status === "TERJADWAL" && (
-                  <button type="button" onClick={() => setBatal(x)} className={`${tombolKecil} border-error-50 bg-error-50 text-error hover:bg-[#f9d7d3]`} aria-label={`Batalkan sesi ${x.urutan}`}>
-                    <CircleSlash size={16} aria-hidden="true" />
-                    Batalkan
-                  </button>
+                  <div className="flex flex-wrap items-start gap-2">
+                    <TombolKirimWa sesiId={x.id} kode={kode} waTerakhir={x.waTerakhir} />
+                    <button type="button" onClick={() => setBatal(x)} className={`${tombolKecil} border-error-50 bg-error-50 text-error hover:bg-[#f9d7d3]`} aria-label={`Batalkan sesi ${x.urutan}`}>
+                      <CircleSlash size={16} aria-hidden="true" />
+                      Batalkan
+                    </button>
+                  </div>
                 )}
               </div>
               {x.laporan ? (

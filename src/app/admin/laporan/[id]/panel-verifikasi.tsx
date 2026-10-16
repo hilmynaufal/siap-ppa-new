@@ -6,6 +6,7 @@ import { LencanaLaporan, type StatusLaporanUi } from "@/components/lencana-lapor
 import { Galat, Modal, fokus, input, tombolNetral, tombolUtama } from "@/components/ui-form";
 import { ALASAN_MAKS, ALASAN_MIN } from "@/lib/verifikasi";
 import { tolak, verifikasi, type AksiVerifikasi } from "../actions";
+import { ModalKirimWa } from "./kirim-wa";
 
 export type OpsiJadwal = {
   jenis: { id: string; nama: string }[];
@@ -100,8 +101,8 @@ function Bidang({ id, label, galat, children }: { id: string; label: string; gal
   );
 }
 
-function FormVerifikasi({ id, opsi }: { id: string; opsi: OpsiJadwal }) {
-  const [state, aksi, pending] = useActionState(verifikasi, undefined as AksiVerifikasi);
+/** State aksi dipegang PanelVerifikasi: setelah berhasil, formulir ini hilang (status bukan BARU lagi) tetapi modal tetap tampil. */
+function FormVerifikasi({ id, opsi, state, aksi, pending }: { id: string; opsi: OpsiJadwal; state: AksiVerifikasi; aksi: (fd: FormData) => void; pending: boolean }) {
   // Semua isian dikendalikan state agar tidak hilang saat formulir di-reset React setelah aksi selesai (mis. karena galat).
   const [v, setV] = useState({ jenisPendampingId: jenisAwal(opsi), pendampingId: "", lokasiId: "", tanggal: "", jamMulai: "", jamSelesai: "" });
   const isi = (k: keyof typeof v) => ({ value: v[k], onChange: (e: { target: { value: string } }) => setV((x) => ({ ...x, [k]: e.target.value })) });
@@ -185,6 +186,8 @@ function FormVerifikasi({ id, opsi }: { id: string; opsi: OpsiJadwal }) {
 
 export function PanelVerifikasi({ opsi, id, kode, status, verifikator, diverifikasiPada, alasanPenolakan }: Props) {
   const [tolakBuka, setTolakBuka] = useState(false);
+  const [state, aksi, pending] = useActionState(verifikasi, undefined as AksiVerifikasi);
+  const [waDitutup, setWaDitutup] = useState(false);
   const menunggu = status === "BARU";
 
   return (
@@ -200,7 +203,7 @@ export function PanelVerifikasi({ opsi, id, kode, status, verifikator, diverifik
 
       {menunggu ? (
         <>
-          <FormVerifikasi id={id} opsi={opsi} />
+          <FormVerifikasi id={id} opsi={opsi} state={state} aksi={aksi} pending={pending} />
           <button
             type="button"
             onClick={() => setTolakBuka(true)}
@@ -234,6 +237,14 @@ export function PanelVerifikasi({ opsi, id, kode, status, verifikator, diverifik
       )}
 
       {tolakBuka && <ModalTolak id={id} kode={kode} onTutup={() => setTolakBuka(false)} />}
+      {state?.ok && state.wa && !waDitutup && (
+        <ModalKirimWa
+          info={state.wa}
+          judul="Laporan terverifikasi"
+          subjudul={`Laporan ${kode} terverifikasi dan tiket sudah terbit. Kirim jadwal dan tautan Cek Tiket kepada pelapor lewat WhatsApp.`}
+          onTutup={() => setWaDitutup(true)}
+        />
+      )}
     </aside>
   );
 }
