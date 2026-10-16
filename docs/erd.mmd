@@ -53,6 +53,20 @@ erDiagram
     DateTime dibuat_pada
     DateTime diubah_pada
   }
+  agama {
+    String id PK
+    String nama UK
+    Boolean aktif
+    Int urutan
+    DateTime dibuat_pada
+    DateTime diubah_pada
+  }
+  pengaturan {
+    String kunci PK
+    String nilai
+    DateTime diubah_pada
+    String diubah_oleh_id FK "opsional"
+  }
   lokasi {
     String id PK
     String nama UK
@@ -77,6 +91,9 @@ erDiagram
     String jenis_kekerasan_id FK
     DateTime tanggal_kejadian "opsional"
     String kronologi
+    String tempat_kejadian "opsional"
+    String alasan_kebutuhan "opsional"
+    String lembaga_rujukan "opsional"
     Boolean persetujuan_data
     DateTime persetujuan_pada
     enum_status_laporan status
@@ -95,8 +112,16 @@ erDiagram
     String hubungan_id FK "opsional"
     String kontak
     String alamat "opsional"
+    String alamat_ktp "opsional"
     String kecamatan_id FK "opsional"
     String desa_id FK "opsional"
+    enum_jenis_kelamin jenis_kelamin "opsional"
+    String tempat_lahir "opsional"
+    DateTime tanggal_lahir "opsional"
+    String pekerjaan_id FK "opsional"
+    enum_pendidikan pendidikan "opsional"
+    String agama_id FK "opsional"
+    enum_status_perkawinan status_perkawinan "opsional"
   }
   korban {
     String id PK
@@ -110,8 +135,13 @@ erDiagram
     enum_pendidikan pendidikan "opsional"
     String pekerjaan_id FK "opsional"
     enum_status_perkawinan status_perkawinan "opsional"
+    String nama_panggilan "opsional"
+    String agama_id FK "opsional"
+    String no_bpjs "opsional"
+    enum_status_bpjs status_bpjs "opsional"
     String kontak "opsional"
     String alamat "opsional"
+    String alamat_ktp "opsional"
     String kecamatan_id FK "opsional"
     String desa_id FK "opsional"
   }
@@ -123,10 +153,23 @@ erDiagram
     Int usia "opsional"
     String hubungan_id FK "opsional"
     String alamat "opsional"
+    String nama_panggilan "opsional"
+    String nik_cipher "opsional"
+    String nik_indeks "opsional"
+    String tempat_lahir "opsional"
+    DateTime tanggal_lahir "opsional"
+    String pekerjaan_id FK "opsional"
+    enum_pendidikan pendidikan "opsional"
+    String agama_id FK "opsional"
+  }
+  pendampingan_diminta {
+    String laporan_id FK
+    String jenis_pendamping_id FK
   }
   dokumen_laporan {
     String id PK
     String laporan_id FK
+    enum_jenis_dokumen jenis "opsional"
     String nama_berkas
     String jalur_berkas
     String tipe_mime
@@ -230,20 +273,28 @@ erDiagram
   lokasi |o--o{ pengguna : "lokasi"
   pengguna |o--o{ jenis_kekerasan : "dibuatOleh"
   kecamatan ||--o{ desa : "kecamatan"
+  pengguna |o--o{ pengaturan : "diubahOleh"
   kecamatan |o--o{ kontak_darurat : "kecamatan"
   pengguna |o--o{ kontak_darurat : "dibuatOleh"
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"
   pengguna |o--o{ laporan : "verifikator"
   laporan ||--o| pelapor : "laporan"
+  pekerjaan |o--o{ pelapor : "pekerjaan"
+  agama |o--o{ pelapor : "agama"
   hubungan_korban |o--o{ pelapor : "hubungan"
   kecamatan |o--o{ pelapor : "kecamatan"
   desa |o--o{ pelapor : "desa"
   laporan ||--o| korban : "laporan"
   pekerjaan |o--o{ korban : "pekerjaan"
+  agama |o--o{ korban : "agama"
   kecamatan |o--o{ korban : "kecamatan"
   desa |o--o{ korban : "desa"
   laporan ||--o{ terlapor : "laporan"
   hubungan_korban |o--o{ terlapor : "hubungan"
+  pekerjaan |o--o{ terlapor : "pekerjaan"
+  agama |o--o{ terlapor : "agama"
+  laporan ||--o{ pendampingan_diminta : "laporan"
+  jenis_pendampingan ||--o{ pendampingan_diminta : "jenisPendamping"
   laporan ||--o{ dokumen_laporan : "laporan"
   laporan ||--o{ sesi : "laporan"
   jenis_pendampingan ||--o{ sesi : "jenisPendamping"
