@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { MASA_BERLAKU_MS, uraiKodeTersimpan } from "./kode-tersimpan";
+import { MASA_BERLAKU_MS, kodeDariFragmen, uraiKodeTersimpan } from "./kode-tersimpan";
+
+describe("kodeDariFragmen", () => {
+  it("membaca kode dari #kode= pada tautan Cek Tiket", () => {
+    expect(kodeDariFragmen("#kode=PPA-261013-ABCDEF")).toBe("PPA-261013-ABCDEF");
+    expect(kodeDariFragmen("#kode=ppa-261013-abcdef")).toBe("PPA-261013-ABCDEF");
+    expect(kodeDariFragmen("#kode=PPA-261013-ABCDEF&x=1")).toBe("PPA-261013-ABCDEF");
+    for (const salah of ["", "#", "#kode=", "#kode=bukan-kode", "#lain=PPA-261013-ABCDEF"]) expect(kodeDariFragmen(salah), salah).toBeNull();
+  });
+});
 
 const KODE = "PPA-261013-ABCDEF";
 const SEKARANG = Date.UTC(2026, 9, 13);

@@ -15,7 +15,7 @@ export const SkemaPenolakan = z.object({
 });
 
 export type HasilVerifikasi =
-  | { ok: true; nomorAntrean?: string }
+  | { ok: true; nomorAntrean?: string; sesiId?: string }
   | { ok: false; pesan: string; galat?: GalatJadwal };
 
 const PESAN_SUDAH_DIPROSES = "Laporan ini sudah diproses. Muat ulang halaman untuk melihat status terbaru.";
@@ -155,7 +155,7 @@ async function putuskan(
         rincian: tiket ? { sesiId: tiket.sesiId, nomorAntrean: tiket.nomorAntrean } : alasan ? { alasan } : undefined,
       },
     });
-    return { ok: true as const, nomorAntrean: tiket?.nomorAntrean };
+    return { ok: true as const, nomorAntrean: tiket?.nomorAntrean, sesiId: tiket?.sesiId };
   });
 }
 

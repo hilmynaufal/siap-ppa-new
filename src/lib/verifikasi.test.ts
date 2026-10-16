@@ -74,7 +74,7 @@ describe("verifikasi laporan", () => {
   it("verifikasi mengubah status, mencatat verifikator dan audit", async () => {
     const id = await laporanBaru("b");
     const h = await verifikasiLaporan(db, id, adminId, jadwal());
-    expect(h).toEqual({ ok: true, nomorAntrean: expect.stringMatching(/^[A-Z0-9]+-\d{8}-001$/) });
+    expect(h).toEqual({ ok: true, sesiId: expect.any(String), nomorAntrean: expect.stringMatching(/^[A-Z0-9]+-\d{8}-001$/) });
     const d = await detailLaporan(db, id);
     expect(d).toMatchObject({ status: "TERVERIFIKASI", verifikator: "Penguji K9", alasanPenolakan: null });
     expect(d?.diverifikasiPada).not.toBeNull();

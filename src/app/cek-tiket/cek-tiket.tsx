@@ -4,7 +4,7 @@ import { BellRing, CalendarDays, Clock, Hourglass, MapPin, Phone, Printer, Searc
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { IkonKotak } from "@/components/ikon-kotak";
-import { bacaKodeTersimpan, hapusKodeTersimpan } from "@/lib/kode-tersimpan";
+import { bacaKodeTersimpan, hapusKodeTersimpan, kodeDariFragmen } from "@/lib/kode-tersimpan";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { Galat, fokus } from "@/components/ui-form";
 import { periksaTiket, type HasilPeriksa, type TiketDenganQr } from "./actions";
@@ -203,6 +203,16 @@ export function CekTiket() {
     },
     [],
   );
+
+  // Tautan dari pesan WhatsApp membawa kode di fragmen (#kode=...): langsung dicari, lalu dihapus dari bilah alamat.
+  useEffect(() => {
+    const dariTautan = kodeDariFragmen(window.location.hash);
+    if (!dariTautan) return;
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setKode(dariTautan);
+    cari(dariTautan);
+  }, [cari]);
 
   // Pada hari layanan, indikator antrean disegarkan otomatis tanpa memuat ulang halaman.
   const adaAntrean = hasil?.ok && hasil.tiket.some((t) => t.antrean);
