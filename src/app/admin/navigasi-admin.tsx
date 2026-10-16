@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Inbox, LayoutDashboard, Landmark, MapPinned, Shapes, Ticket, ScanLine, UserRoundCog, type LucideIcon } from "lucide-react";
+import { BookOpenText, BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Inbox, LayoutDashboard, Landmark, MapPinned, Shapes, Ticket, ScanLine, Settings, UserRoundCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -28,9 +28,11 @@ const GRUP: { judul?: string; item: Item[] }[] = [
       { href: "/admin/petugas", label: "Akun Petugas", ikon: ScanLine },
       { href: "/admin/hubungan", label: "Hubungan dengan Korban", ikon: Handshake },
       { href: "/admin/pekerjaan", label: "Pekerjaan", ikon: BriefcaseBusiness },
+      { href: "/admin/agama", label: "Agama", ikon: BookOpenText },
       { href: "/admin/desa", label: "Desa/Kelurahan", ikon: Landmark },
     ],
   },
+  { judul: "Sistem", item: [{ href: "/admin/pengaturan", label: "Pengaturan", ikon: Settings }] },
 ];
 
 /** Menu Admin. Bila `kolaps`, hanya ikon yang tampak (rail); label tetap ada untuk pembaca layar dan tooltip. */

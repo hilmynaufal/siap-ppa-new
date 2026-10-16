@@ -20,6 +20,7 @@ import {
   FORMAT_BERKAS,
   OPSI_JENIS_KELAMIN,
   OPSI_PENDIDIKAN,
+  OPSI_STATUS_BPJS,
   OPSI_STATUS_PERKAWINAN,
   SkemaLaporan,
   galatPerBidang,
@@ -235,7 +236,7 @@ function PilihanJenisKelamin({ nama, nilaiAwal, wajib, galat }: { nama: string; 
       <legend className="mb-2 text-sm font-bold text-ink">
         Jenis kelamin {wajib ? <span className="text-error">*</span> : <span className="font-medium text-ink-mute">(tidak wajib)</span>}
       </legend>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {OPSI_JENIS_KELAMIN.map((j) => (
           <label key={j.nilai} className={kartuPilihan}>
             <input type="radio" name={nama} value={j.nilai} defaultChecked={nilaiAwal === j.nilai} className="h-5 w-5 accent-brand-600" />
@@ -260,6 +261,7 @@ export function FormLaporan({
   hubungan,
   pekerjaan,
   pendampingan,
+  agama,
 }: {
   jenis: Opsi[];
   kecamatan: Opsi[];
@@ -267,6 +269,7 @@ export function FormLaporan({
   hubungan: Opsi[];
   pekerjaan: Opsi[];
   pendampingan: Opsi[];
+  agama: Opsi[];
 }) {
   const [state, aksi, mengirim] = useActionState(kirimLaporan, undefined);
   const form = useRef<HTMLFormElement>(null);
@@ -433,7 +436,7 @@ export function FormLaporan({
               <Bidang id="pelaporKontak" label="Nomor HP / WhatsApp" wajib galat={galat.pelaporKontak}>
                 <Teks id="pelaporKontak" type="tel" inputMode="tel" autoComplete="tel" placeholder="Contoh: 0812 3456 7890" nilaiAwal={nilaiAwal("pelaporKontak")} galat={galat.pelaporKontak} />
               </Bidang>
-              <Bidang id="pelaporAlamat" label="Alamat lengkap" galat={galat.pelaporAlamat}>
+              <Bidang id="pelaporAlamat" label="Alamat tempat tinggal (domisili)" galat={galat.pelaporAlamat}>
                 <Teks id="pelaporAlamat" autoComplete="street-address" placeholder="Jalan, nomor, RT/RW" nilaiAwal={nilaiAwal("pelaporAlamat")} galat={galat.pelaporAlamat} />
               </Bidang>
               <Bidang id="pelaporKecamatanId" label="Kecamatan" galat={galat.pelaporKecamatanId}>
@@ -459,6 +462,9 @@ export function FormLaporan({
           <legend className="mb-1 text-xl font-extrabold text-brand-900">Data korban</legend>
           <Bidang id="korbanNama" label="Nama lengkap" wajib galat={galat.korbanNama}>
             <Teks id="korbanNama" autoComplete="off" nilaiAwal={nilaiAwal("korbanNama")} galat={galat.korbanNama} />
+          </Bidang>
+          <Bidang id="korbanNamaPanggilan" label="Nama panggilan" galat={galat.korbanNamaPanggilan}>
+            <Teks id="korbanNamaPanggilan" autoComplete="off" nilaiAwal={nilaiAwal("korbanNamaPanggilan")} galat={galat.korbanNamaPanggilan} />
           </Bidang>
           <Bidang id="korbanNik" label="NIK" wajib petunjuk="16 digit sesuai KTP/KK/KIA. Disimpan terenkripsi." galat={galat.korbanNik}>
             <Teks id="korbanNik" inputMode="numeric" autoComplete="off" maxLength={19} placeholder="16 digit angka" nilaiAwal={nilaiAwal("korbanNik")} galat={galat.korbanNik} petunjuk />
@@ -494,8 +500,19 @@ export function FormLaporan({
           <Bidang id="korbanPekerjaanId" label="Pekerjaan" galat={galat.korbanPekerjaanId}>
             <Pilih id="korbanPekerjaanId" daftar={opsi(pekerjaan)} kosong="Pilih pekerjaan" nilaiAwal={nilaiAwal("korbanPekerjaanId")} galat={galat.korbanPekerjaanId} />
           </Bidang>
+          {agama.length > 0 && (
+            <Bidang id="korbanAgamaId" label="Agama" galat={galat.korbanAgamaId}>
+              <Pilih id="korbanAgamaId" daftar={opsi(agama)} kosong="Pilih agama" nilaiAwal={nilaiAwal("korbanAgamaId")} galat={galat.korbanAgamaId} />
+            </Bidang>
+          )}
           <Bidang id="korbanStatusPerkawinan" label="Status perkawinan" galat={galat.korbanStatusPerkawinan}>
             <Pilih id="korbanStatusPerkawinan" daftar={OPSI_STATUS_PERKAWINAN.map((o) => ({ nilai: o.nilai, label: o.label }))} kosong="Pilih status" nilaiAwal={nilaiAwal("korbanStatusPerkawinan")} galat={galat.korbanStatusPerkawinan} />
+          </Bidang>
+          <Bidang id="korbanNoBpjs" label="Nomor BPJS" petunjuk="13 digit pada kartu BPJS/KIS, bila ada." galat={galat.korbanNoBpjs}>
+            <Teks id="korbanNoBpjs" inputMode="numeric" autoComplete="off" maxLength={20} placeholder="13 digit angka" nilaiAwal={nilaiAwal("korbanNoBpjs")} galat={galat.korbanNoBpjs} petunjuk />
+          </Bidang>
+          <Bidang id="korbanStatusBpjs" label="Status BPJS" galat={galat.korbanStatusBpjs}>
+            <Pilih id="korbanStatusBpjs" daftar={OPSI_STATUS_BPJS.map((o) => ({ nilai: o.nilai, label: o.label }))} kosong="Pilih status BPJS" nilaiAwal={nilaiAwal("korbanStatusBpjs")} galat={galat.korbanStatusBpjs} />
           </Bidang>
           <Bidang
             id="korbanKontak"
@@ -506,7 +523,7 @@ export function FormLaporan({
           >
             <Teks id="korbanKontak" type="tel" inputMode="tel" autoComplete="tel" placeholder="Contoh: 0812 3456 7890" nilaiAwal={nilaiAwal("korbanKontak")} galat={galat.korbanKontak} petunjuk={sendiri} />
           </Bidang>
-          <Bidang id="korbanAlamat" label="Alamat lengkap" wajib galat={galat.korbanAlamat}>
+          <Bidang id="korbanAlamat" label="Alamat tempat tinggal (domisili)" wajib galat={galat.korbanAlamat}>
             <Teks id="korbanAlamat" autoComplete="off" placeholder="Jalan, nomor, RT/RW" nilaiAwal={nilaiAwal("korbanAlamat")} galat={galat.korbanAlamat} />
           </Bidang>
           <Bidang id="korbanKecamatanId" label="Kecamatan" wajib galat={galat.korbanKecamatanId}>
@@ -536,6 +553,9 @@ export function FormLaporan({
               <input id="tanggalKejadian" name="tanggalKejadian" type="date" max={hariIni} defaultValue={nilaiAwal("tanggalKejadian")} aria-invalid={!!galat.tanggalKejadian} aria-describedby={describedBy("tanggalKejadian", galat.tanggalKejadian, true)} className={kontrol + " pr-12"} />
               <Calendar size={20} aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink-mute" />
             </div>
+          </Bidang>
+          <Bidang id="tempatKejadian" label="Tempat kejadian" petunjuk="Mis. rumah korban, sekolah, atau nama jalan dan desanya." galat={galat.tempatKejadian}>
+            <Teks id="tempatKejadian" autoComplete="off" nilaiAwal={nilaiAwal("tempatKejadian")} galat={galat.tempatKejadian} petunjuk />
           </Bidang>
           <Bidang id="kronologi" label="Kronologi kejadian" wajib petunjuk="Ceritakan sebisanya: apa yang terjadi, di mana, dan siapa yang terlibat." galat={galat.kronologi}>
             <textarea id="kronologi" name="kronologi" rows={7} maxLength={MAKS_KRONOLOGI} onInput={(e) => setPanjang(e.currentTarget.value.length)} defaultValue={nilaiAwal("kronologi")} aria-invalid={!!galat.kronologi} aria-describedby={describedBy("kronologi", galat.kronologi, true)} className={kontrol + " h-auto min-h-40 py-3"} />

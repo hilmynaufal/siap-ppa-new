@@ -1,11 +1,11 @@
-import { FileImage, FileSearch, FileText, HeartHandshake, Link2, MapPin, Phone, ShieldAlert, User, UserX } from "lucide-react";
+import { ClipboardPen, FileImage, FileSearch, FileText, HeartHandshake, Link2, MapPin, Phone, Printer, ShieldAlert, User, UserX } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
-import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "@/lib/laporan";
+import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "@/lib/laporan";
 import { daftarUsulan, laporanKasus } from "@/lib/laporan-pendampingan";
 import { laporanTerkait } from "@/lib/nik-akses";
 import { syaratTutupKasus } from "@/lib/sesi";
@@ -33,6 +33,9 @@ const ukuranTeks = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFix
 
 /** Label tampilan dari nilai enum (atau "Tidak diisi"). */
 const label = (daftar: readonly { nilai: string; label: string }[], nilai: string | null) => (nilai ? (daftar.find((o) => o.nilai === nilai)?.label ?? nilai) : "Tidak diisi");
+
+const tautanTombol =
+  "inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 
 function Baris({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -83,7 +86,17 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             <p className="mt-0.5 text-sm text-ink-soft">Masuk {fmt(l.dibuatPada)}</p>
           </div>
         </div>
-        <LencanaLaporan status={l.status} />
+        <div className="flex flex-wrap items-center gap-3">
+          <LencanaLaporan status={l.status} />
+          <Link href={`/admin/laporan/${l.id}/lengkapi`} className={tautanTombol}>
+            <ClipboardPen size={18} aria-hidden="true" />
+            Lengkapi data BAP
+          </Link>
+          <a href={`/bap/${l.id}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
+            <Printer size={18} aria-hidden="true" />
+            Cetak BAP
+          </a>
+        </div>
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
@@ -96,6 +109,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             {k ? (
               <dl className="divide-y divide-line-soft">
                 <Baris label="Nama lengkap">{k.nama}</Baris>
+                {k.namaPanggilan && <Baris label="Nama panggilan">{k.namaPanggilan}</Baris>}
                 <Baris label="NIK">
                   <NikTersamar laporanId={l.id} pihak="KORBAN" tersamar={k.nikTersamar} ada={k.adaNik} />
                 </Baris>
@@ -106,7 +120,11 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                 <Baris label="Usia">{usia !== null ? `${usia} tahun` : "Tidak diisi"}</Baris>
                 <Baris label="Pendidikan">{label(OPSI_PENDIDIKAN, k.pendidikan)}</Baris>
                 <Baris label="Pekerjaan">{k.pekerjaan ?? "Tidak diisi"}</Baris>
+                <Baris label="Agama">{k.agama ?? "Tidak diisi"}</Baris>
                 <Baris label="Status perkawinan">{label(OPSI_STATUS_PERKAWINAN, k.statusPerkawinan)}</Baris>
+                <Baris label="BPJS">
+                  {k.noBpjs || k.statusBpjs ? [k.noBpjs, k.statusBpjs ? label(OPSI_STATUS_BPJS, k.statusBpjs) : null].filter(Boolean).join(" · ") : "Tidak diisi"}
+                </Baris>
                 {k.kontak && (
                   <Baris label="Kontak">
                     <span className="inline-flex items-center gap-2 tabular-nums">
@@ -115,12 +133,13 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                     </span>
                   </Baris>
                 )}
-                <Baris label="Alamat">
+                <Baris label="Alamat domisili">
                   <span className="flex items-start gap-2">
                     <MapPin size={16} aria-hidden="true" className="mt-1 shrink-0 text-ink-mute" />
                     <span>{[k.alamat, k.desa, k.kecamatan].filter(Boolean).join(", ") || "Tidak diisi"}</span>
                   </span>
                 </Baris>
+                {k.alamatKtp && <Baris label="Alamat KTP">{k.alamatKtp}</Baris>}
               </dl>
             ) : (
               <p className="text-ink-soft">Data korban tidak tersedia.</p>
@@ -135,6 +154,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
             <dl className="divide-y divide-line-soft">
               <Baris label="Jenis kekerasan">{l.jenis}</Baris>
               <Baris label="Tanggal kejadian">{l.tanggalKejadian ? fmt(l.tanggalKejadian, false) : "Tidak diisi"}</Baris>
+              <Baris label="Tempat kejadian">{l.tempatKejadian ?? "Tidak diisi"}</Baris>
               <Baris label="Kronologi">
                 <p className="whitespace-pre-wrap break-words">{l.kronologi}</p>
               </Baris>
@@ -152,6 +172,16 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                   </ul>
                 )}
               </Baris>
+              {l.alasanKebutuhan && (
+                <Baris label="Alasan kebutuhan">
+                  <p className="whitespace-pre-wrap break-words">{l.alasanKebutuhan}</p>
+                </Baris>
+              )}
+              {l.lembagaRujukan && (
+                <Baris label="Lembaga rujukan">
+                  <p className="whitespace-pre-wrap break-words">{l.lembagaRujukan}</p>
+                </Baris>
+              )}
             </dl>
           </section>
 

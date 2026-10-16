@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, Handshake, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
+import { BookOpenText, BriefcaseBusiness, Handshake, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarMaster } from "./daftar-master";
 import type { WarnaIkon } from "./ikon-kotak";
@@ -9,7 +9,7 @@ import { Modal, TombolModal, input, tombolKecil } from "./ui-form";
 
 type Baris = { id: string; nama: string; aktif: boolean; urutan: number };
 // Komponen ikon tidak bisa dikirim dari server ke klien, jadi dipilih lewat nama.
-const IKON: Record<"hubungan" | "pekerjaan", LucideIcon> = { hubungan: Handshake, pekerjaan: BriefcaseBusiness };
+const IKON: Record<"hubungan" | "pekerjaan" | "agama", LucideIcon> = { hubungan: Handshake, pekerjaan: BriefcaseBusiness, agama: BookOpenText };
 type AksiForm = (s: AksiMaster, fd: FormData) => Promise<AksiMaster>;
 
 function ModalReferensi({ r, judul, tambah, ubah, onTutup }: { r: Baris | null; judul: string; tambah: AksiForm; ubah: AksiForm; onTutup: () => void }) {

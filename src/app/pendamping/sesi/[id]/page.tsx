@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, Info, MapPin, ShieldAlert, Ticket } from "lucide-react";
+import { ArrowLeft, CalendarClock, ClipboardPen, Info, MapPin, Printer, ShieldAlert, Ticket } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IkonKotak } from "@/components/ikon-kotak";
@@ -21,6 +21,9 @@ const ZONA = "Asia/Jakarta";
 const tglPanjang = (iso: string) => new Date(iso).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: ZONA });
 const jam = (iso: string) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: ZONA }).replace(".", ":");
 const tglPendek = (iso: string) => new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: ZONA });
+
+const tautanTombol =
+  "inline-flex h-11 items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-brand-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100";
 
 function Baris({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -67,6 +70,18 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
         <div className="flex flex-wrap items-center gap-3">
           <LencanaLaporan status={k.status} />
           <LencanaSesi status={s.status} />
+          {s.status !== "DIBATALKAN" && (
+            <>
+              <Link href={`/pendamping/sesi/${s.id}/lengkapi`} className={tautanTombol}>
+                <ClipboardPen size={18} aria-hidden="true" />
+                Lengkapi data BAP
+              </Link>
+              <a href={`/bap/${s.laporanId}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
+                <Printer size={18} aria-hidden="true" />
+                Cetak BAP
+              </a>
+            </>
+          )}
         </div>
       </div>
 
