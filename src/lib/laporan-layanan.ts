@@ -104,9 +104,7 @@ export async function simpanLaporan(
             },
           },
           terlapor: terlapor ? { create: terlapor } : undefined,
-          pendampinganDiminta: data.jenisPendampinganIds.length
-            ? { create: data.jenisPendampinganIds.map((jenisPendampingId) => ({ jenisPendampingId })) }
-            : undefined,
+          pendampinganDiminta: data.jenisPendampinganId ? { create: { jenisPendampingId: data.jenisPendampinganId } } : undefined,
         },
         select: { id: true },
       });
@@ -160,9 +158,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
     db.hubunganKorban.findMany({ where: { id: { in: hubunganId }, aktif: true }, select: { id: true } }),
     d.korban.pekerjaanId ? db.pekerjaan.findFirst({ where: { id: d.korban.pekerjaanId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
     db.desa.groupBy({ by: ["kecamatanId"], where: { kecamatanId: { in: kec } }, _count: true }),
-    d.jenisPendampinganIds.length
-      ? db.jenisPendampingan.count({ where: { id: { in: d.jenisPendampinganIds }, aktif: true } })
-      : Promise.resolve(0),
+    d.jenisPendampinganId ? db.jenisPendampingan.findFirst({ where: { id: d.jenisPendampinganId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
     d.korban.agamaId ? db.agama.findFirst({ where: { id: d.korban.agamaId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
   ]);
   const ada = (daftar: { id: string }[], id: string | null | undefined) => !id || daftar.some((x) => x.id === id);
@@ -172,7 +168,7 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   if (!ada(kecamatan, d.korban.kecamatanId)) galat.korbanKecamatanId = "Pilih kecamatan dari daftar.";
   if (!pekerjaan) galat.korbanPekerjaanId = "Pilih pekerjaan dari daftar.";
   if (!agama) galat.korbanAgamaId = "Pilih agama dari daftar.";
-  if (pendampingan < d.jenisPendampinganIds.length) galat.jenisPendampinganIds = "Ada jenis pendampingan yang tidak tersedia. Pilih lagi dari daftar.";
+  if (!pendampingan) galat.jenisPendampinganId = "Jenis pendampingan tidak tersedia. Pilih lagi dari daftar.";
   if (d.pelapor && !ada(hubungan, d.pelapor.hubunganId)) galat.pelaporHubunganId = "Pilih hubungan dari daftar.";
   if (d.terlapor?.hubunganId && !ada(hubungan, d.terlapor.hubunganId)) galat.terlaporHubunganId = "Pilih hubungan dari daftar.";
   if (d.pelapor?.kecamatanId && !ada(kecamatan, d.pelapor.kecamatanId)) galat.pelaporKecamatanId = "Pilih kecamatan dari daftar.";

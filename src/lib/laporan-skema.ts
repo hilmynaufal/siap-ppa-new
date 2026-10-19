@@ -64,7 +64,7 @@ export const BIDANG_LANGKAH = {
     "korbanNama", "korbanNamaPanggilan", "korbanNik", "korbanJenisKelamin", "korbanTempatLahir", "korbanTanggalLahir", "korbanPendidikan",
     "korbanPekerjaanId", "korbanAgamaId", "korbanStatusPerkawinan", "korbanNoBpjs", "korbanStatusBpjs", "korbanKontak", "korbanAlamat", "korbanKecamatanId", "korbanDesaId",
   ],
-  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "jenisPendampinganIds"],
+  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "jenisPendampinganId"],
   4: ["terlaporTidakDiketahui", "terlaporNama", "terlaporJenisKelamin", "terlaporUsia", "terlaporHubunganId", "terlaporAlamat"],
   5: ["persetujuan"],
 } as const satisfies Record<Langkah, readonly string[]>;
@@ -73,17 +73,10 @@ export const NAMA_BIDANG = Object.values(BIDANG_LANGKAH).flat();
 export type NamaBidang = (typeof NAMA_BIDANG)[number];
 export type Galat = Partial<Record<NamaBidang, string>>;
 
-/** Bidang yang dapat berisi lebih dari satu nilai (kotak centang); nilainya digabung dengan koma. */
-const BIDANG_JAMAK: readonly string[] = ["jenisPendampinganIds"];
-export const MAKS_PENDAMPINGAN_DIMINTA = 10;
-
 /** Isian formulir sebagai teks per bidang; dipakai di klien dan server agar hasilnya sama. */
 export function nilaiDariFormData(fd: FormData): Record<string, string> {
-  return Object.fromEntries(NAMA_BIDANG.map((k) => [k, BIDANG_JAMAK.includes(k) ? fd.getAll(k).map(String).join(",") : String(fd.get(k) ?? "")]));
+  return Object.fromEntries(NAMA_BIDANG.map((k) => [k, String(fd.get(k) ?? "")]));
 }
-
-/** Daftar id dari bidang jamak, tanpa nilai kosong atau kembar. */
-export const pisahIds = (v: string) => [...new Set(v.split(",").map((x) => x.trim()).filter(Boolean))];
 
 export function langkahDariBidang(b: string): Langkah {
   for (const [n, daftar] of Object.entries(BIDANG_LANGKAH)) if ((daftar as readonly string[]).includes(b)) return Number(n) as Langkah;
@@ -135,7 +128,7 @@ const bentuk = {
   tanggalKejadian: teks(10),
   tempatKejadian: teks(300),
   kronologi: z.string().trim().max(2000, { error: "Kronologi maksimal 2000 karakter." }),
-  jenisPendampinganIds: teks(1000),
+  jenisPendampinganId: teks(60),
   terlaporTidakDiketahui: z.string().trim(),
   terlaporNama: teks(120),
   terlaporJenisKelamin: teks(20),
@@ -192,8 +185,6 @@ export const SkemaLaporan = z.object(bentuk).superRefine((d, ctx) => {
   else if (!tidakDiMasaDepan(d.tanggalKejadian)) tambah("tanggalKejadian", "Tanggal tidak boleh di masa depan.");
   if (kosong(d.kronologi)) tambah("kronologi", "Kronologi wajib diisi.");
   else if (d.kronologi.length < 10) tambah("kronologi", "Kronologi wajib diisi. Ceritakan sebisanya (minimal 10 huruf).");
-  // Jenis pendampingan tidak wajib: Pelapor yang belum tahu menyerahkannya kepada petugas.
-  if (pisahIds(d.jenisPendampinganIds).length > MAKS_PENDAMPINGAN_DIMINTA) tambah("jenisPendampinganIds", "Terlalu banyak pilihan.");
 
   // Langkah 4: Terlapor (semua opsional; dilewati bila belum diketahui)
   if (d.terlaporTidakDiketahui !== "on") {
@@ -253,8 +244,8 @@ export type DataLaporan = {
   tanggalKejadian: string;
   tempatKejadian: string | null;
   kronologi: string;
-  /** Jenis pendampingan yang diminta Pelapor; kosong bila diserahkan kepada petugas. */
-  jenisPendampinganIds: string[];
+  /** Satu jenis pendampingan yang diminta Pelapor; null bila diserahkan kepada petugas. */
+  jenisPendampinganId: string | null;
   terlapor: { nama: string | null; jenisKelamin: JenisKelaminKode | null; usia: number | null; hubunganId: string | null; alamat: string | null } | null;
 };
 
@@ -301,7 +292,8 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
     tanggalKejadian: d.tanggalKejadian,
     tempatKejadian: atau(d.tempatKejadian),
     kronologi: d.kronologi,
-    jenisPendampinganIds: pisahIds(d.jenisPendampinganIds),
+    // Tidak wajib: Pelapor yang belum tahu menyerahkannya kepada petugas.
+    jenisPendampinganId: atau(d.jenisPendampinganId),
     terlapor: adaTerlapor
       ? {
           nama: atau(d.terlaporNama),
