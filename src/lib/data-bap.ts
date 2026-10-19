@@ -9,6 +9,7 @@ import {
   tanggalValid,
   tidakDiMasaDepan,
 } from "./laporan-skema";
+import { SESI_AKTIF, LAPORAN_AKTIF } from "./aktif";
 import { enkripsiNik, indeksNik, nikTersamar } from "./nik";
 import { bersihkanNik, nikValid } from "./nik-format";
 
@@ -22,7 +23,7 @@ import { bersihkanNik, nikValid } from "./nik-format";
 export async function bolehAksesKasus(db: PrismaClient, pengguna: { id: string; peran: string }, laporanId: string): Promise<boolean> {
   if (pengguna.peran === "ADMIN") return true;
   if (pengguna.peran !== "PENDAMPING") return false;
-  return (await db.sesi.count({ where: { laporanId, pendampingId: pengguna.id, status: { not: "DIBATALKAN" } } })) > 0;
+  return (await db.sesi.count({ where: { laporanId, pendampingId: pengguna.id, status: { not: "DIBATALKAN" }, ...SESI_AKTIF } })) > 0;
 }
 
 export const BIDANG_BAP = [
@@ -99,8 +100,8 @@ const keTanggal = (v: string) => (v ? new Date(`${v}T00:00:00Z`) : null);
 
 /** Isian awal formulir dari data yang tersimpan. NIK pelaku tidak pernah dikirim ke browser; hanya versi tersamar. */
 export async function isianBapAwal(db: PrismaClient, laporanId: string) {
-  const l = await db.laporan.findUnique({
-    where: { id: laporanId },
+  const l = await db.laporan.findFirst({
+    where: { id: laporanId, ...LAPORAN_AKTIF },
     select: {
       id: true,
       kodePendaftaran: true,

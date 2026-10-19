@@ -1,6 +1,7 @@
-import { ClipboardPen, FileImage, FileSearch, FileText, HeartHandshake, Link2, MapPin, Phone, Printer, ShieldAlert, User, UserX } from "lucide-react";
+import { ClipboardPen, FileImage, FileSearch, FileText, HeartHandshake, Link2, MapPin, Phone, Printer, ShieldAlert, Trash2, User, UserX } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AksiLaporanSampah, TombolHapusLaporan } from "@/components/aksi-sampah";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
@@ -70,7 +71,9 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
   const sesi = sesiDasar.map((x) => ({ ...x, laporan: laporanSesi[x.id] ?? null }));
   // Pilihan Pelapor ditandai di formulir jadwal; Admin tetap bebas memilih jenis lain.
   const opsi = { jenis, pendamping, lokasi, diminta: l.pendampinganDiminta.map((p) => p.id) };
-  const kasusAktif = l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN";
+  // Laporan di Sampah tampil baca-saja: tidak ada verifikasi, jadwal, BAP, atau penutupan kasus.
+  const diSampah = !!l.sampah;
+  const kasusAktif = !diSampah && (l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN");
 
   return (
     <main className="px-4 py-6 md:px-8 md:py-8">
@@ -88,16 +91,38 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <LencanaLaporan status={l.status} />
-          <Link href={`/admin/laporan/${l.id}/lengkapi`} className={tautanTombol}>
-            <ClipboardPen size={18} aria-hidden="true" />
-            Lengkapi data BAP
-          </Link>
-          <a href={`/bap/${l.id}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
-            <Printer size={18} aria-hidden="true" />
-            Cetak BAP
-          </a>
+          {!diSampah && (
+            <>
+              <Link href={`/admin/laporan/${l.id}/lengkapi`} className={tautanTombol}>
+                <ClipboardPen size={18} aria-hidden="true" />
+                Lengkapi data BAP
+              </Link>
+              <a href={`/bap/${l.id}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
+                <Printer size={18} aria-hidden="true" />
+                Cetak BAP
+              </a>
+              <TombolHapusLaporan id={l.id} kode={l.kode} />
+            </>
+          )}
         </div>
       </div>
+
+      {l.sampah && (
+        <section aria-labelledby="h-sampah" className="mb-6 rounded-2xl border border-error/30 bg-error-50 p-5">
+          <h2 id="h-sampah" className="flex items-center gap-2 font-bold text-error">
+            <Trash2 size={18} aria-hidden="true" />
+            Laporan ini ada di Sampah
+          </h2>
+          <p className="mt-1 text-sm text-ink">
+            Dihapus {fmt(l.sampah.pada)}
+            {l.sampah.oleh && <> oleh {l.sampah.oleh}</>}
+            {l.sampah.alasan && <>. Alasan: {l.sampah.alasan}</>}. Laporan, jadwal, dan tiketnya tidak tampil di daftar mana pun.
+          </p>
+          <div className="mt-3">
+            <AksiLaporanSampah id={l.id} kode={l.kode} dariDetail />
+          </div>
+        </section>
+      )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="flex flex-col gap-6">
@@ -260,7 +285,8 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               kode={l.kode}
               sesi={sesi}
               opsi={opsi}
-              bisaTambah={l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN"}
+              bisaTambah={kasusAktif}
+              bacaSaja={diSampah}
             />
           )}
 
@@ -300,19 +326,21 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
         </div>
 
         <div>
-        {(kasusAktif || l.status === "DITUTUP") && <UsulanSesi laporanId={l.id} kode={l.kode} usulan={usulan} opsi={opsi} bisaMemutuskan={kasusAktif} />}
-        <PanelVerifikasi
-          opsi={opsi}
-          id={l.id}
-          kode={l.kode}
-          status={l.status}
-          verifikator={l.verifikator}
-          diverifikasiPada={l.diverifikasiPada ? fmt(l.diverifikasiPada) : null}
-          alasanPenolakan={l.alasanPenolakan}
-        />
-        {(l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN" || l.status === "DITUTUP") && (
-          <TutupKasus laporanId={l.id} kode={l.kode} bisa={tutup.bisa} alasan={tutup.alasan} sudahDitutup={tutup.sudahDitutup} />
-        )}
+          {(kasusAktif || l.status === "DITUTUP") && <UsulanSesi laporanId={l.id} kode={l.kode} usulan={usulan} opsi={opsi} bisaMemutuskan={kasusAktif} />}
+          {!diSampah && (
+            <PanelVerifikasi
+              opsi={opsi}
+              id={l.id}
+              kode={l.kode}
+              status={l.status}
+              verifikator={l.verifikator}
+              diverifikasiPada={l.diverifikasiPada ? fmt(l.diverifikasiPada) : null}
+              alasanPenolakan={l.alasanPenolakan}
+            />
+          )}
+          {!diSampah && (l.status === "TERVERIFIKASI" || l.status === "DALAM_PENDAMPINGAN" || l.status === "DITUTUP") && (
+            <TutupKasus laporanId={l.id} kode={l.kode} bisa={tutup.bisa} alasan={tutup.alasan} sudahDitutup={tutup.sudahDitutup} />
+          )}
         </div>
       </div>
     </main>

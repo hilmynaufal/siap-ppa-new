@@ -135,6 +135,7 @@ model Pengguna {
   jenisPendamping      JenisPendampingan?          @relation(fields: [jenisPendampingId], references: [id])
   lokasi               Lokasi?                     @relation("LokasiPetugas", fields: [lokasiId], references: [id])
   laporanDiverifikasi  Laporan[]                   @relation("VerifikatorLaporan")
+  laporanDihapus       Laporan[]                   @relation("PenghapusLaporan")
   sesi                 Sesi[]
   laporanPendampingan  LaporanPendampingan[]
   revisi               RevisiLaporanPendampingan[]
@@ -314,9 +315,14 @@ model Laporan {
   diverifikasiPada    DateTime?     @map("diverifikasi_pada")
   ditutupPada         DateTime?     @map("ditutup_pada")
   dibuatPada          DateTime      @default(now()) @map("dibuat_pada")
+  /// Terisi bila laporan dipindah ke Sampah (hapus lunak); dapat dipulihkan atau dihapus permanen oleh Admin.
+  dihapusPada         DateTime?     @map("dihapus_pada")
+  dihapusOlehId       String?       @map("dihapus_oleh_id")
+  alasanHapus         String?       @map("alasan_hapus")
 
   jenisKekerasan      JenisKekerasan        @relation(fields: [jenisKekerasanId], references: [id])
   verifikator         Pengguna?             @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
+  dihapusOleh         Pengguna?             @relation("PenghapusLaporan", fields: [dihapusOlehId], references: [id])
   pelapor             Pelapor?
   korban              Korban?
   terlapor            Terlapor[]
@@ -326,6 +332,7 @@ model Laporan {
   pendampinganDiminta PendampinganDiminta[]
 
   @@index([status, dibuatPada])
+  @@index([dihapusPada])
   @@map("laporan")
 }
 

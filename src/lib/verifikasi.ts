@@ -1,6 +1,7 @@
 import * as z from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { nikTersamar } from "./nik";
+import { LAPORAN_AKTIF } from "./aktif";
 import { terbitkanTiket, validasiJadwal, type GalatJadwal } from "./tiket";
 
 export const ALASAN_MIN = 10;
@@ -23,6 +24,7 @@ const PESAN_SUDAH_DIPROSES = "Laporan ini sudah diproses. Muat ulang halaman unt
 /** Daftar laporan untuk Admin, terbaru dulu. Tanggal dikirim sebagai teks ISO agar aman melintasi batas server dan klien. */
 export async function daftarLaporanAdmin(db: PrismaClient) {
   const rows = await db.laporan.findMany({
+    where: LAPORAN_AKTIF,
     orderBy: { dibuatPada: "desc" },
     include: {
       jenisKekerasan: { select: { nama: true } },
@@ -50,6 +52,7 @@ export async function detailLaporan(db: PrismaClient, id: string) {
     include: {
       jenisKekerasan: { select: { nama: true } },
       verifikator: { select: { nama: true } },
+      dihapusOleh: { select: { nama: true } },
       dokumen: { select: { id: true, jenis: true, namaBerkas: true, tipeMime: true, ukuran: true }, orderBy: [{ jenis: "asc" }, { namaBerkas: "asc" }] },
       pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
@@ -113,6 +116,8 @@ export async function detailLaporan(db: PrismaClient, id: string) {
     verifikator: r.verifikator?.nama ?? null,
     diverifikasiPada: r.diverifikasiPada?.toISOString() ?? null,
     dibuatPada: r.dibuatPada.toISOString(),
+    /** Terisi bila laporan di Sampah: detail tampil baca-saja dengan pilihan pulihkan atau hapus permanen. */
+    sampah: r.dihapusPada ? { pada: r.dihapusPada.toISOString(), oleh: r.dihapusOleh?.nama ?? null, alasan: r.alasanHapus } : null,
     dokumen: r.dokumen,
     /** Jenis pendampingan yang dipilih Pelapor di formulir. */
     pendampinganDiminta: r.pendampinganDiminta.map((x) => x.jenisPendamping),
@@ -137,7 +142,7 @@ async function putuskan(
 ): Promise<HasilVerifikasi> {
   return db.$transaction(async (tx) => {
     const { count } = await tx.laporan.updateMany({
-      where: { id, status: "BARU" },
+      where: { id, status: "BARU", ...LAPORAN_AKTIF },
       data: { status, alasanPenolakan: alasan, verifikatorId: adminId, diverifikasiPada: new Date() },
     });
     if (count === 0) {

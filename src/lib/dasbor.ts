@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { LAPORAN_AKTIF, SESI_AKTIF } from "./aktif";
 import { hariJakarta } from "./tiket";
 
 const HARI_MS = 24 * 3600 * 1000;
@@ -33,27 +34,28 @@ export async function ringkasanDasbor(db: PrismaClient, sekarang = new Date()) {
 
   const diPeriode = { gte: awal30, lt: sekarang };
   const [baru, terverifikasi, ditolak, total, usulan, usulanPertama, belumLapor, belumLaporPertama, sesiHariIni, barisGrafik, barisDonat, terbaru, jadwal] = await Promise.all([
-    db.laporan.count({ where: { status: "BARU" } }),
-    db.laporan.count({ where: { status: { notIn: ["BARU", "DITOLAK"] }, diverifikasiPada: diPeriode } }),
-    db.laporan.count({ where: { status: "DITOLAK", diverifikasiPada: diPeriode } }),
-    db.laporan.count({ where: { dibuatPada: diPeriode } }),
-    db.usulanSesi.count({ where: { status: "MENUNGGU" } }),
-    db.usulanSesi.findFirst({ where: { status: "MENUNGGU" }, orderBy: { dibuatPada: "asc" }, select: { laporanPendampingan: { select: { sesi: { select: { laporanId: true } } } } } }),
-    db.sesi.count({ where: { status: "SELESAI", laporanPendampingan: { is: null } } }),
-    db.sesi.findFirst({ where: { status: "SELESAI", laporanPendampingan: { is: null } }, orderBy: { mulai: "asc" }, select: { laporanId: true } }),
-    db.sesi.count({ where: { mulai: { gte: awalHari, lt: akhirHari }, status: { not: "DIBATALKAN" } } }),
+    db.laporan.count({ where: { ...LAPORAN_AKTIF, status: "BARU" } }),
+    db.laporan.count({ where: { ...LAPORAN_AKTIF, status: { notIn: ["BARU", "DITOLAK"] }, diverifikasiPada: diPeriode } }),
+    db.laporan.count({ where: { ...LAPORAN_AKTIF, status: "DITOLAK", diverifikasiPada: diPeriode } }),
+    db.laporan.count({ where: { ...LAPORAN_AKTIF, dibuatPada: diPeriode } }),
+    db.usulanSesi.count({ where: { status: "MENUNGGU", laporanPendampingan: { sesi: SESI_AKTIF } } }),
+    db.usulanSesi.findFirst({ where: { status: "MENUNGGU", laporanPendampingan: { sesi: SESI_AKTIF } }, orderBy: { dibuatPada: "asc" }, select: { laporanPendampingan: { select: { sesi: { select: { laporanId: true } } } } } }),
+    db.sesi.count({ where: { ...SESI_AKTIF, status: "SELESAI", laporanPendampingan: { is: null } } }),
+    db.sesi.findFirst({ where: { ...SESI_AKTIF, status: "SELESAI", laporanPendampingan: { is: null } }, orderBy: { mulai: "asc" }, select: { laporanId: true } }),
+    db.sesi.count({ where: { ...SESI_AKTIF, mulai: { gte: awalHari, lt: akhirHari }, status: { not: "DIBATALKAN" } } }),
     // Kolom disimpan sebagai UTC tanpa zona: ubah dulu ke UTC lalu ke Jakarta agar batas bulan menurut waktu Jakarta.
     db.$queryRaw<{ bulan: string; status: string; n: number }[]>`
       select to_char(date_trunc('month', (dibuat_pada at time zone 'UTC') at time zone 'Asia/Jakarta'), 'YYYY-MM') as bulan, status::text as status, count(*)::int as n
-      from laporan where dibuat_pada >= ${mulaiGrafik} and dibuat_pada < ${akhirGrafik} group by 1, 2`,
-    db.sesi.groupBy({ by: ["jenisPendampingId"], where: { status: { in: ["SELESAI", "BERLANGSUNG"] }, mulai: diPeriode }, _count: { _all: true } }),
+      from laporan where dihapus_pada is null and dibuat_pada >= ${mulaiGrafik} and dibuat_pada < ${akhirGrafik} group by 1, 2`,
+    db.sesi.groupBy({ by: ["jenisPendampingId"], where: { ...SESI_AKTIF, status: { in: ["SELESAI", "BERLANGSUNG"] }, mulai: diPeriode }, _count: { _all: true } }),
     db.laporan.findMany({
+      where: LAPORAN_AKTIF,
       take: 5,
       orderBy: { dibuatPada: "desc" },
       select: { id: true, kodePendaftaran: true, dibuatPada: true, status: true, jenisKekerasan: { select: { nama: true } }, korban: { select: { kecamatan: { select: { nama: true } } } } },
     }),
     db.sesi.findMany({
-      where: { mulai: { gte: awalHari, lt: akhirHari }, status: { not: "DIBATALKAN" } },
+      where: { ...SESI_AKTIF, mulai: { gte: awalHari, lt: akhirHari }, status: { not: "DIBATALKAN" } },
       orderBy: { mulai: "asc" },
       select: { mulai: true, status: true, jenisPendamping: { select: { nama: true } }, pendamping: { select: { nama: true } }, lokasi: { select: { nama: true } }, tiket: { select: { nomorAntrean: true } } },
     }),
@@ -113,4 +115,4 @@ export async function ringkasanDasbor(db: PrismaClient, sekarang = new Date()) {
 export type RingkasanDasbor = Awaited<ReturnType<typeof ringkasanDasbor>>;
 
 /** Jumlah laporan yang menunggu verifikasi (lencana pada menu Laporan masuk). */
-export const jumlahLaporanBaru = (db: PrismaClient) => db.laporan.count({ where: { status: "BARU" } });
+export const jumlahLaporanBaru = (db: PrismaClient) => db.laporan.count({ where: { ...LAPORAN_AKTIF, status: "BARU" } });

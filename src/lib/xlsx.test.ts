@@ -65,6 +65,7 @@ describe("kondisiEkspor", () => {
     expect((k.dibuatPada as { gte: Date; lt: Date }).lt.toISOString()).toBe("2026-10-03T17:00:00.000Z");
 
     const kosong = kondisiEkspor({ status: "ASAL", dari: "kemarin", sampai: "" });
-    expect(kosong).toEqual({ status: undefined, jenisKekerasan: undefined, korban: undefined, dibuatPada: undefined });
+    // Laporan di Sampah selalu dikecualikan dari ekspor.
+    expect(kosong).toEqual({ dihapusPada: null, status: undefined, jenisKekerasan: undefined, korban: undefined, dibuatPada: undefined });
   });
 });

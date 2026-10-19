@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { wajibPeran } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { bukaNik, cariLaporanByNik, type HasilBukaNik, type HasilCariNik, type PihakNik } from "@/lib/nik-akses";
 import { BIDANG_JADWAL, type GalatJadwal } from "@/lib/tiket";
 import { setujuiUsulan, tolakUsulan } from "@/lib/laporan-pendampingan";
+import { hapusPermanen, pindahkanKeSampah, pulihkanLaporan } from "@/lib/sampah";
 import { batalkanSesi, tambahSesi, tutupKasus, type HasilSesi } from "@/lib/sesi";
 import { tolakLaporan, verifikasiLaporan, type HasilVerifikasi } from "@/lib/verifikasi";
 import { catatWaDibuka, infoWaSesi, type InfoWa } from "@/lib/wa-jadwal";
@@ -124,4 +126,45 @@ export async function catatWaAksi(sesiId: string): Promise<void> {
   await catatWaDibuka(db, info.sesiId, admin.id, info.pesan);
   const s = await db.sesi.findUnique({ where: { id: info.sesiId }, select: { laporanId: true } });
   if (s) revalidatePath(`/admin/laporan/${s.laporanId}`);
+}
+
+export type AksiSampah = { ok?: boolean; pesan?: string } | undefined;
+
+function segarkanSampah(id: string) {
+  for (const p of ["/admin", "/admin/laporan", "/admin/sampah", `/admin/laporan/${id}`, "/admin/jadwal", "/pendamping"]) revalidatePath(p, "layout");
+}
+
+/** Memindahkan laporan ke Sampah (dapat dipulihkan). Hanya Admin; alasan wajib dan tercatat di audit. */
+export async function hapusLaporanAksi(_s: AksiSampah, fd: FormData): Promise<AksiSampah> {
+  const admin = await wajibPeran("ADMIN");
+  const id = String(fd.get("id") ?? "");
+  const h = await pindahkanKeSampah(db, id, admin.id, String(fd.get("alasan") ?? ""));
+  if (!h.ok) return { pesan: h.pesan };
+  segarkanSampah(id);
+  // Dialihkan dari server: setelah status berubah, tombol di halaman detail ikut hilang sehingga tidak bisa mengalihkan sendiri.
+  redirect("/admin/laporan");
+}
+
+export async function pulihkanLaporanAksi(_s: AksiSampah, fd: FormData): Promise<AksiSampah> {
+  const admin = await wajibPeran("ADMIN");
+  const id = String(fd.get("id") ?? "");
+  const h = await pulihkanLaporan(db, id, admin.id);
+  if (!h.ok) return { pesan: h.pesan };
+  segarkanSampah(id);
+  return { ok: true };
+}
+
+/** Hapus permanen dari Sampah. Admin harus mengetik ulang kode laporan sebagai konfirmasi. */
+export async function hapusPermanenAksi(_s: AksiSampah, fd: FormData): Promise<AksiSampah> {
+  const admin = await wajibPeran("ADMIN");
+  const id = String(fd.get("id") ?? "");
+  const l = await db.laporan.findUnique({ where: { id }, select: { kodePendaftaran: true } });
+  if (!l) return { pesan: "Laporan tidak ditemukan." };
+  if (String(fd.get("konfirmasi") ?? "").trim().toUpperCase() !== l.kodePendaftaran) return { pesan: `Ketik ${l.kodePendaftaran} untuk mengonfirmasi.` };
+  const h = await hapusPermanen(db, id, admin.id);
+  if (!h.ok) return { pesan: h.pesan };
+  segarkanSampah(id);
+  // Dari halaman detail, halaman itu sudah tidak ada lagi: kembali ke Sampah.
+  if (fd.get("dariDetail") === "1") redirect("/admin/sampah");
+  return { ok: true };
 }

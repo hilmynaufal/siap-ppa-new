@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { LAPORAN_AKTIF, SESI_AKTIF } from "./aktif";
 import { KANAL_APLIKASI } from "./jadwal";
 import { hitungUsia } from "./laporan-skema";
 import { hariJakarta, terbitkanTiket, validasiJadwal, type GalatJadwal } from "./tiket";
@@ -44,7 +45,7 @@ export async function ubahStatusSesi(
   sekarang = new Date(),
 ): Promise<HasilSesi> {
   const sesi = await db.sesi.findFirst({
-    where: { id: sesiId, pendampingId },
+    where: { id: sesiId, pendampingId, ...SESI_AKTIF },
     select: { status: true, mulai: true, laporanId: true, laporan: { select: { status: true } } },
   });
   if (!sesi) return { ok: false, pesan: "Sesi tidak ditemukan." };
@@ -84,7 +85,7 @@ export type SesiPendamping = Awaited<ReturnType<typeof daftarSesiPendamping>>[nu
 /** Sesi milik satu Pendamping beserta penanda tab. Tidak memuat nama, NIK, alamat, atau kontak korban dan pelapor. */
 export async function daftarSesiPendamping(db: PrismaClient, pendampingId: string, sekarang = new Date()) {
   const rows = await db.sesi.findMany({
-    where: { pendampingId },
+    where: { pendampingId, ...SESI_AKTIF },
     orderBy: { mulai: "asc" },
     include: {
       laporan: { select: { kodePendaftaran: true, korban: { select: { nama: true } }, jenisKekerasan: { select: { nama: true } } } },
@@ -125,7 +126,7 @@ export async function daftarSesiPendamping(db: PrismaClient, pendampingId: strin
 /** Ringkasan satu kasus untuk Pendamping yang ditugaskan: identitas dirahasiakan, hanya yang perlu untuk pendampingan. */
 export async function ringkasanSesiPendamping(db: PrismaClient, sesiId: string, pendampingId: string, sekarang = new Date()) {
   const s = await db.sesi.findFirst({
-    where: { id: sesiId, pendampingId },
+    where: { id: sesiId, pendampingId, ...SESI_AKTIF },
     include: {
       jenisPendamping: { select: { nama: true } },
       lokasi: { select: { nama: true, alamat: true } },
@@ -207,7 +208,7 @@ class UsulanTidakValid extends Error {}
  * Bila `usulanId` diberikan, usulan sesi lanjutan itu disetujui dan dihubungkan ke sesi baru dalam transaksi yang sama.
  */
 export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: string, jadwalMentah: unknown, sekarang = new Date(), usulanId?: string): Promise<HasilSesi> {
-  const l = await db.laporan.findUnique({ where: { id: laporanId }, select: { status: true, kodePendaftaran: true } });
+  const l = await db.laporan.findFirst({ where: { id: laporanId, ...LAPORAN_AKTIF }, select: { status: true, kodePendaftaran: true } });
   if (!l) return { ok: false, pesan: "Laporan tidak ditemukan." };
   if (l.status !== "TERVERIFIKASI" && l.status !== "DALAM_PENDAMPINGAN") {
     return { ok: false, pesan: "Sesi hanya dapat ditambahkan pada kasus yang terverifikasi dan belum ditutup." };
@@ -275,8 +276,8 @@ export async function batalkanSesi(db: PrismaClient, sesiId: string, adminId: st
 
 /** Apakah kasus dapat ditutup, beserta alasan bila belum. Dipakai tampilan dan pemeriksaan di server. */
 export async function syaratTutupKasus(db: PrismaClient, laporanId: string) {
-  const l = await db.laporan.findUnique({
-    where: { id: laporanId },
+  const l = await db.laporan.findFirst({
+    where: { id: laporanId, ...LAPORAN_AKTIF },
     select: { status: true, sesi: { select: { status: true, laporanPendampingan: { select: { usulan: { select: { status: true } } } } } } },
   });
   if (!l) return { bisa: false, alasan: ["Laporan tidak ditemukan."], sudahDitutup: false };

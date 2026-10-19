@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { LAPORAN_AKTIF } from "./aktif";
 import { dekripsiNik, indeksNik } from "./nik";
 import { bersihkanNik, nikValid } from "./nik-format";
 
@@ -41,8 +42,8 @@ export async function cariLaporanByNik(db: PrismaClient, nikMentah: string, admi
   if (!nikValid(nik)) return { ok: false, pesan: "NIK harus 16 digit angka dan berformat benar." };
   const indeks = indeksNik(nik);
   const [korban, pelapor] = await Promise.all([
-    db.korban.findMany({ where: { nikIndeks: indeks }, select: { laporanId: true } }),
-    db.pelapor.findMany({ where: { nikIndeks: indeks }, select: { laporanId: true } }),
+    db.korban.findMany({ where: { nikIndeks: indeks, laporan: LAPORAN_AKTIF }, select: { laporanId: true } }),
+    db.pelapor.findMany({ where: { nikIndeks: indeks, laporan: LAPORAN_AKTIF }, select: { laporanId: true } }),
   ]);
   const laporanIds = [...new Set([...korban, ...pelapor].map((x) => x.laporanId))];
   await db.logAudit.create({
@@ -60,7 +61,7 @@ export async function laporanTerkait(db: PrismaClient, laporanId: string) {
   const indeks = [l?.korban?.nikIndeks, l?.pelapor?.nikIndeks].filter((x): x is string => !!x);
   if (indeks.length === 0) return [];
   const rows = await db.laporan.findMany({
-    where: { id: { not: laporanId }, OR: [{ korban: { nikIndeks: { in: indeks } } }, { pelapor: { nikIndeks: { in: indeks } } }] },
+    where: { id: { not: laporanId }, ...LAPORAN_AKTIF, OR: [{ korban: { nikIndeks: { in: indeks } } }, { pelapor: { nikIndeks: { in: indeks } } }] },
     orderBy: { dibuatPada: "desc" },
     take: 20,
     select: {

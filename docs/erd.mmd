@@ -102,6 +102,9 @@ erDiagram
     DateTime diverifikasi_pada "opsional"
     DateTime ditutup_pada "opsional"
     DateTime dibuat_pada
+    DateTime dihapus_pada "opsional"
+    String dihapus_oleh_id FK "opsional"
+    String alasan_hapus "opsional"
   }
   pelapor {
     String id PK
@@ -278,6 +281,7 @@ erDiagram
   pengguna |o--o{ kontak_darurat : "dibuatOleh"
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"
   pengguna |o--o{ laporan : "verifikator"
+  pengguna |o--o{ laporan : "dihapusOleh"
   laporan ||--o| pelapor : "laporan"
   pekerjaan |o--o{ pelapor : "pekerjaan"
   agama |o--o{ pelapor : "agama"

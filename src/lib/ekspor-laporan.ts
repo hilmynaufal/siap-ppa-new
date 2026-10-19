@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { LAPORAN_AKTIF } from "./aktif";
 import { DOKUMEN_LAPORAN, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "./laporan";
 import { buatXlsx, type SelExcel } from "./xlsx";
 
@@ -76,6 +77,7 @@ export function kondisiEkspor(f: FilterEkspor): Prisma.LaporanWhereInput {
   if (f.dari && POLA_TANGGAL.test(f.dari)) dibuat.gte = new Date(`${f.dari}T00:00:00+07:00`);
   if (f.sampai && POLA_TANGGAL.test(f.sampai)) dibuat.lt = new Date(new Date(`${f.sampai}T00:00:00+07:00`).getTime() + 24 * 3600 * 1000);
   return {
+    ...LAPORAN_AKTIF,
     status: STATUS_EKSPOR.find((s) => s === f.status),
     jenisKekerasan: f.jenis ? { nama: f.jenis } : undefined,
     korban: f.kecamatan ? { kecamatan: { nama: f.kecamatan } } : undefined,
