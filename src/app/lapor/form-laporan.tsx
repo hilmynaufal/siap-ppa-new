@@ -30,7 +30,6 @@ import {
   bidangDokumen,
   nilaiDariFormData,
   periksaBerkas,
-  pisahIds,
   type Galat,
   type JenisDokumenLaporan,
   type Langkah,
@@ -564,32 +563,32 @@ export function FormLaporan({
             </p>
           </Bidang>
           {pendampingan.length > 0 && (
-            <fieldset className="flex flex-col gap-2" aria-describedby={galat.jenisPendampinganIds ? "jenisPendampinganIds-galat" : "jenisPendampinganIds-petunjuk"}>
+            <fieldset className="flex flex-col gap-2" aria-describedby={galat.jenisPendampinganId ? "jenisPendampinganId-galat" : "jenisPendampinganId-petunjuk"}>
               <legend className="mb-2 text-sm font-bold text-ink">
                 Pendampingan yang dibutuhkan <span className="font-medium text-ink-mute">(tidak wajib)</span>
               </legend>
-              <p id="jenisPendampinganIds-petunjuk" className="-mt-1 mb-1 text-sm text-ink-mute">
-                Boleh pilih lebih dari satu. Jika belum tahu, kosongkan saja; petugas akan membantu menentukannya.
+              <p id="jenisPendampinganId-petunjuk" className="-mt-1 mb-1 text-sm text-ink-mute">
+                Pilih satu yang paling dibutuhkan. Jika belum tahu, petugas akan membantu menentukannya.
               </p>
               <div className="flex flex-col gap-3">
-                {pendampingan.map((p) => (
-                  <label key={p.id} className={kartuCentang}>
+                {[...pendampingan, { id: "", nama: "Belum tahu" }].map((p) => (
+                  <label key={p.id || "belum-tahu"} className={kartuCentang}>
                     <input
-                      type="checkbox"
-                      name="jenisPendampinganIds"
+                      type="radio"
+                      name="jenisPendampinganId"
                       value={p.id}
-                      defaultChecked={pisahIds(nilaiAwal("jenisPendampinganIds")).includes(p.id)}
-                      className="h-5 w-5 shrink-0 rounded-md accent-brand-600"
+                      defaultChecked={nilaiAwal("jenisPendampinganId") === p.id}
+                      className="h-5 w-5 shrink-0 accent-brand-600"
                     />
-                    <HeartHandshake size={18} aria-hidden="true" className="shrink-0 text-brand-700" />
+                    {p.id ? <HeartHandshake size={18} aria-hidden="true" className="shrink-0 text-brand-700" /> : null}
                     {p.nama}
                   </label>
                 ))}
               </div>
-              {galat.jenisPendampinganIds && (
-                <p id="jenisPendampinganIds-galat" role="alert" className="flex items-start gap-2 text-sm font-medium text-error">
+              {galat.jenisPendampinganId && (
+                <p id="jenisPendampinganId-galat" role="alert" className="flex items-start gap-2 text-sm font-medium text-error">
                   <AlertCircle size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-                  {galat.jenisPendampinganIds}
+                  {galat.jenisPendampinganId}
                 </p>
               )}
             </fieldset>

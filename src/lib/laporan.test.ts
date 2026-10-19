@@ -60,7 +60,7 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   tanggalKejadian: "2026-10-03",
   tempatKejadian: "",
   kronologi: "Kronologi uji yang cukup panjang.",
-  jenisPendampinganIds: "",
+  jenisPendampinganId: "",
   terlaporTidakDiketahui: "",
   terlaporNama: "",
   terlaporJenisKelamin: "",
@@ -180,22 +180,16 @@ describe("skema formulir", () => {
     expect(langkahDariBidang("tempatKejadian")).toBe(3);
   });
 
-  it("jenis pendampingan tidak wajib, boleh lebih dari satu, dan kotak centang digabung dari FormData", () => {
+  it("jenis pendampingan tidak wajib dan hanya satu pilihan", () => {
     const fd = new FormData();
     for (const [k, v] of Object.entries(form())) fd.set(k, v);
-    fd.delete("jenisPendampinganIds");
-    fd.append("jenisPendampinganIds", "psi");
-    fd.append("jenisPendampinganIds", "hkm");
-    fd.append("jenisPendampinganIds", "psi");
+    fd.set("jenisPendampinganId", "psi");
     const nilai = nilaiDariFormData(fd);
-    expect(nilai.jenisPendampinganIds).toBe("psi,hkm,psi");
     expect(nilai.korbanNama).toBe("Korban Uji");
-    expect(bentukDataLaporan(SkemaLaporan.parse(nilai)).jenisPendampinganIds).toEqual(["psi", "hkm"]);
-
-    expect(bentukDataLaporan(SkemaLaporan.parse(form())).jenisPendampinganIds).toEqual([]);
-    expect(langkahDariBidang("jenisPendampinganIds")).toBe(3);
-    const banyak = Array.from({ length: 11 }, (_, i) => `j${i}`).join(",");
-    expect(galat(form({ jenisPendampinganIds: banyak })).jenisPendampinganIds).toBe("Terlalu banyak pilihan.");
+    expect(bentukDataLaporan(SkemaLaporan.parse(nilai)).jenisPendampinganId).toBe("psi");
+    // "Belum tahu" mengirim nilai kosong.
+    expect(bentukDataLaporan(SkemaLaporan.parse(form())).jenisPendampinganId).toBeNull();
+    expect(langkahDariBidang("jenisPendampinganId")).toBe(3);
   });
 });
 
@@ -302,7 +296,7 @@ describe("simpanLaporan", () => {
   });
 
   it("menyimpan jenis pendampingan yang diminta Pelapor", async () => {
-    const hasil = await simpanLaporan(db, data({ jenisPendampinganIds: [pendampinganId] }), [], dir);
+    const hasil = await simpanLaporan(db, data({ jenisPendampinganId: pendampinganId }), [], dir);
     expect(hasil.ok).toBe(true);
     if (!hasil.ok) return;
     const l = await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode }, include: { pendampinganDiminta: true } });
@@ -366,9 +360,9 @@ describe("periksaPilihanLaporan", () => {
   });
 
   it("jenis pendampingan harus ada dan masih aktif", async () => {
-    expect(await periksaPilihanLaporan(db, data({ jenisPendampinganIds: [pendampinganId] }))).toEqual({});
-    for (const salah of [["tidak-ada"], [pendampinganId, pendampinganNonaktifId]]) {
-      expect((await periksaPilihanLaporan(db, data({ jenisPendampinganIds: salah }))).jenisPendampinganIds, salah.join()).toContain("tidak tersedia");
+    expect(await periksaPilihanLaporan(db, data({ jenisPendampinganId: pendampinganId }))).toEqual({});
+    for (const salah of ["tidak-ada", pendampinganNonaktifId]) {
+      expect((await periksaPilihanLaporan(db, data({ jenisPendampinganId: salah }))).jenisPendampinganId, salah).toContain("tidak tersedia");
     }
   });
 
