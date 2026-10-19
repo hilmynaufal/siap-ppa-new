@@ -3,6 +3,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { deteksiTipe, ekstensiUntuk } from "./laporan";
+import { SESI_AKTIF } from "./aktif";
 import { direktoriUnggah } from "./laporan-layanan";
 import { MAKS_FOTO, MAKS_UKURAN_FOTO, SkemaLaporanPendampingan, SkemaRevisi, galatBidang, periksaFoto, type GalatPendampingan } from "./pendampingan-skema";
 import { KANAL_APLIKASI } from "./jadwal";
@@ -146,7 +147,7 @@ export async function kirimLaporanPendampingan(
   const h = SkemaLaporanPendampingan.safeParse(mentah);
   if (!h.success) return { ok: false, pesan: "Ada kolom wajib yang belum diisi.", galat: galatBidang(h.error) };
 
-  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId }, select: { status: true, laporan: { select: { status: true, kodePendaftaran: true } }, laporanPendampingan: { select: { id: true } } } });
+  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { status: true, laporan: { select: { status: true, kodePendaftaran: true } }, laporanPendampingan: { select: { id: true } } } });
   if (!sesi) return { ok: false, pesan: "Sesi tidak ditemukan." };
   if (!STATUS_BOLEH_LAPOR.includes(sesi.status)) return { ok: false, pesan: "Laporan dapat diisi setelah sesi dimulai." };
   if (sesi.laporanPendampingan) return { ok: false, pesan: "Laporan sesi ini sudah dikirim. Gunakan Ajukan revisi untuk mengoreksi." };
@@ -202,7 +203,7 @@ export async function revisiLaporanPendampingan(
   const h = SkemaRevisi.safeParse(mentah);
   if (!h.success) return { ok: false, pesan: "Ada kolom wajib yang belum diisi.", galat: galatBidang(h.error) };
 
-  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId }, select: { laporan: { select: { status: true } } } });
+  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { laporan: { select: { status: true } } } });
   if (!sesi) return { ok: false, pesan: "Sesi tidak ditemukan." };
   const lama = await db.laporanPendampingan.findFirst({ where: { sesiId, dikirimPada: { not: null } }, include: { foto: true, usulan: { select: { id: true, status: true } } } });
   if (!lama) return { ok: false, pesan: "Laporan belum dikirim." };
@@ -287,7 +288,7 @@ export async function fotoUntukPengguna(db: PrismaClient, fotoId: string, penggu
   });
   if (!foto) return null;
   if (pengguna.peran !== "ADMIN") {
-    const ikut = await db.sesi.count({ where: { laporanId: foto.laporanPendampingan.sesi.laporanId, pendampingId: pengguna.id } });
+    const ikut = await db.sesi.count({ where: { laporanId: foto.laporanPendampingan.sesi.laporanId, pendampingId: pengguna.id, ...SESI_AKTIF } });
     if (!ikut) return null;
   }
   return { namaBerkas: foto.namaBerkas, jalurBerkas: foto.jalurBerkas, tipeMime: foto.tipeMime };

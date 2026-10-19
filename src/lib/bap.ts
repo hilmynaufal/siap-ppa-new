@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { LAPORAN_AKTIF } from "./aktif";
 import { DOKUMEN_LAPORAN, labelDokumen } from "./laporan";
 import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia } from "./laporan-skema";
 import { dekripsiNik } from "./nik";
@@ -89,8 +90,8 @@ async function pilihanMaster(cari: (where: object) => Promise<Pilihan[]>, terpil
 }
 
 export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: string) {
-  const r = await db.laporan.findUnique({
-    where: { id: laporanId },
+  const r = await db.laporan.findFirst({
+    where: { id: laporanId, ...LAPORAN_AKTIF },
     include: {
       verifikator: { select: { nama: true } },
       jenisKekerasan: { select: { id: true, nama: true } },

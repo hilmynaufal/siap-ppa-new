@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { SESI_AKTIF } from "./aktif";
 import { KANAL_APLIKASI } from "./kanal";
 import { formatNomorAntrean, validasiJadwal, type GalatJadwal } from "./tiket";
 
@@ -55,11 +56,12 @@ async function ubahSekali(db: PrismaClient, sesiId: string, adminId: string, men
         tiket: true,
         pendamping: { select: { id: true, nama: true } },
         lokasi: { select: { nama: true } },
-        laporan: { select: { kodePendaftaran: true, status: true } },
+        laporan: { select: { kodePendaftaran: true, status: true, dihapusPada: true } },
       },
     });
     if (!sesi || !sesi.tiket) return { ok: false, pesan: "Jadwal tidak ditemukan." };
     if (sesi.status !== "TERJADWAL") return { ok: false, pesan: "Hanya jadwal berstatus Terjadwal yang dapat diubah." };
+    if (sesi.laporan.dihapusPada) return { ok: false, pesan: "Laporan ini ada di Sampah. Pulihkan dulu untuk mengubah jadwal." };
     if (sesi.laporan.status === "DITUTUP") return { ok: false, pesan: "Laporan ini sudah ditutup." };
     if (sesi.tiket.checkInPada) return { ok: false, pesan: "Pelapor sudah check-in, jadwal tidak dapat diubah lagi." };
 
@@ -161,6 +163,7 @@ export async function ubahJadwal(db: PrismaClient, sesiId: string, adminId: stri
 /** Semua sesi untuk halaman Jadwal Admin (tanggal sebagai teks ISO), beserta jumlah perubahan dan pemberitahuan. */
 export async function daftarJadwalAdmin(db: PrismaClient) {
   const rows = await db.sesi.findMany({
+    where: SESI_AKTIF,
     orderBy: { mulai: "asc" },
     include: {
       laporan: { select: { kodePendaftaran: true, korban: { select: { nama: true } } } },
@@ -216,7 +219,7 @@ export async function riwayatJadwal(db: PrismaClient, sesiId: string) {
 /** Pemberitahuan untuk satu Pendamping, terbaru dulu. */
 export async function notifikasiPendamping(db: PrismaClient, penggunaId: string, jumlah = 10) {
   const rows = await db.notifikasi.findMany({
-    where: { penerimaId: penggunaId, penerima: "PENDAMPING" },
+    where: { penerimaId: penggunaId, penerima: "PENDAMPING", sesi: SESI_AKTIF },
     orderBy: { dibuatPada: "desc" },
     take: jumlah,
     select: { id: true, pesan: true, dibuatPada: true, dibacaPada: true },

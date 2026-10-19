@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { SESI_AKTIF } from "./aktif";
 import { KANAL_WHATSAPP } from "./kanal";
 import { nomorPonsel, tautanWhatsapp } from "./whatsapp";
 
@@ -61,8 +62,8 @@ export type InfoWa = {
 
 /** Menyusun pesan WhatsApp untuk satu sesi. Nomor tujuan: pelapor, atau korban bila korban sendiri yang melapor. */
 export async function infoWaSesi(db: PrismaClient, sesiId: string, asal: string): Promise<InfoWa | null> {
-  const s = await db.sesi.findUnique({
-    where: { id: sesiId },
+  const s = await db.sesi.findFirst({
+    where: { id: sesiId, ...SESI_AKTIF },
     select: {
       id: true,
       mulai: true,

@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import * as z from "zod";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { POLA_KODE } from "./laporan";
+import { LAPORAN_AKTIF } from "./aktif";
 import { KANAL_APLIKASI, KANAL_WHATSAPP } from "./kanal";
 
 /** Zona waktu layanan. Jakarta tidak memakai waktu musim panas, jadi selisihnya tetap +07:00. */
@@ -165,8 +166,8 @@ export async function cekTiket(db: PrismaClient, kodeMentah: string, sekarang = 
   const kode = normalisasiKode(kodeMentah);
   if (!POLA_KODE.test(kode)) return { ok: false, pesan: "Format kode tidak sesuai. Contoh: PPA-261007-AB23CD." };
 
-  const l = await db.laporan.findUnique({
-    where: { kodePendaftaran: kode },
+  const l = await db.laporan.findFirst({
+    where: { kodePendaftaran: kode, ...LAPORAN_AKTIF },
     select: {
       status: true,
       alasanPenolakan: true,

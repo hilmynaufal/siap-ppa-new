@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
+import { SESI_AKTIF } from "./aktif";
 import { hariJakarta, normalisasiKode } from "./tiket";
 
 export type StatusAntrean = "MENUNGGU" | "DIPANGGIL" | "BERLANGSUNG" | "SELESAI" | "DILEWATI";
@@ -33,7 +34,7 @@ export type BarisAntrean = {
 /** Daftar antrean satu lokasi, jenis pendampingan, dan tanggal, lengkap dengan nomor yang sedang dipanggil. Tanpa nama korban. */
 export async function daftarAntrean(db: PrismaClient, f: FilterAntrean) {
   const rows = await db.tiket.findMany({
-    where: { lokasiId: f.lokasiId, jenisPendampingId: f.jenisPendampingId, tanggal: tanggalDb(f.tanggal) },
+    where: { lokasiId: f.lokasiId, jenisPendampingId: f.jenisPendampingId, tanggal: tanggalDb(f.tanggal), sesi: SESI_AKTIF },
     orderBy: { urutan: "asc" },
     include: { sesi: { select: { mulai: true, status: true, pendamping: { select: { nama: true } } } } },
   });
@@ -80,7 +81,7 @@ export async function checkInTiket(db: PrismaClient, masukan: string, petugasId:
   const mentah = String(masukan ?? "").trim().slice(0, 100);
   if (!mentah) return { ok: false, pesan: "Isi kode tiket atau pindai QR." };
   const t = await db.tiket.findFirst({
-    where: { OR: [{ kodeCheckIn: mentah }, { nomorAntrean: normalisasiKode(mentah) }] },
+    where: { OR: [{ kodeCheckIn: mentah }, { nomorAntrean: normalisasiKode(mentah) }], sesi: SESI_AKTIF },
     select: { id: true, nomorAntrean: true, lokasiId: true, tanggal: true, statusAntrean: true, checkInPada: true, sesi: { select: { status: true, laporan: { select: { status: true } } } } },
   });
   if (!t) return { ok: false, pesan: "Tiket tidak ditemukan. Periksa kode atau pindai ulang." };
@@ -116,7 +117,7 @@ export async function panggilBerikutnya(db: PrismaClient, f: FilterAntrean, petu
         tanggal: tanggalDb(f.tanggal),
         statusAntrean: "MENUNGGU",
         checkInPada: { not: null },
-        sesi: { status: "TERJADWAL" },
+        sesi: { ...SESI_AKTIF, status: "TERJADWAL" },
       },
       orderBy: { urutan: "asc" },
       select: { id: true, nomorAntrean: true },
@@ -159,10 +160,10 @@ export async function layarPublik(db: PrismaClient, lokasiId: string, jenisPenda
     db.jenisPendampingan.findFirst({ where: { id: jenisPendampingId, aktif: true }, select: { nama: true } }),
   ]);
   if (!lokasi || !jenis) return null;
-  const dasar = { lokasiId, jenisPendampingId, tanggal: tanggalDb(hariJakarta(sekarang)) };
+  const dasar = { lokasiId, jenisPendampingId, tanggal: tanggalDb(hariJakarta(sekarang)), sesi: SESI_AKTIF };
   const [dipanggil, berikut] = await Promise.all([
     db.tiket.findFirst({ where: { ...dasar, statusAntrean: "DIPANGGIL" }, orderBy: { dipanggilPada: "desc" }, select: { nomorAntrean: true } }),
-    db.tiket.findMany({ where: { ...dasar, statusAntrean: "MENUNGGU", checkInPada: { not: null }, sesi: { status: "TERJADWAL" } }, orderBy: { urutan: "asc" }, take: 3, select: { nomorAntrean: true } }),
+    db.tiket.findMany({ where: { ...dasar, statusAntrean: "MENUNGGU", checkInPada: { not: null }, sesi: { ...SESI_AKTIF, status: "TERJADWAL" } }, orderBy: { urutan: "asc" }, take: 3, select: { nomorAntrean: true } }),
   ]);
   return {
     jenis: jenis.nama,
@@ -187,7 +188,7 @@ export type BarisJadwalHariIni = {
 /** Daftar sesi pada satu tanggal di satu lokasi untuk loket. Hanya nomor antrean, jam, jenis, dan Pendamping: tanpa nama atau kode laporan. */
 export async function jadwalHariIni(db: PrismaClient, lokasiId: string, tanggal: string): Promise<BarisJadwalHariIni[]> {
   const rows = await db.sesi.findMany({
-    where: { lokasiId, mulai: { gte: new Date(`${tanggal}T00:00:00+07:00`), lt: new Date(`${tanggal}T23:59:59.999+07:00`) } },
+    where: { ...SESI_AKTIF, lokasiId, mulai: { gte: new Date(`${tanggal}T00:00:00+07:00`), lt: new Date(`${tanggal}T23:59:59.999+07:00`) } },
     orderBy: { mulai: "asc" },
     select: {
       mulai: true,

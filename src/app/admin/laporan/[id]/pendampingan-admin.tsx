@@ -169,7 +169,7 @@ function ModalBatal({ laporanId, s, onTutup }: { laporanId: string; s: SesiAdmin
 }
 
 /** Daftar sesi pendampingan satu laporan, dengan tambah sesi dan pembatalan sesi yang belum dimulai. */
-export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: { laporanId: string; kode: string; sesi: SesiAdmin[]; opsi: OpsiJadwal; bisaTambah: boolean }) {
+export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah, bacaSaja = false }: { laporanId: string; kode: string; sesi: SesiAdmin[]; opsi: OpsiJadwal; bisaTambah: boolean; bacaSaja?: boolean }) {
   const [tambah, setTambah] = useState(false);
   const [batal, setBatal] = useState<SesiAdmin | null>(null);
   const lengkap = opsi.jenis.length > 0 && opsi.lokasi.length > 0 && opsi.pendamping.length > 0;
@@ -217,7 +217,7 @@ export function PendampinganAdmin({ laporanId, kode, sesi, opsi, bisaTambah }: {
               </p>
               <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-ink-soft">Pendamping: {x.pendamping}</p>
-                {x.status === "TERJADWAL" && (
+                {x.status === "TERJADWAL" && !bacaSaja && (
                   <div className="flex flex-wrap items-start gap-2">
                     <TombolKirimWa sesiId={x.id} kode={kode} waTerakhir={x.waTerakhir} />
                     <button type="button" onClick={() => setBatal(x)} className={`${tombolKecil} border-error-50 bg-error-50 text-error hover:bg-[#f9d7d3]`} aria-label={`Batalkan sesi ${x.urutan}`}>
