@@ -14,8 +14,9 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  BIDANG_JEBAKAN,
   DOKUMEN_LAPORAN,
   FORMAT_BERKAS,
   OPSI_JENIS_KELAMIN,
@@ -293,8 +294,7 @@ export function FormLaporan({
   if (state !== lihatState) {
     setLihatState(state);
     if (state) {
-      // Browser mengosongkan formulir setelah dikirim, termasuk kolom berkas; tampilan disamakan.
-      setBerkas({});
+      // Formulir tidak dikosongkan (dikirim manual), sehingga berkas yang dipilih tetap ada.
       setGalat(state.galat ?? {});
       setRingkasan(state.ringkasan ?? null);
       if (state.langkah) setLangkah(state.langkah);
@@ -350,6 +350,9 @@ export function FormLaporan({
   }
 
   function saatKirim(e: React.FormEvent<HTMLFormElement>) {
+    // Selalu dikirim manual (bukan lewat atribut action): React mengosongkan formulir setelah aksi selesai,
+    // termasuk pilihan dan berkas, sehingga Pelapor yang mengirim ulang setelah galat terlempar ke langkah awal.
+    e.preventDefault();
     const nilai = nilaiFormulir();
     const hasil = SkemaLaporan.safeParse(nilai);
     const gDesa = galatDesa(nilai);
@@ -358,8 +361,11 @@ export function FormLaporan({
       if (item?.galat) return [`${d.label}: ${item.galat}`];
       return d.wajib && !item ? [`${d.label} wajib dilampirkan.`] : [];
     });
-    if (hasil.success && galatBerkas.length === 0 && Object.keys(gDesa).length === 0) return; // lanjut ke Server Action
-    e.preventDefault();
+    if (hasil.success && galatBerkas.length === 0 && Object.keys(gDesa).length === 0) {
+      const data = new FormData(e.currentTarget);
+      startTransition(() => aksi(data));
+      return;
+    }
     if (!hasil.success || Object.keys(gDesa).length > 0) {
       const g = { ...gDesa, ...(hasil.success ? {} : galatPerBidang(hasil.error)) };
       const bidang = Object.keys(g);
@@ -383,7 +389,7 @@ export function FormLaporan({
   const jumlahLangkah = LANGKAH.length;
 
   return (
-    <form ref={form} action={aksi} onSubmit={saatKirim} noValidate className="flex min-h-[calc(100vh-4rem)] flex-col">
+    <form ref={form} onSubmit={saatKirim} noValidate className="flex min-h-[calc(100vh-4rem)] flex-col">
       <div className="flex-1 px-4 pb-6 pt-5">
         <ol aria-label="Langkah pengisian" className="mb-5 grid grid-cols-5 gap-1.5">
           {LANGKAH.map((nama, i) => {
@@ -406,8 +412,20 @@ export function FormLaporan({
           </div>
         )}
 
-        {/* Kolom jebakan untuk robot */}
-        <input name="situs" tabIndex={-1} autoComplete="off" aria-hidden="true" className="sr-only" defaultValue="" />
+        {/* Kolom jebakan untuk robot; atribut data-* meminta pengelola kata sandi melewatinya. */}
+        <input
+          name={BIDANG_JEBAKAN}
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          data-1p-ignore
+          data-lpignore="true"
+          data-bwignore
+          data-form-type="other"
+          className="sr-only"
+          defaultValue=""
+        />
 
         {/* Langkah 1: Pelapor */}
         <fieldset className={aktif(1) + " flex flex-col gap-5"}>
@@ -447,7 +465,7 @@ export function FormLaporan({
                   id="pelaporDesaId"
                   daftar={desaPelapor}
                   kosong={!kecPelapor ? "Pilih kecamatan dulu" : desaPelapor.length === 0 ? "Data desa belum tersedia" : "Pilih desa/kelurahan"}
-                  nilaiAwal=""
+                  nilaiAwal={nilaiAwal("pelaporDesaId")}
                   nonaktif={desaPelapor.length === 0}
                   galat={galat.pelaporDesaId}
                 />
@@ -534,7 +552,7 @@ export function FormLaporan({
               id="korbanDesaId"
               daftar={desaKorban}
               kosong={!kecKorban ? "Pilih kecamatan dulu" : desaKorban.length === 0 ? "Data desa belum tersedia" : "Pilih desa/kelurahan"}
-              nilaiAwal=""
+              nilaiAwal={nilaiAwal("korbanDesaId")}
               nonaktif={desaKorban.length === 0}
               galat={galat.korbanDesaId}
             />

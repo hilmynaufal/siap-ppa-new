@@ -1,6 +1,7 @@
 import "server-only";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { konfigurasiPool } from "./db-pool";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -8,7 +9,7 @@ function client(): PrismaClient {
   if (!globalForPrisma.prisma) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error("DATABASE_URL wajib diisi.");
-    globalForPrisma.prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+    globalForPrisma.prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString, ...konfigurasiPool(process.env) }) });
   }
   return globalForPrisma.prisma;
 }
