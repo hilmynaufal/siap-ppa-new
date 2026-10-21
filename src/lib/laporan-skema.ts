@@ -73,6 +73,12 @@ export const NAMA_BIDANG = Object.values(BIDANG_LANGKAH).flat();
 export type NamaBidang = (typeof NAMA_BIDANG)[number];
 export type Galat = Partial<Record<NamaBidang, string>>;
 
+/**
+ * Nama kolom jebakan robot. Sengaja tidak mirip isian umum (nama, situs, email, telepon, alamat)
+ * agar tidak diisi otomatis oleh browser atau pengelola kata sandi milik Pelapor sungguhan.
+ */
+export const BIDANG_JEBAKAN = "ppa_k7x";
+
 /** Isian formulir sebagai teks per bidang; dipakai di klien dan server agar hasilnya sama. */
 export function nilaiDariFormData(fd: FormData): Record<string, string> {
   return Object.fromEntries(NAMA_BIDANG.map((k) => [k, String(fd.get(k) ?? "")]));
