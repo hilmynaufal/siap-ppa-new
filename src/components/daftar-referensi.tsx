@@ -1,18 +1,18 @@
 "use client";
 
-import { BookOpenText, BriefcaseBusiness, Handshake, Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
+import { BookOpenText, BriefcaseBusiness, Handshake, Pencil, Plus, Signpost, Trash2, type LucideIcon } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarMaster } from "./daftar-master";
 import type { WarnaIkon } from "./ikon-kotak";
 import { BidangForm, ModalHapus, SakelarAktif, type AksiMaster } from "./master-ui";
 import { Modal, TombolModal, input, tombolKecil } from "./ui-form";
 
-type Baris = { id: string; nama: string; aktif: boolean; urutan: number };
+type Baris = { id: string; nama: string; aktif: boolean; urutan: number; wajibSurat?: boolean };
 // Komponen ikon tidak bisa dikirim dari server ke klien, jadi dipilih lewat nama.
-const IKON: Record<"hubungan" | "pekerjaan" | "agama", LucideIcon> = { hubungan: Handshake, pekerjaan: BriefcaseBusiness, agama: BookOpenText };
+const IKON: Record<"hubungan" | "pekerjaan" | "agama" | "rujukan", LucideIcon> = { hubungan: Handshake, pekerjaan: BriefcaseBusiness, agama: BookOpenText, rujukan: Signpost };
 type AksiForm = (s: AksiMaster, fd: FormData) => Promise<AksiMaster>;
 
-function ModalReferensi({ r, judul, tambah, ubah, onTutup }: { r: Baris | null; judul: string; tambah: AksiForm; ubah: AksiForm; onTutup: () => void }) {
+function ModalReferensi({ r, judul, tambah, ubah, onTutup, pakaiWajibSurat }: { r: Baris | null; judul: string; tambah: AksiForm; ubah: AksiForm; onTutup: () => void; pakaiWajibSurat: boolean }) {
   const ubahMode = r !== null;
   const [state, aksi, pending] = useActionState(ubahMode ? ubah : tambah, undefined as AksiMaster);
   useEffect(() => {
@@ -39,6 +39,15 @@ function ModalReferensi({ r, judul, tambah, ubah, onTutup }: { r: Baris | null; 
         <BidangForm id="urutan" label="Urutan tampil" wajib={false} petunjuk="Angka kecil tampil lebih dulu (0-999). Pilihan 'Lainnya' sebaiknya diberi angka besar." galat={g.urutan}>
           <input id="urutan" name="urutan" type="number" inputMode="numeric" min={0} max={999} defaultValue={nilai("urutan", String(r?.urutan ?? 0))} aria-invalid={!!g.urutan} className={input} />
         </BidangForm>
+        {pakaiWajibSurat && (
+          <label className="mb-4 flex min-h-11 items-start gap-3 text-sm">
+            <input type="checkbox" name="wajibSurat" defaultChecked={state?.nilai ? state.nilai.wajibSurat === "on" : (r?.wajibSurat ?? false)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+            <span>
+              <strong className="block">Wajib unggah surat rujukan</strong>
+              Pelapor yang memilih asal ini harus melampirkan surat rujukan.
+            </span>
+          </label>
+        )}
         {ubahMode && (
           <label className="mb-4 flex min-h-11 items-center gap-3 text-sm font-bold">
             <input type="checkbox" name="aktif" defaultChecked={r.aktif} className="h-5 w-5 accent-brand-600" />
@@ -68,6 +77,7 @@ export function DaftarReferensi({
   ubah,
   hapus,
   alihkan,
+  pakaiWajibSurat = false,
 }: {
   judul: string;
   deskripsi: string;
@@ -79,6 +89,8 @@ export function DaftarReferensi({
   ubah: AksiForm;
   hapus: AksiForm;
   alihkan: (id: string, aktif: boolean) => Promise<unknown>;
+  /** Asal rujukan: tampilkan kolom dan isian "Wajib unggah surat rujukan". */
+  pakaiWajibSurat?: boolean;
 }) {
   const [form, setForm] = useState<{ r: Baris | null } | null>(null);
   const [hapusR, setHapusR] = useState<Baris | null>(null);
@@ -101,6 +113,7 @@ export function DaftarReferensi({
       kolom={[
         { judul: "Nama", sel: (r) => <span className="font-semibold text-ink">{r.nama}</span> },
         { judul: "Urutan", sel: (r) => <span className="tabular-nums text-ink-soft">{r.urutan}</span> },
+        ...(pakaiWajibSurat ? [{ judul: "Surat rujukan", sel: (r: Baris) => <span className={r.wajibSurat ? "font-semibold text-brand-800" : "text-ink-mute"}>{r.wajibSurat ? "Wajib" : "Tidak wajib"}</span> }] : []),
         { judul: "Aktif", sel: (r) => <SakelarAktif aktif={r.aktif} nama={r.nama} onAlih={() => alihkan(r.id, !r.aktif)} /> },
       ]}
       aksi={(r) => (
@@ -117,7 +130,7 @@ export function DaftarReferensi({
       )}
       anak={
         <>
-          {form && <ModalReferensi r={form.r} judul={judul} tambah={tambah} ubah={ubah} onTutup={() => setForm(null)} />}
+          {form && <ModalReferensi r={form.r} judul={judul} tambah={tambah} ubah={ubah} onTutup={() => setForm(null)} pakaiWajibSurat={pakaiWajibSurat} />}
           {hapusR && (
             <ModalHapus
               id={hapusR.id}

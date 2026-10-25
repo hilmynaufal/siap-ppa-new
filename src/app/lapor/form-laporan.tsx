@@ -18,6 +18,8 @@ import { startTransition, useActionState, useEffect, useRef, useState, type Reac
 import {
   BIDANG_JEBAKAN,
   DOKUMEN_LAPORAN,
+  dokumenTampil,
+  dokumenWajib,
   FORMAT_BERKAS,
   OPSI_JENIS_KELAMIN,
   OPSI_PENDIDIKAN,
@@ -262,6 +264,7 @@ export function FormLaporan({
   pekerjaan,
   pendampingan,
   agama,
+  rujukan,
 }: {
   jenis: Opsi[];
   kecamatan: Opsi[];
@@ -270,6 +273,7 @@ export function FormLaporan({
   pekerjaan: Opsi[];
   pendampingan: Opsi[];
   agama: Opsi[];
+  rujukan: (Opsi & { wajibSurat: boolean })[];
 }) {
   const [state, aksi, mengirim] = useActionState(kirimLaporan, undefined);
   const form = useRef<HTMLFormElement>(null);
@@ -285,6 +289,9 @@ export function FormLaporan({
 
   // Isian yang mengubah tampilan form dikendalikan state; selebihnya dibaca dari form saat dikirim.
   const [sendiri, setSendiri] = useState(false);
+  // Asal rujukan menentukan apakah slot surat rujukan tampil dan wajib.
+  const [rujukanId, setRujukanId] = useState("");
+  const wajibSurat = rujukan.find((r) => r.id === rujukanId)?.wajibSurat ?? false;
   const [terlaporTak, setTerlaporTak] = useState(false);
   const [kecKorban, setKecKorban] = useState("");
   const [kecPelapor, setKecPelapor] = useState("");
@@ -356,10 +363,10 @@ export function FormLaporan({
     const nilai = nilaiFormulir();
     const hasil = SkemaLaporan.safeParse(nilai);
     const gDesa = galatDesa(nilai);
-    const galatBerkas = DOKUMEN_LAPORAN.flatMap((d) => {
+    const galatBerkas = DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, !!rujukanId)).flatMap((d) => {
       const item = berkas[d.jenis];
       if (item?.galat) return [`${d.label}: ${item.galat}`];
-      return d.wajib && !item ? [`${d.label} wajib dilampirkan.`] : [];
+      return dokumenWajib(d, wajibSurat) && !item ? [`${d.label} wajib dilampirkan.`] : [];
     });
     if (hasil.success && galatBerkas.length === 0 && Object.keys(gDesa).length === 0) {
       const data = new FormData(e.currentTarget);
@@ -574,6 +581,16 @@ export function FormLaporan({
           <Bidang id="tempatKejadian" label="Tempat kejadian" petunjuk="Mis. rumah korban, sekolah, atau nama jalan dan desanya." galat={galat.tempatKejadian}>
             <Teks id="tempatKejadian" autoComplete="off" nilaiAwal={nilaiAwal("tempatKejadian")} galat={galat.tempatKejadian} petunjuk />
           </Bidang>
+          {rujukan.length > 0 && (
+            <Bidang
+              id="asalRujukanId"
+              label="Dirujuk dari"
+              petunjuk={wajibSurat ? "Asal rujukan ini memerlukan surat rujukan; lampirkan di langkah Dokumen." : "Kosongkan bila Anda melapor langsung tanpa rujukan."}
+              galat={galat.asalRujukanId}
+            >
+              <Pilih id="asalRujukanId" daftar={opsi(rujukan)} kosong="Tidak dirujuk" nilai={rujukanId} onUbah={setRujukanId} galat={galat.asalRujukanId} petunjuk />
+            </Bidang>
+          )}
           <Bidang id="kronologi" label="Kronologi kejadian" wajib petunjuk="Ceritakan sebisanya: apa yang terjadi, di mana, dan siapa yang terlibat." galat={galat.kronologi}>
             <textarea id="kronologi" name="kronologi" rows={7} maxLength={MAKS_KRONOLOGI} onInput={(e) => setPanjang(e.currentTarget.value.length)} defaultValue={nilaiAwal("kronologi")} aria-invalid={!!galat.kronologi} aria-describedby={describedBy("kronologi", galat.kronologi, true)} className={kontrol + " h-auto min-h-40 py-3"} />
             <p className="text-right text-sm tabular-nums text-ink-mute" aria-live="polite">
@@ -652,8 +669,8 @@ export function FormLaporan({
             Lampirkan dokumen milik korban. {FORMAT_BERKAS}, maksimal 5 MB per berkas.
           </p>
           <ul className="flex flex-col gap-3">
-            {DOKUMEN_LAPORAN.map((d) => (
-              <SlotDokumen key={d.jenis} jenis={d.jenis} label={d.label} wajib={d.wajib} item={berkas[d.jenis]} onUbah={(item) => ubahBerkas(d.jenis, item)} />
+            {DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, !!rujukanId)).map((d) => (
+              <SlotDokumen key={d.jenis} jenis={d.jenis} label={d.label} wajib={dokumenWajib(d, wajibSurat)} item={berkas[d.jenis]} onUbah={(item) => ubahBerkas(d.jenis, item)} />
             ))}
           </ul>
 

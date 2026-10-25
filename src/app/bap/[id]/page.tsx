@@ -218,6 +218,7 @@ export default async function HalamanBap({ params }: { params: Promise<{ id: str
                 <p className="bap-catatan">(tempat, waktu, pihak yang terlibat, latar belakang masalah, bentuk dan dampak kekerasan)</p>
                 <Isian label="TKP" nilai={b.tkp} />
                 <Isian label="TANGGAL KEJADIAN" nilai={b.tanggalKejadian} />
+                <Isian label="DIRUJUK DARI" nilai={b.asalRujukan} />
                 <p className="bap-label">KRONOLOGIS :</p>
                 <p className="bap-kronologi">{b.kronologi}</p>
               </td>

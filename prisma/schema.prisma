@@ -38,6 +38,7 @@ enum JenisDokumen {
   SURAT_NIKAH
   SURAT_CERAI
   BPJS
+  SURAT_RUJUKAN
 
   @@map("jenis_dokumen")
 }
@@ -254,6 +255,21 @@ model Agama {
   @@map("agama")
 }
 
+/// Asal rujukan laporan (dirujuk dari mana), dikelola Admin. Berbeda dengan "lembaga rujukan" di BAP (rujukan keluar).
+model AsalRujukan {
+  id         String    @id @default(cuid())
+  nama       String    @unique
+  aktif      Boolean   @default(true)
+  urutan     Int       @default(0)
+  /// Bila benar, Pelapor yang memilih asal ini wajib melampirkan surat rujukan.
+  wajibSurat Boolean   @default(false) @map("wajib_surat")
+  dibuatPada DateTime  @default(now()) @map("dibuat_pada")
+  diubahPada DateTime  @default(now()) @updatedAt @map("diubah_pada")
+  laporan    Laporan[]
+
+  @@map("asal_rujukan")
+}
+
 /// Pengaturan aplikasi berupa pasangan kunci-nilai (mis. nama dan NIP Kepala UPTD untuk BAP).
 model Pengaturan {
   kunci        String    @id
@@ -305,6 +321,8 @@ model Laporan {
   jenisKekerasanId    String        @map("jenis_kekerasan_id")
   tanggalKejadian     DateTime?     @map("tanggal_kejadian")
   kronologi           String
+  /// Dirujuk dari mana (boleh kosong).
+  asalRujukanId       String?       @map("asal_rujukan_id")
   /// Tempat kejadian perkara (TKP), diisi Pelapor.
   tempatKejadian      String?       @map("tempat_kejadian")
   /// Data tindak lanjut untuk BAP, dilengkapi Admin atau Pendamping.
@@ -326,6 +344,7 @@ model Laporan {
   jenisKekerasan      JenisKekerasan        @relation(fields: [jenisKekerasanId], references: [id])
   verifikator         Pengguna?             @relation("VerifikatorLaporan", fields: [verifikatorId], references: [id])
   dihapusOleh         Pengguna?             @relation("PenghapusLaporan", fields: [dihapusOlehId], references: [id])
+  asalRujukan         AsalRujukan?          @relation(fields: [asalRujukanId], references: [id], onDelete: Restrict)
   pelapor             Pelapor?
   korban              Korban?
   terlapor            Terlapor[]

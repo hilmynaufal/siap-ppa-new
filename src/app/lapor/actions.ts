@@ -6,6 +6,8 @@ import {
   BIDANG_JEBAKAN,
   DOKUMEN_LAPORAN,
   bidangDokumen,
+  dokumenTampil,
+  dokumenWajib,
   nilaiDariFormData,
   SkemaLaporan,
   bentukDataLaporan,
@@ -15,7 +17,7 @@ import {
   type Galat,
   type Langkah,
 } from "@/lib/laporan";
-import { periksaPilihanLaporan, simpanLaporan } from "@/lib/laporan-layanan";
+import { periksaPilihanLaporan, rujukanWajibSurat, simpanLaporan } from "@/lib/laporan-layanan";
 
 export type KirimState = { galat?: Galat; ringkasan?: string; langkah?: Langkah; nilai?: Record<string, string> } | undefined;
 
@@ -59,12 +61,14 @@ export async function kirimLaporan(_s: KirimState, formData: FormData): Promise<
       return { galat: galatPilihan, ringkasan: "Ada pilihan yang tidak sesuai. Silakan periksa kolom bertanda merah.", langkah: langkahPertamaBergalat(galatPilihan), nilai };
     }
 
-    // Satu berkas per jenis dokumen; KK, KTP, dan akta kelahiran wajib.
+    // Satu berkas per jenis dokumen; KK, KTP, dan akta kelahiran wajib; surat rujukan bila asal rujukannya mewajibkan.
+    const wajibSurat = await rujukanWajibSurat(db, data.asalRujukanId);
     const berkas = [];
     for (const d of DOKUMEN_LAPORAN) {
+      if (!dokumenTampil(d.jenis, !!data.asalRujukanId)) continue;
       const f = formData.get(bidangDokumen(d.jenis));
       if (!(f instanceof File) || f.size === 0) {
-        if (d.wajib) return { ringkasan: `${d.label} wajib dilampirkan.`, langkah: 5, nilai };
+        if (dokumenWajib(d, wajibSurat)) return { ringkasan: `${d.label} wajib dilampirkan.`, langkah: 5, nilai };
         continue;
       }
       const g = periksaBerkas(f);

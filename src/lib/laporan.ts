@@ -9,9 +9,16 @@ export const DOKUMEN_LAPORAN = [
   { jenis: "SURAT_NIKAH", label: "Surat nikah", wajib: false },
   { jenis: "SURAT_CERAI", label: "Surat keterangan cerai", wajib: false },
   { jenis: "BPJS", label: "BPJS", wajib: false },
+  // Hanya tampil bila Pelapor memilih asal rujukan; wajib bila asal itu mewajibkan surat rujukan.
+  { jenis: "SURAT_RUJUKAN", label: "Surat rujukan", wajib: false },
 ] as const;
 export type JenisDokumenLaporan = (typeof DOKUMEN_LAPORAN)[number]["jenis"];
 export const MAKS_BERKAS = DOKUMEN_LAPORAN.length;
+
+/** Apakah slot dokumen ditampilkan: surat rujukan hanya bila ada asal rujukan yang dipilih. */
+export const dokumenTampil = (jenis: string, adaRujukan: boolean) => jenis !== "SURAT_RUJUKAN" || adaRujukan;
+/** Apakah dokumen wajib: KK, KTP, akta; surat rujukan bila asal rujukannya mewajibkan. */
+export const dokumenWajib = (d: { jenis: string; wajib: boolean }, wajibSurat: boolean) => d.wajib || (d.jenis === "SURAT_RUJUKAN" && wajibSurat);
 export const labelDokumen = (jenis: string | null) => DOKUMEN_LAPORAN.find((d) => d.jenis === jenis)?.label ?? "Dokumen lain";
 /** Nama bidang formulir untuk berkas sebuah jenis dokumen. */
 export const bidangDokumen = (jenis: JenisDokumenLaporan) => `dokumen_${jenis}`;

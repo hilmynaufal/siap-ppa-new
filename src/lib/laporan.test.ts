@@ -6,7 +6,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
 import {
+  DOKUMEN_LAPORAN,
   POLA_KODE,
+  dokumenTampil,
+  dokumenWajib,
   SkemaLaporan,
   bentukDataLaporan,
   buatKodePendaftaran,
@@ -19,7 +22,7 @@ import {
   periksaBerkas,
   type DataLaporan,
 } from "./laporan";
-import { periksaPilihanLaporan, simpanLaporan } from "./laporan-layanan";
+import { periksaPilihanLaporan, rujukanWajibSurat, simpanLaporan } from "./laporan-layanan";
 import { dekripsiNik, indeksNik } from "./nik";
 
 const JPG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]);
@@ -61,6 +64,7 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   tempatKejadian: "",
   kronologi: "Kronologi uji yang cukup panjang.",
   jenisPendampinganId: "",
+  asalRujukanId: "",
   terlaporTidakDiketahui: "",
   terlaporNama: "",
   terlaporJenisKelamin: "",
@@ -180,6 +184,19 @@ describe("skema formulir", () => {
     expect(langkahDariBidang("tempatKejadian")).toBe(3);
   });
 
+  it("surat rujukan hanya tampil bila ada asal rujukan, dan wajib bila asalnya mewajibkan", () => {
+    const surat = DOKUMEN_LAPORAN.find((d) => d.jenis === "SURAT_RUJUKAN")!;
+    const ktp = DOKUMEN_LAPORAN.find((d) => d.jenis === "KTP")!;
+    expect(dokumenTampil("SURAT_RUJUKAN", false)).toBe(false);
+    expect(dokumenTampil("SURAT_RUJUKAN", true)).toBe(true);
+    expect(dokumenTampil("KTP", false)).toBe(true);
+    expect(dokumenWajib(surat, false)).toBe(false);
+    expect(dokumenWajib(surat, true)).toBe(true);
+    expect(dokumenWajib(ktp, false)).toBe(true);
+    expect(bentukDataLaporan(SkemaLaporan.parse(form({ asalRujukanId: "rjk" }))).asalRujukanId).toBe("rjk");
+    expect(bentukDataLaporan(SkemaLaporan.parse(form())).asalRujukanId).toBeNull();
+  });
+
   it("jenis pendampingan tidak wajib dan hanya satu pilihan", () => {
     const fd = new FormData();
     for (const [k, v] of Object.entries(form())) fd.set(k, v);
@@ -295,6 +312,17 @@ describe("simpanLaporan", () => {
     expect((await periksaPilihanLaporan(db, d)).korbanAgamaId).toBe("Pilih agama dari daftar.");
   });
 
+  it("menyimpan asal rujukan; asal yang tidak ada atau nonaktif ditolak", async () => {
+    const r = await db.asalRujukan.findFirstOrThrow({ where: { nama: "Kepolisian" } });
+    const hasil = await simpanLaporan(db, data({ asalRujukanId: r.id }), [], dir);
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect((await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode } })).asalRujukanId).toBe(r.id);
+    expect(await rujukanWajibSurat(db, r.id)).toBe(true);
+    expect(await rujukanWajibSurat(db, null)).toBe(false);
+    expect((await periksaPilihanLaporan(db, data({ asalRujukanId: "tidak-ada" }))).asalRujukanId).toBe("Pilih asal rujukan dari daftar.");
+  });
+
   it("menyimpan jenis pendampingan yang diminta Pelapor", async () => {
     const hasil = await simpanLaporan(db, data({ jenisPendampinganId: pendampinganId }), [], dir);
     expect(hasil.ok).toBe(true);
@@ -320,9 +348,9 @@ describe("simpanLaporan", () => {
     expect(!hasil.ok && hasil.pesan).toContain("bukan JPG, PNG, atau PDF");
   });
 
-  it("menolak lebih dari 6 berkas, jenis dokumen kembar, dan berkas lebih dari 5 MB", async () => {
-    const tujuh = [1, 2, 3, 4, 5, 6, 7].map((i) => ({ nama: `b${i}.png`, bytes: PNG }));
-    expect((await simpanLaporan(db, data(), tujuh, dir)).ok).toBe(false);
+  it("menolak lebih dari 7 berkas, jenis dokumen kembar, dan berkas lebih dari 5 MB", async () => {
+    const delapan = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ nama: `b${i}.png`, bytes: PNG }));
+    expect((await simpanLaporan(db, data(), delapan, dir)).ok).toBe(false);
     const kembar = [{ nama: "a.png", bytes: PNG, jenis: "KTP" as const }, { nama: "b.png", bytes: PNG, jenis: "KTP" as const }];
     expect((await simpanLaporan(db, data(), kembar, dir)).ok).toBe(false);
     const besar = new Uint8Array(5 * 1024 * 1024 + 1);

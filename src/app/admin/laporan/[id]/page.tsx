@@ -180,6 +180,7 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <Baris label="Jenis kekerasan">{l.jenis}</Baris>
               <Baris label="Tanggal kejadian">{l.tanggalKejadian ? fmt(l.tanggalKejadian, false) : "Tidak diisi"}</Baris>
               <Baris label="Tempat kejadian">{l.tempatKejadian ?? "Tidak diisi"}</Baris>
+              <Baris label="Dirujuk dari">{l.asalRujukan ?? "Tidak dirujuk"}</Baris>
               <Baris label="Kronologi">
                 <p className="whitespace-pre-wrap break-words">{l.kronologi}</p>
               </Baris>

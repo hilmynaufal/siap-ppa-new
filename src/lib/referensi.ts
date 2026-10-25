@@ -6,12 +6,13 @@ import type { HasilMaster } from "./master-layanan";
  * Daftar rujukan sederhana yang dipakai formulir laporan dan dikelola Admin.
  * Hubungan dengan korban, Pekerjaan, dan Agama bentuknya sama, jadi memakai satu kumpulan fungsi.
  */
-export type JenisReferensi = "hubungan" | "pekerjaan" | "agama";
+export type JenisReferensi = "hubungan" | "pekerjaan" | "agama" | "rujukan";
 
 export const LABEL_REFERENSI: Record<JenisReferensi, { tunggal: string; jamak: string }> = {
   hubungan: { tunggal: "hubungan", jamak: "Hubungan dengan Korban" },
   pekerjaan: { tunggal: "pekerjaan", jamak: "Pekerjaan" },
   agama: { tunggal: "agama", jamak: "Agama" },
+  rujukan: { tunggal: "asal rujukan", jamak: "Asal Rujukan" },
 };
 
 export const SkemaReferensi = z.object({
@@ -24,11 +25,18 @@ export const SkemaReferensi = z.object({
     (v) => (v === "" || v === undefined || v === null ? 0 : v),
     z.coerce.number({ error: "Urutan harus berupa angka." }).int({ error: "Urutan harus bilangan bulat." }).min(0, { error: "Urutan 0-999." }).max(999, { error: "Urutan 0-999." }),
   ),
+  /** Hanya untuk asal rujukan: kotak centang "on" berarti wajib melampirkan surat rujukan. */
+  wajibSurat: z.preprocess((v) => v === "on" || v === true, z.boolean()).optional(),
 });
 
 // Tabel-tabel ini berbentuk identik (id, nama, aktif, urutan), sehingga delegasi Prisma-nya dipakai bergantian.
 function tabel(db: PrismaClient, jenis: JenisReferensi) {
-  return ({ hubungan: db.hubunganKorban, pekerjaan: db.pekerjaan, agama: db.agama } as const)[jenis] as typeof db.hubunganKorban;
+  return ({ hubungan: db.hubunganKorban, pekerjaan: db.pekerjaan, agama: db.agama, rujukan: db.asalRujukan } as const)[jenis] as typeof db.hubunganKorban;
+}
+
+/** Kolom yang disimpan: wajibSurat hanya dimiliki asal rujukan. */
+function isian(jenis: JenisReferensi, d: z.infer<typeof SkemaReferensi>) {
+  return jenis === "rujukan" ? { nama: d.nama, urutan: d.urutan, wajibSurat: d.wajibSurat ?? false } : { nama: d.nama, urutan: d.urutan };
 }
 
 const kode = (e: unknown) => (typeof e === "object" && e !== null ? (e as { code?: string }).code : undefined);
@@ -36,7 +44,12 @@ const duplikat = (nama: string): HasilMaster => ({ ok: false, pesan: "Nama sudah
 
 export async function daftarReferensi(db: PrismaClient, jenis: JenisReferensi) {
   const rows = await tabel(db, jenis).findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] });
-  return rows.map((r) => ({ id: r.id, nama: r.nama, aktif: r.aktif, urutan: r.urutan }));
+  return rows.map((r) => ({ id: r.id, nama: r.nama, aktif: r.aktif, urutan: r.urutan, ...("wajibSurat" in r ? { wajibSurat: Boolean(r.wajibSurat) } : {}) }));
+}
+
+/** Asal rujukan aktif untuk formulir /lapor, beserta penanda wajib surat rujukan. */
+export async function pilihanRujukan(db: PrismaClient) {
+  return db.asalRujukan.findMany({ where: { aktif: true }, orderBy: [{ urutan: "asc" }, { nama: "asc" }], select: { id: true, nama: true, wajibSurat: true } });
 }
 
 /** Hanya yang aktif, untuk pilihan di formulir. */
@@ -59,7 +72,7 @@ export async function tambahReferensi(db: PrismaClient, jenis: JenisReferensi, m
   const t = tabel(db, jenis);
   if (await t.findFirst({ where: { nama: { equals: p.data.nama, mode: "insensitive" } } })) return duplikat(p.data.nama);
   try {
-    await t.create({ data: p.data });
+    await t.create({ data: isian(jenis, p.data) as { nama: string; urutan: number } });
   } catch (e) {
     if (kode(e) === "P2002") return duplikat(p.data.nama);
     throw e;
@@ -73,7 +86,7 @@ export async function ubahReferensi(db: PrismaClient, jenis: JenisReferensi, id:
   const t = tabel(db, jenis);
   if (await t.findFirst({ where: { nama: { equals: p.data.nama, mode: "insensitive" }, NOT: { id } } })) return duplikat(p.data.nama);
   try {
-    await t.update({ where: { id }, data: { ...p.data, aktif } });
+    await t.update({ where: { id }, data: { ...(isian(jenis, p.data) as { nama: string; urutan: number }), aktif } });
   } catch (e) {
     if (kode(e) === "P2025") return { ok: false, pesan: "Data tidak ditemukan." };
     if (kode(e) === "P2002") return duplikat(p.data.nama);

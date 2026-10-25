@@ -3,7 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
 import { hapusDesa, imporDesa, periksaImporDesa, tambahDesa, ubahDesa, daftarDesa, TEMPLAT_DESA_CSV } from "./desa";
-import { alihkanReferensi, daftarReferensi, hapusReferensi, pilihanReferensi, tambahReferensi, ubahReferensi } from "./referensi";
+import { alihkanReferensi, daftarReferensi, hapusReferensi, pilihanReferensi, pilihanRujukan, tambahReferensi, ubahReferensi } from "./referensi";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 const acak = Array.from({ length: 5 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ"[Math.floor(Math.random() * 23)]).join("");
@@ -12,6 +12,7 @@ const awalan = `UjiRef ${acak}`;
 afterAll(async () => {
   await db.hubunganKorban.deleteMany({ where: { nama: { startsWith: awalan } } });
   await db.pekerjaan.deleteMany({ where: { nama: { startsWith: awalan } } });
+  await db.asalRujukan.deleteMany({ where: { nama: { startsWith: awalan } } });
   await db.desa.deleteMany({ where: { nama: { startsWith: awalan } } });
   await db.$disconnect();
 });
@@ -44,6 +45,25 @@ describe.each(["hubungan", "pekerjaan"] as const)("referensi %s", (jenis) => {
     expect((await daftarReferensi(db, jenis)).some((p) => p.id === a.id)).toBe(true);
     expect(await hapusReferensi(db, jenis, a.id)).toEqual({ ok: true });
     expect(await hapusReferensi(db, jenis, a.id)).toMatchObject({ ok: false });
+  });
+});
+
+describe("asal rujukan", () => {
+  it("isi awal dari migrasi: Hotline, Media sosial, UPTD PPA Provinsi, Kepolisian", async () => {
+    const nama = (await pilihanRujukan(db)).map((r) => r.nama);
+    expect(nama).toEqual(expect.arrayContaining(["Hotline", "Media sosial", "UPTD PPA Provinsi", "Kepolisian"]));
+  });
+
+  it("menyimpan dan mengubah sakelar wajib surat rujukan", async () => {
+    expect(await tambahReferensi(db, "rujukan", { nama: `${awalan} Puskesmas`, urutan: "50", wajibSurat: "on" })).toEqual({ ok: true });
+    let r = (await daftarReferensi(db, "rujukan")).find((x) => x.nama === `${awalan} Puskesmas`)!;
+    expect(r.wajibSurat).toBe(true);
+    expect(await ubahReferensi(db, "rujukan", r.id, { nama: `${awalan} Puskesmas`, urutan: "50", wajibSurat: "" }, true)).toEqual({ ok: true });
+    r = (await daftarReferensi(db, "rujukan")).find((x) => x.nama === `${awalan} Puskesmas`)!;
+    expect(r.wajibSurat).toBe(false);
+    expect((await pilihanRujukan(db)).find((x) => x.id === r.id)).toMatchObject({ wajibSurat: false });
+    // Referensi lain tidak punya kolom wajib surat.
+    expect((await daftarReferensi(db, "agama"))[0]).not.toHaveProperty("wajibSurat");
   });
 });
 
