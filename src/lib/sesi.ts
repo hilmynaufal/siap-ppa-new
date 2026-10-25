@@ -225,7 +225,7 @@ export async function tambahSesi(db: PrismaClient, laporanId: string, adminId: s
         const t = await terbitkanTiket(tx, laporanId, j.jadwal);
         if (usulanId) {
           const { count } = await tx.usulanSesi.updateMany({
-            where: { id: usulanId, status: "MENUNGGU", laporanPendampingan: { sesi: { laporanId } } },
+            where: { id: usulanId, status: "MENUNGGU", laporanId },
             data: { status: "DISETUJUI", keputusanOlehId: adminId, diputuskanPada: new Date(), sesiHasilId: t.sesiId },
           });
           // Melempar agar tiket dan sesi yang baru terbit ikut dibatalkan.
@@ -278,7 +278,8 @@ export async function batalkanSesi(db: PrismaClient, sesiId: string, adminId: st
 export async function syaratTutupKasus(db: PrismaClient, laporanId: string) {
   const l = await db.laporan.findFirst({
     where: { id: laporanId, ...LAPORAN_AKTIF },
-    select: { status: true, sesi: { select: { status: true, laporanPendampingan: { select: { usulan: { select: { status: true } } } } } } },
+    // Usulan dihitung per laporan: dari Pendamping (lewat laporan pendampingan) maupun yang dicatat Admin.
+    select: { status: true, sesi: { select: { status: true } }, _count: { select: { usulanSesi: { where: { status: "MENUNGGU" } } } } },
   });
   if (!l) return { bisa: false, alasan: ["Laporan tidak ditemukan."], sudahDitutup: false };
   if (l.status === "DITUTUP") return { bisa: false, alasan: ["Kasus sudah ditutup."], sudahDitutup: true };
@@ -287,7 +288,7 @@ export async function syaratTutupKasus(db: PrismaClient, laporanId: string) {
   if (l.sesi.length === 0) alasan.push("Belum ada sesi pendampingan.");
   const aktif = l.sesi.filter((x) => (AKTIF as string[]).includes(x.status)).length;
   if (aktif > 0) alasan.push(`Masih ada ${aktif} sesi yang belum selesai.`);
-  const usulan = l.sesi.filter((x) => x.laporanPendampingan?.usulan?.status === "MENUNGGU").length;
+  const usulan = l._count.usulanSesi;
   if (usulan > 0) alasan.push(`Masih ada ${usulan} usulan sesi lanjutan yang menunggu keputusan.`);
   return { bisa: alasan.length === 0, alasan, sudahDitutup: false };
 }

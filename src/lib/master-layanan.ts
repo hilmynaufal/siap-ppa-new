@@ -87,9 +87,9 @@ export async function ubahJenisPendampingan(db: PrismaClient, id: string, mentah
 }
 
 export async function hapusJenisPendampingan(db: PrismaClient, id: string): Promise<HasilMaster> {
-  const j = await db.jenisPendampingan.findUnique({ where: { id }, include: { _count: { select: { sesi: true, tiket: true, pengguna: true, diminta: true } } } });
+  const j = await db.jenisPendampingan.findUnique({ where: { id }, include: { _count: { select: { sesi: true, tiket: true, pengguna: true, diminta: true, usulan: true } } } });
   if (!j) return { ok: false, pesan: "Jenis pendampingan tidak ditemukan." };
-  const dipakai = j._count.sesi + j._count.tiket + j._count.pengguna + j._count.diminta;
+  const dipakai = j._count.sesi + j._count.tiket + j._count.pengguna + j._count.diminta + j._count.usulan;
   if (dipakai > 0) {
     return {
       ok: false,

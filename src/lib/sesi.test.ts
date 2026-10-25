@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
 import { batalkanSesi, daftarSesiPendamping, inisial, ringkasanSesiPendamping, syaratTutupKasus, tambahSesi, tutupKasus, ubahStatusSesi } from "./sesi";
+import { buatUsulanAdmin, daftarUsulan, setujuiUsulan, tolakUsulan } from "./laporan-pendampingan";
 import { hariJakarta } from "./tiket";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
@@ -77,7 +78,7 @@ beforeAll(async () => {
 afterAll(async () => {
   const sesi = (await db.sesi.findMany({ where: { laporanId: { in: laporanIds } }, select: { id: true } })).map((s) => s.id);
   await db.logAudit.deleteMany({ where: { OR: [{ entitasId: { in: [...sesi, ...laporanIds] } }, { penggunaId: { in: [adminId, pendA, pendB] } }] } });
-  await db.usulanSesi.deleteMany({ where: { laporanPendampingan: { sesiId: { in: sesi } } } });
+  await db.usulanSesi.deleteMany({ where: { OR: [{ laporanId: { in: laporanIds } }, { laporanPendampingan: { sesiId: { in: sesi } } }] } });
   await db.laporanPendampingan.deleteMany({ where: { sesiId: { in: sesi } } });
   await db.notifikasi.deleteMany({ where: { sesiId: { in: sesi } } });
   await db.riwayatJadwal.deleteMany({ where: { sesiId: { in: sesi } } });
@@ -267,9 +268,47 @@ describe("tutup kasus", () => {
     const lp = await db.laporanPendampingan.create({
       data: { sesiId: s.id, penulisId: pendA, jenisPendampingan: "Konseling", keterangan: "uji", rekomendasi: "uji", ajukanSesiLanjutan: true, dikirimPada: new Date() },
     });
-    await db.usulanSesi.create({ data: { laporanPendampinganId: lp.id } });
+    await db.usulanSesi.create({ data: { laporanPendampinganId: lp.id, laporanId: l.id } });
     const sy = await syaratTutupKasus(db, l.id);
     expect(sy.bisa).toBe(false);
     expect(sy.alasan.join(" ")).toContain("usulan sesi lanjutan");
+  });
+});
+
+describe("usulan sesi lanjutan yang dicatat Admin", () => {
+  it("validasi alasan, jenis, pendamping, dan status kasus", async () => {
+    const l = await laporanBaru("TERVERIFIKASI");
+    const kurang = await buatUsulanAdmin(db, l.id, adminId, { jenisPendampingId: "", pendampingId: "", alasan: "x" });
+    expect(kurang).toMatchObject({ ok: false, galat: { alasan: expect.any(String), jenisPendampingId: expect.any(String) } });
+    expect(await buatUsulanAdmin(db, l.id, adminId, { jenisPendampingId: jenisPId, pendampingId: adminId, alasan: "Perlu konseling lanjutan" })).toMatchObject({ ok: false, galat: { pendampingId: expect.any(String) } });
+    const baru = await laporanBaru("BARU");
+    expect(await buatUsulanAdmin(db, baru.id, adminId, { jenisPendampingId: jenisPId, pendampingId: "", alasan: "Perlu konseling lanjutan" })).toMatchObject({ ok: false });
+  });
+
+  it("tampil di daftar usulan, menahan tutup kasus, lalu dijadwalkan lewat Setujui dan jadwalkan", async () => {
+    const l = await laporanBaru("DALAM_PENDAMPINGAN");
+    await sesiBaru(l.id, waktu(hari(-1), "09:00"), pendA, "SELESAI");
+    expect(await buatUsulanAdmin(db, l.id, adminId, { jenisPendampingId: jenisPId, pendampingId: pendB, alasan: "Perlu konseling lanjutan" })).toEqual({ ok: true });
+
+    const [u] = await daftarUsulan(db, l.id);
+    expect(u).toMatchObject({ status: "MENUNGGU", olehAdmin: true, urutanSesi: null, rekomendasi: "Perlu konseling lanjutan", dari: "Penguji Sesi (Admin)", awal: { jenisPendampingId: jenisPId, pendampingId: pendB } });
+    expect((await syaratTutupKasus(db, l.id)).alasan.join(" ")).toContain("usulan sesi lanjutan");
+    expect(await db.logAudit.count({ where: { entitasId: u.id, aksi: "AJUKAN_USULAN_SESI" } })).toBe(1);
+
+    const h = await setujuiUsulan(db, u.id, adminId, jadwal({ pendampingId: pendB }));
+    expect(h.ok).toBe(true);
+    const disetujui = await db.usulanSesi.findUniqueOrThrow({ where: { id: u.id } });
+    expect(disetujui).toMatchObject({ status: "DISETUJUI", keputusanOlehId: adminId });
+    expect(await db.sesi.findUniqueOrThrow({ where: { id: disetujui.sesiHasilId! } })).toMatchObject({ laporanId: l.id, urutan: 2, pendampingId: pendB });
+  });
+
+  it("dibatalkan Admin tanpa pemberitahuan ke Pendamping", async () => {
+    const l = await laporanBaru("TERVERIFIKASI");
+    await buatUsulanAdmin(db, l.id, adminId, { jenisPendampingId: jenisPId, pendampingId: "", alasan: "Rencana pendampingan hukum" });
+    const [u] = await daftarUsulan(db, l.id);
+    expect(await tolakUsulan(db, u.id, adminId)).toEqual({ ok: true });
+    expect((await daftarUsulan(db, l.id))[0].status).toBe("DITOLAK");
+    expect(await db.notifikasi.count({ where: { sesi: { laporanId: l.id } } })).toBe(0);
+    expect(await db.logAudit.count({ where: { entitasId: u.id, aksi: "BATALKAN_USULAN_SESI" } })).toBe(1);
   });
 });

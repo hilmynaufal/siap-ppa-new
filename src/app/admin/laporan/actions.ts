@@ -7,7 +7,7 @@ import { wajibPeran } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { bukaNik, cariLaporanByNik, type HasilBukaNik, type HasilCariNik, type PihakNik } from "@/lib/nik-akses";
 import { BIDANG_JADWAL, type GalatJadwal } from "@/lib/tiket";
-import { setujuiUsulan, tolakUsulan } from "@/lib/laporan-pendampingan";
+import { buatUsulanAdmin, setujuiUsulan, tolakUsulan, type GalatUsulan } from "@/lib/laporan-pendampingan";
 import { hapusPermanen, pindahkanKeSampah, pulihkanLaporan } from "@/lib/sampah";
 import { batalkanSesi, tambahSesi, tutupKasus, type HasilSesi } from "@/lib/sesi";
 import { tolakLaporan, verifikasiLaporan, type HasilVerifikasi } from "@/lib/verifikasi";
@@ -77,6 +77,23 @@ export async function tambahSesiAksi(_s: AksiSesi, fd: FormData): Promise<AksiSe
   // Bila berasal dari usulan sesi lanjutan, persetujuan dan penjadwalan terjadi dalam satu transaksi.
   const usulanId = String(fd.get("usulanId") ?? "");
   return hasilSesi(usulanId ? await setujuiUsulan(db, usulanId, admin.id, nilai) : await tambahSesi(db, id, admin.id, nilai), id);
+}
+
+export type AksiUsulan = { ok?: boolean; pesan?: string; galat?: GalatUsulan } | undefined;
+
+/** Admin mencatat usulan sesi lanjutan yang belum berjadwal. */
+export async function ajukanUsulanAksi(_s: AksiUsulan, fd: FormData): Promise<AksiUsulan> {
+  const admin = await wajibPeran("ADMIN");
+  const id = String(fd.get("id") ?? "");
+  const h = await buatUsulanAdmin(db, id, admin.id, {
+    jenisPendampingId: String(fd.get("jenisPendampingId") ?? ""),
+    pendampingId: String(fd.get("pendampingId") ?? ""),
+    alasan: String(fd.get("alasan") ?? ""),
+  });
+  if (!h.ok) return { pesan: h.pesan, galat: h.galat };
+  segarkan(id);
+  revalidatePath("/admin", "layout");
+  return { ok: true };
 }
 
 /** Admin menolak usulan sesi lanjutan dari Pendamping. */

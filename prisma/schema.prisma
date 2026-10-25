@@ -141,7 +141,9 @@ model Pengguna {
   revisi               RevisiLaporanPendampingan[]
   perubahanJadwal      RiwayatJadwal[]
   notifikasiDiterima   Notifikasi[]                @relation("PenerimaNotifikasi")
-  keputusanUsulan      UsulanSesi[]
+  keputusanUsulan      UsulanSesi[]                @relation("PemutusUsulan")
+  usulanDiajukan       UsulanSesi[]                @relation("PengusulSesi")
+  usulanDitujukan      UsulanSesi[]                @relation("PendampingUsulan")
   jenisKekerasanDibuat JenisKekerasan[]            @relation("PembuatJenisKekerasan")
   kontakDaruratDibuat  KontakDarurat[]             @relation("PembuatKontakDarurat")
   pengaturanDiubah     Pengaturan[]                @relation("PengubahPengaturan")
@@ -175,6 +177,7 @@ model JenisPendampingan {
   sesi     Sesi[]
   tiket    Tiket[]
   diminta  PendampinganDiminta[]
+  usulan   UsulanSesi[]
 
   @@map("jenis_pendampingan")
 }
@@ -330,6 +333,7 @@ model Laporan {
   sesi                Sesi[]
   /// Jenis pendampingan yang dipilih Pelapor saat melapor (boleh lebih dari satu atau kosong).
   pendampinganDiminta PendampinganDiminta[]
+  usulanSesi          UsulanSesi[]
 
   @@index([status, dibuatPada])
   @@index([dihapusPada])
@@ -600,17 +604,29 @@ model RevisiLaporanPendampingan {
 
 /// Usulan sesi lanjutan dari rekomendasi Pendamping; Admin menyetujui dan menjadwalkan.
 model UsulanSesi {
-  id                    String              @id @default(cuid())
-  laporanPendampinganId String              @unique @map("laporan_pendampingan_id")
-  status                StatusUsulan        @default(MENUNGGU)
-  keputusanOlehId       String?             @map("keputusan_oleh_id")
-  diputuskanPada        DateTime?           @map("diputuskan_pada")
-  sesiHasilId           String?             @unique @map("sesi_hasil_id")
-  dibuatPada            DateTime            @default(now()) @map("dibuat_pada")
-  laporanPendampingan   LaporanPendampingan @relation(fields: [laporanPendampinganId], references: [id])
-  keputusanOleh         Pengguna?           @relation(fields: [keputusanOlehId], references: [id])
-  sesiHasil             Sesi?               @relation("SesiHasilUsulan", fields: [sesiHasilId], references: [id])
+  id                    String               @id @default(cuid())
+  laporanId             String               @map("laporan_id")
+  /// Terisi bila usulan berasal dari rekomendasi Pendamping di laporan pendampingan.
+  laporanPendampinganId String?              @unique @map("laporan_pendampingan_id")
+  /// Terisi bila usulan dicatat Admin (tanpa laporan pendampingan).
+  diajukanOlehId        String?              @map("diajukan_oleh_id")
+  jenisPendampingId     String?              @map("jenis_pendamping_id")
+  pendampingId          String?              @map("pendamping_id")
+  alasan                String?
+  status                StatusUsulan         @default(MENUNGGU)
+  keputusanOlehId       String?              @map("keputusan_oleh_id")
+  diputuskanPada        DateTime?            @map("diputuskan_pada")
+  sesiHasilId           String?              @unique @map("sesi_hasil_id")
+  dibuatPada            DateTime             @default(now()) @map("dibuat_pada")
+  laporan               Laporan              @relation(fields: [laporanId], references: [id])
+  laporanPendampingan   LaporanPendampingan? @relation(fields: [laporanPendampinganId], references: [id], onDelete: Restrict)
+  keputusanOleh         Pengguna?            @relation("PemutusUsulan", fields: [keputusanOlehId], references: [id])
+  diajukanOleh          Pengguna?            @relation("PengusulSesi", fields: [diajukanOlehId], references: [id])
+  pendamping            Pengguna?            @relation("PendampingUsulan", fields: [pendampingId], references: [id])
+  jenisPendamping       JenisPendampingan?   @relation(fields: [jenisPendampingId], references: [id], onDelete: Restrict)
+  sesiHasil             Sesi?                @relation("SesiHasilUsulan", fields: [sesiHasilId], references: [id])
 
+  @@index([laporanId, status])
   @@map("usulan_sesi")
 }
 

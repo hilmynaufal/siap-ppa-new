@@ -52,3 +52,7 @@ export function galatBidang(e: z.ZodError): GalatPendampingan {
   }
   return g;
 }
+
+/** Batas alasan usulan sesi lanjutan yang dicatat Admin (dipakai formulir dan server). */
+export const ALASAN_USULAN_MIN = 5;
+export const ALASAN_USULAN_MAKS = 500;
