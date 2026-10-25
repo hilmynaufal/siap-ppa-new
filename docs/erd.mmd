@@ -61,6 +61,15 @@ erDiagram
     DateTime dibuat_pada
     DateTime diubah_pada
   }
+  asal_rujukan {
+    String id PK
+    String nama UK
+    Boolean aktif
+    Int urutan
+    Boolean wajib_surat
+    DateTime dibuat_pada
+    DateTime diubah_pada
+  }
   pengaturan {
     String kunci PK
     String nilai
@@ -91,6 +100,7 @@ erDiagram
     String jenis_kekerasan_id FK
     DateTime tanggal_kejadian "opsional"
     String kronologi
+    String asal_rujukan_id FK "opsional"
     String tempat_kejadian "opsional"
     String alasan_kebutuhan "opsional"
     String lembaga_rujukan "opsional"
@@ -287,6 +297,7 @@ erDiagram
   jenis_kekerasan ||--o{ laporan : "jenisKekerasan"
   pengguna |o--o{ laporan : "verifikator"
   pengguna |o--o{ laporan : "dihapusOleh"
+  asal_rujukan |o--o{ laporan : "asalRujukan"
   laporan ||--o| pelapor : "laporan"
   pekerjaan |o--o{ pelapor : "pekerjaan"
   agama |o--o{ pelapor : "agama"

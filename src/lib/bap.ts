@@ -95,6 +95,7 @@ export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: s
     include: {
       verifikator: { select: { nama: true } },
       jenisKekerasan: { select: { id: true, nama: true } },
+      asalRujukan: { select: { nama: true } },
       pelapor: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, desa: { select: { nama: true } }, kecamatan: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, desa: { select: { nama: true } }, kecamatan: { select: { nama: true } } } },
       terlapor: { orderBy: { id: "asc" }, take: 1, include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } } } },
@@ -135,6 +136,7 @@ export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: s
     hubunganPelakuId: t?.hubunganId ?? null,
     jenisKekerasanId: r.jenisKekerasanId,
     tkp: r.tempatKejadian ?? "",
+    asalRujukan: r.asalRujukan?.nama ?? "",
     tanggalKejadian: tglPanjang(r.tanggalKejadian, ZONA),
     kronologi: r.kronologi,
     kebutuhan: r.pendampinganDiminta.map((p) => p.jenisPendamping.nama),

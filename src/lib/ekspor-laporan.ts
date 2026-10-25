@@ -30,6 +30,7 @@ export const KOLOM_EKSPOR = [
   "Jenis kekerasan",
   "Tanggal kejadian",
   "Tempat kejadian",
+  "Dirujuk dari",
   "Pelapor adalah korban",
   "Nama pelapor",
   "Hubungan pelapor dengan korban",
@@ -96,6 +97,7 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
     include: {
       jenisKekerasan: { select: { nama: true } },
       verifikator: { select: { nama: true } },
+      asalRujukan: { select: { nama: true } },
       dokumen: { select: { jenis: true } },
       pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       korban: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
@@ -125,6 +127,7 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
       r.jenisKekerasan.nama,
       r.tanggalKejadian ? hariJakarta(r.tanggalKejadian) : "",
       r.tempatKejadian,
+      r.asalRujukan?.nama,
       r.pelaporAdalahKorban ? "Ya" : "Tidak",
       p?.nama,
       p?.hubungan?.nama,

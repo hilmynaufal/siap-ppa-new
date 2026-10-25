@@ -4,7 +4,7 @@ import { KepalaPelapor } from "@/components/kepala-pelapor";
 import { db } from "@/lib/db";
 import { pilihanDesa } from "@/lib/desa";
 import { kontakDaruratAktif } from "@/lib/kontak-darurat";
-import { pilihanReferensi } from "@/lib/referensi";
+import { pilihanReferensi, pilihanRujukan } from "@/lib/referensi";
 import { tautanWaDarurat } from "@/lib/whatsapp";
 import { FormLaporan } from "./form-laporan";
 
@@ -12,7 +12,7 @@ export const metadata = { title: "Buat Laporan | SIAP PPA" };
 export const dynamic = "force-dynamic";
 
 export default async function HalamanLapor() {
-  const [jenis, kecamatan, kontak, desa, hubungan, pekerjaan, pendampingan, agama] = await Promise.all([
+  const [jenis, kecamatan, kontak, desa, hubungan, pekerjaan, pendampingan, agama, rujukan] = await Promise.all([
     db.jenisKekerasan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     db.kecamatan.findMany({ orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     kontakDaruratAktif(db, 1),
@@ -21,6 +21,7 @@ export default async function HalamanLapor() {
     pilihanReferensi(db, "pekerjaan"),
     db.jenisPendampingan.findMany({ where: { aktif: true }, orderBy: { nama: "asc" }, select: { id: true, nama: true } }),
     pilihanReferensi(db, "agama"),
+    pilihanRujukan(db),
   ]);
 
   return (
@@ -38,7 +39,7 @@ export default async function HalamanLapor() {
             </div>
           </div>
         ) : (
-          <FormLaporan jenis={jenis} kecamatan={kecamatan} desa={desa} hubungan={hubungan} pekerjaan={pekerjaan} pendampingan={pendampingan} agama={agama} />
+          <FormLaporan jenis={jenis} kecamatan={kecamatan} desa={desa} hubungan={hubungan} pekerjaan={pekerjaan} pendampingan={pendampingan} agama={agama} rujukan={rujukan} />
         )}
       </main>
     </div>

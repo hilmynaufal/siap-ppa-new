@@ -64,7 +64,7 @@ export const BIDANG_LANGKAH = {
     "korbanNama", "korbanNamaPanggilan", "korbanNik", "korbanJenisKelamin", "korbanTempatLahir", "korbanTanggalLahir", "korbanPendidikan",
     "korbanPekerjaanId", "korbanAgamaId", "korbanStatusPerkawinan", "korbanNoBpjs", "korbanStatusBpjs", "korbanKontak", "korbanAlamat", "korbanKecamatanId", "korbanDesaId",
   ],
-  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "jenisPendampinganId"],
+  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "asalRujukanId", "jenisPendampinganId"],
   4: ["terlaporTidakDiketahui", "terlaporNama", "terlaporJenisKelamin", "terlaporUsia", "terlaporHubunganId", "terlaporAlamat"],
   5: ["persetujuan"],
 } as const satisfies Record<Langkah, readonly string[]>;
@@ -135,6 +135,7 @@ const bentuk = {
   tempatKejadian: teks(300),
   kronologi: z.string().trim().max(2000, { error: "Kronologi maksimal 2000 karakter." }),
   jenisPendampinganId: teks(60),
+  asalRujukanId: teks(60),
   terlaporTidakDiketahui: z.string().trim(),
   terlaporNama: teks(120),
   terlaporJenisKelamin: teks(20),
@@ -252,6 +253,8 @@ export type DataLaporan = {
   kronologi: string;
   /** Satu jenis pendampingan yang diminta Pelapor; null bila diserahkan kepada petugas. */
   jenisPendampinganId: string | null;
+  /** Dirujuk dari mana; null bila tidak dirujuk atau tidak diisi. */
+  asalRujukanId: string | null;
   terlapor: { nama: string | null; jenisKelamin: JenisKelaminKode | null; usia: number | null; hubunganId: string | null; alamat: string | null } | null;
 };
 
@@ -300,6 +303,7 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
     kronologi: d.kronologi,
     // Tidak wajib: Pelapor yang belum tahu menyerahkannya kepada petugas.
     jenisPendampinganId: atau(d.jenisPendampinganId),
+    asalRujukanId: atau(d.asalRujukanId),
     terlapor: adaTerlapor
       ? {
           nama: atau(d.terlaporNama),
