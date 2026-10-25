@@ -3,9 +3,9 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { deteksiTipe, ekstensiUntuk } from "./laporan";
-import { SESI_AKTIF } from "./aktif";
+import { LAPORAN_AKTIF, SESI_AKTIF } from "./aktif";
 import { direktoriUnggah } from "./laporan-layanan";
-import { MAKS_FOTO, MAKS_UKURAN_FOTO, SkemaLaporanPendampingan, SkemaRevisi, galatBidang, periksaFoto, type GalatPendampingan } from "./pendampingan-skema";
+import { ALASAN_USULAN_MAKS, ALASAN_USULAN_MIN, MAKS_FOTO, MAKS_UKURAN_FOTO, SkemaLaporanPendampingan, SkemaRevisi, galatBidang, periksaFoto, type GalatPendampingan } from "./pendampingan-skema";
 import { KANAL_APLIKASI } from "./jadwal";
 import { tambahSesi, type HasilSesi } from "./sesi";
 
@@ -147,7 +147,7 @@ export async function kirimLaporanPendampingan(
   const h = SkemaLaporanPendampingan.safeParse(mentah);
   if (!h.success) return { ok: false, pesan: "Ada kolom wajib yang belum diisi.", galat: galatBidang(h.error) };
 
-  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { status: true, laporan: { select: { status: true, kodePendaftaran: true } }, laporanPendampingan: { select: { id: true } } } });
+  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { status: true, laporanId: true, laporan: { select: { status: true, kodePendaftaran: true } }, laporanPendampingan: { select: { id: true } } } });
   if (!sesi) return { ok: false, pesan: "Sesi tidak ditemukan." };
   if (!STATUS_BOLEH_LAPOR.includes(sesi.status)) return { ok: false, pesan: "Laporan dapat diisi setelah sesi dimulai." };
   if (sesi.laporanPendampingan) return { ok: false, pesan: "Laporan sesi ini sudah dikirim. Gunakan Ajukan revisi untuk mengoreksi." };
@@ -170,7 +170,7 @@ export async function kirimLaporanPendampingan(
           ajukanSesiLanjutan: h.data.ajukanSesiLanjutan,
           dikirimPada: new Date(),
           foto: { create: ditulis },
-          ...(h.data.ajukanSesiLanjutan ? { usulan: { create: {} } } : {}),
+          ...(h.data.ajukanSesiLanjutan ? { usulan: { create: { laporanId: sesi.laporanId } } } : {}),
         },
         select: { id: true },
       });
@@ -203,7 +203,7 @@ export async function revisiLaporanPendampingan(
   const h = SkemaRevisi.safeParse(mentah);
   if (!h.success) return { ok: false, pesan: "Ada kolom wajib yang belum diisi.", galat: galatBidang(h.error) };
 
-  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { laporan: { select: { status: true } } } });
+  const sesi = await db.sesi.findFirst({ where: { id: sesiId, pendampingId, ...SESI_AKTIF }, select: { laporanId: true, laporan: { select: { status: true } } } });
   if (!sesi) return { ok: false, pesan: "Sesi tidak ditemukan." };
   const lama = await db.laporanPendampingan.findFirst({ where: { sesiId, dikirimPada: { not: null } }, include: { foto: true, usulan: { select: { id: true, status: true } } } });
   if (!lama) return { ok: false, pesan: "Laporan belum dikirim." };
@@ -253,7 +253,7 @@ export async function revisiLaporanPendampingan(
       });
       if (hapus.length) await tx.fotoPendampingan.deleteMany({ where: { id: { in: hapus.map((x) => x.id) }, laporanPendampinganId: lama.id } });
       if (ditulis.length) await tx.fotoPendampingan.createMany({ data: ditulis.map((d) => ({ ...d, laporanPendampinganId: lama.id })) });
-      if (usulanBaru) await tx.usulanSesi.create({ data: { laporanPendampinganId: lama.id } });
+      if (usulanBaru) await tx.usulanSesi.create({ data: { laporanPendampinganId: lama.id, laporanId: sesi.laporanId } });
       else if (!h.data.ajukanSesiLanjutan && lama.usulan?.status === "MENUNGGU") await tx.usulanSesi.delete({ where: { id: lama.usulan.id } });
       await tx.logAudit.create({
         data: {
@@ -294,52 +294,116 @@ export async function fotoUntukPengguna(db: PrismaClient, fotoId: string, penggu
   return { namaBerkas: foto.namaBerkas, jalurBerkas: foto.jalurBerkas, tipeMime: foto.tipeMime };
 }
 
-// ------------------------------------------------------------------ usulan sesi lanjutan (Admin)
+/// ------------------------------------------------------------------ usulan sesi lanjutan (Admin)
 
 export type UsulanView = {
   id: string;
   status: "MENUNGGU" | "DISETUJUI" | "DITOLAK";
   jenis: string;
+  /** Rekomendasi Pendamping, atau alasan yang ditulis Admin. */
   rekomendasi: string;
   dari: string;
-  urutanSesi: number;
+  /** True bila dicatat Admin (bukan dari laporan pendampingan). */
+  olehAdmin: boolean;
+  /** Urutan sesi asal rekomendasi; null untuk usulan Admin. */
+  urutanSesi: number | null;
   tanggal: string;
-  /** Isian awal jadwal dari sesi asal: jenis (dicocokkan lewat nama), pendamping, dan lokasi. */
-  awal: { jenisPendampingId: string; pendampingId: string; lokasiId: string };
+  /** Isian awal jadwal: dari sesi asal (usulan Pendamping) atau saran Admin. */
+  awal: { jenisPendampingId?: string; pendampingId?: string; lokasiId?: string };
 };
 
 export async function daftarUsulan(db: PrismaClient, laporanId: string): Promise<UsulanView[]> {
   const rows = await db.usulanSesi.findMany({
-    where: { laporanPendampingan: { sesi: { laporanId } } },
+    where: { laporanId },
     orderBy: { dibuatPada: "asc" },
     include: {
       laporanPendampingan: { select: { jenisPendampingan: true, rekomendasi: true, dikirimPada: true, penulis: { select: { nama: true } }, sesi: { select: { urutan: true, jenisPendampingId: true, pendampingId: true, lokasiId: true } } } },
+      diajukanOleh: { select: { nama: true } },
+      jenisPendamping: { select: { nama: true } },
     },
   });
   return rows.map((u) => {
     const l = u.laporanPendampingan;
+    if (l) {
+      return {
+        id: u.id,
+        status: u.status,
+        jenis: l.jenisPendampingan,
+        rekomendasi: l.rekomendasi,
+        dari: l.penulis.nama,
+        olehAdmin: false,
+        urutanSesi: l.sesi.urutan,
+        tanggal: (l.dikirimPada ?? u.dibuatPada).toISOString(),
+        awal: { jenisPendampingId: l.sesi.jenisPendampingId, pendampingId: l.sesi.pendampingId, lokasiId: l.sesi.lokasiId },
+      };
+    }
     return {
       id: u.id,
       status: u.status,
-      jenis: l.jenisPendampingan,
-      rekomendasi: l.rekomendasi,
-      dari: l.penulis.nama,
-      urutanSesi: l.sesi.urutan,
-      tanggal: (l.dikirimPada ?? u.dibuatPada).toISOString(),
-      awal: { jenisPendampingId: l.sesi.jenisPendampingId, pendampingId: l.sesi.pendampingId, lokasiId: l.sesi.lokasiId },
+      jenis: u.jenisPendamping?.nama ?? "Jenis belum ditentukan",
+      rekomendasi: u.alasan ?? "",
+      dari: u.diajukanOleh ? `${u.diajukanOleh.nama} (Admin)` : "Admin",
+      olehAdmin: true,
+      urutanSesi: null,
+      tanggal: u.dibuatPada.toISOString(),
+      awal: { jenisPendampingId: u.jenisPendampingId ?? undefined, pendampingId: u.pendampingId ?? undefined },
     };
   });
 }
 
-/** Admin menyetujui usulan dan menjadwalkan sesi baru dalam satu langkah; keduanya berhasil atau tidak sama sekali. */
-export async function setujuiUsulan(db: PrismaClient, usulanId: string, adminId: string, jadwalMentah: unknown, sekarang = new Date()): Promise<HasilSesi> {
-  const u = await db.usulanSesi.findUnique({ where: { id: usulanId }, select: { status: true, laporanPendampingan: { select: { sesi: { select: { laporanId: true } } } } } });
-  if (!u) return { ok: false, pesan: "Usulan tidak ditemukan." };
-  if (u.status !== "MENUNGGU") return { ok: false, pesan: "Usulan ini sudah diputuskan." };
-  return tambahSesi(db, u.laporanPendampingan.sesi.laporanId, adminId, jadwalMentah, sekarang, usulanId);
+
+export type GalatUsulan = Partial<Record<"jenisPendampingId" | "pendampingId" | "alasan", string>>;
+export type HasilUsulan = { ok: true } | { ok: false; pesan: string; galat?: GalatUsulan };
+
+/**
+ * Admin mencatat usulan sesi lanjutan yang belum berjadwal (tanggal atau pendamping belum pasti).
+ * Usulan masuk ke daftar yang sama dengan usulan Pendamping dan dijadwalkan lewat "Setujui dan jadwalkan".
+ */
+export async function buatUsulanAdmin(
+  db: PrismaClient,
+  laporanId: string,
+  adminId: string,
+  masukan: { jenisPendampingId: string; pendampingId: string; alasan: string },
+): Promise<HasilUsulan> {
+  const alasan = masukan.alasan.trim();
+  const galat: GalatUsulan = {};
+  if (alasan.length < ALASAN_USULAN_MIN) galat.alasan = `Tuliskan alasan (minimal ${ALASAN_USULAN_MIN} huruf).`;
+  else if (alasan.length > ALASAN_USULAN_MAKS) galat.alasan = `Alasan terlalu panjang (maksimal ${ALASAN_USULAN_MAKS} huruf).`;
+  if (!masukan.jenisPendampingId) galat.jenisPendampingId = "Pilih jenis pendampingan.";
+  if (Object.keys(galat).length) return { ok: false, pesan: "Periksa isian yang ditandai.", galat };
+
+  const [l, jenis, pendamping] = await Promise.all([
+    db.laporan.findFirst({ where: { id: laporanId, ...LAPORAN_AKTIF }, select: { status: true } }),
+    db.jenisPendampingan.findFirst({ where: { id: masukan.jenisPendampingId, aktif: true }, select: { id: true } }),
+    masukan.pendampingId ? db.pengguna.findFirst({ where: { id: masukan.pendampingId, peran: "PENDAMPING", aktif: true }, select: { id: true } }) : Promise.resolve(null),
+  ]);
+  if (!l) return { ok: false, pesan: "Laporan tidak ditemukan." };
+  if (l.status !== "TERVERIFIKASI" && l.status !== "DALAM_PENDAMPINGAN") return { ok: false, pesan: "Usulan hanya dapat dicatat pada kasus yang terverifikasi dan belum ditutup." };
+  if (!jenis) return { ok: false, pesan: "Periksa isian yang ditandai.", galat: { jenisPendampingId: "Pilih jenis pendampingan dari daftar." } };
+  if (masukan.pendampingId && !pendamping) return { ok: false, pesan: "Periksa isian yang ditandai.", galat: { pendampingId: "Pilih pendamping dari daftar." } };
+
+  await db.$transaction(async (tx) => {
+    const u = await tx.usulanSesi.create({
+      data: { laporanId, diajukanOlehId: adminId, jenisPendampingId: jenis.id, pendampingId: pendamping?.id ?? null, alasan },
+      select: { id: true },
+    });
+    await tx.logAudit.create({ data: { penggunaId: adminId, aksi: "AJUKAN_USULAN_SESI", entitas: "UsulanSesi", entitasId: u.id, rincian: { laporanId, olehAdmin: true } } });
+  });
+  return { ok: true };
 }
 
-/** Admin menolak usulan; Pendamping pengusul diberi tahu lewat notifikasi aplikasi. */
+/** Admin menyetujui usulan dan menjadwalkan sesi baru dalam satu langkah; keduanya berhasil atau tidak sama sekali. */
+export async function setujuiUsulan(db: PrismaClient, usulanId: string, adminId: string, jadwalMentah: unknown, sekarang = new Date()): Promise<HasilSesi> {
+  const u = await db.usulanSesi.findUnique({ where: { id: usulanId }, select: { status: true, laporanId: true } });
+  if (!u) return { ok: false, pesan: "Usulan tidak ditemukan." };
+  if (u.status !== "MENUNGGU") return { ok: false, pesan: "Usulan ini sudah diputuskan." };
+  return tambahSesi(db, u.laporanId, adminId, jadwalMentah, sekarang, usulanId);
+}
+
+/**
+ * Admin menolak usulan Pendamping (Pendamping pengusul diberi tahu) atau membatalkan usulan yang dicatat Admin.
+ * Keduanya berstatus DITOLAK.
+ */
 export async function tolakUsulan(db: PrismaClient, usulanId: string, adminId: string): Promise<HasilSesi> {
   return db.$transaction(async (tx): Promise<HasilSesi> => {
     const u = await tx.usulanSesi.findUnique({
@@ -350,17 +414,19 @@ export async function tolakUsulan(db: PrismaClient, usulanId: string, adminId: s
     const { count } = await tx.usulanSesi.updateMany({ where: { id: usulanId, status: "MENUNGGU" }, data: { status: "DITOLAK", keputusanOlehId: adminId, diputuskanPada: new Date() } });
     if (count === 0) return { ok: false, pesan: "Usulan ini sudah diputuskan." };
     const l = u.laporanPendampingan;
-    await tx.notifikasi.create({
-      data: {
-        sesiId: l.sesiId,
-        penerima: "PENDAMPING",
-        penerimaId: l.penulisId,
-        kanal: KANAL_APLIKASI,
-        dikirimPada: new Date(),
-        pesan: `Usulan sesi lanjutan untuk laporan ${l.sesi.laporan.kodePendaftaran} tidak disetujui Admin.`,
-      },
-    });
-    await tx.logAudit.create({ data: { penggunaId: adminId, aksi: "TOLAK_USULAN_SESI", entitas: "UsulanSesi", entitasId: usulanId } });
+    if (l) {
+      await tx.notifikasi.create({
+        data: {
+          sesiId: l.sesiId,
+          penerima: "PENDAMPING",
+          penerimaId: l.penulisId,
+          kanal: KANAL_APLIKASI,
+          dikirimPada: new Date(),
+          pesan: `Usulan sesi lanjutan untuk laporan ${l.sesi.laporan.kodePendaftaran} tidak disetujui Admin.`,
+        },
+      });
+    }
+    await tx.logAudit.create({ data: { penggunaId: adminId, aksi: l ? "TOLAK_USULAN_SESI" : "BATALKAN_USULAN_SESI", entitas: "UsulanSesi", entitasId: usulanId } });
     return { ok: true };
   });
 }

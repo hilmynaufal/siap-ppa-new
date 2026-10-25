@@ -88,7 +88,7 @@ beforeAll(async () => {
   await sesi(l1.id, 3, jenisB, "2031-03-15T03:30:00Z", "DIBATALKAN"); // hari ini tetapi dibatalkan
 
   const lp = await db.laporanPendampingan.create({ data: { sesiId: s2.id, penulisId: pendId, jenisPendampingan: "x", keterangan: "x", rekomendasi: "x", ajukanSesiLanjutan: true, dikirimPada: new Date("2031-03-12T04:00:00Z") } });
-  await db.usulanSesi.create({ data: { laporanPendampinganId: lp.id } });
+  await db.usulanSesi.create({ data: { laporanPendampinganId: lp.id, laporanId: s2.laporanId } });
 });
 
 afterAll(async () => {

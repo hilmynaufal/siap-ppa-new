@@ -256,7 +256,12 @@ erDiagram
   }
   usulan_sesi {
     String id PK
-    String laporan_pendampingan_id FK,UK
+    String laporan_id FK
+    String laporan_pendampingan_id FK,UK "opsional"
+    String diajukan_oleh_id FK "opsional"
+    String jenis_pendamping_id FK "opsional"
+    String pendamping_id FK "opsional"
+    String alasan "opsional"
     enum_status_usulan status
     String keputusan_oleh_id FK "opsional"
     DateTime diputuskan_pada "opsional"
@@ -316,7 +321,11 @@ erDiagram
   laporan_pendampingan ||--o{ foto_pendampingan : "laporanPendampingan"
   laporan_pendampingan ||--o{ revisi_laporan_pendampingan : "laporanPendampingan"
   pengguna ||--o{ revisi_laporan_pendampingan : "pengubah"
-  laporan_pendampingan ||--o| usulan_sesi : "laporanPendampingan"
+  laporan ||--o{ usulan_sesi : "laporan"
+  laporan_pendampingan |o--o| usulan_sesi : "laporanPendampingan"
   pengguna |o--o{ usulan_sesi : "keputusanOleh"
+  pengguna |o--o{ usulan_sesi : "diajukanOleh"
+  pengguna |o--o{ usulan_sesi : "pendamping"
+  jenis_pendampingan |o--o{ usulan_sesi : "jenisPendamping"
   sesi |o--o| usulan_sesi : "sesiHasil"
   pengguna |o--o{ log_audit : "pengguna"

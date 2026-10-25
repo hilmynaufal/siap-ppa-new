@@ -51,7 +51,7 @@ export async function hapusPermanen(db: PrismaClient, id: string, adminId: strin
   await db.$transaction(async (tx) => {
     const lp = { sesiId: { in: sesiIds } };
     // Urutan mengikuti relasi tanpa cascade: usulan dan revisi -> laporan pendampingan -> isi sesi -> sesi -> laporan.
-    await tx.usulanSesi.deleteMany({ where: { OR: [{ laporanPendampingan: lp }, { sesiHasilId: { in: sesiIds } }] } });
+    await tx.usulanSesi.deleteMany({ where: { OR: [{ laporanId: id }, { laporanPendampingan: lp }, { sesiHasilId: { in: sesiIds } }] } });
     await tx.revisiLaporanPendampingan.deleteMany({ where: { laporanPendampingan: lp } });
     await tx.laporanPendampingan.deleteMany({ where: lp });
     await tx.notifikasi.deleteMany({ where: lp });
