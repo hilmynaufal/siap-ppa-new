@@ -60,6 +60,9 @@ describe("hak akses per peran", () => {
     expect(putuskanAkses("/bap/abc", "ADMIN")).toEqual({ aksi: "izinkan" });
     expect(putuskanAkses("/bap/abc", "PENDAMPING")).toEqual({ aksi: "izinkan" });
     expect(putuskanAkses("/bap/abc", "PETUGAS")).toEqual({ aksi: "ke-beranda", peran: "PETUGAS" });
+    expect(putuskanAkses("/cetak/statistik", null)).toEqual({ aksi: "ke-masuk" });
+    expect(putuskanAkses("/cetak/statistik", "ADMIN")).toEqual({ aksi: "izinkan" });
+    expect(putuskanAkses("/cetak/statistik", "PENDAMPING")).toEqual({ aksi: "ke-beranda", peran: "PENDAMPING" });
   });
   it("Petugas hanya ke /petugas dan diarahkan ke beranda sendiri dari area lain", () => {
     expect(putuskanAkses("/petugas", "PETUGAS")).toEqual({ aksi: "izinkan" });

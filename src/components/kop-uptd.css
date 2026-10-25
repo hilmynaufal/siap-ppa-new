@@ -1,0 +1,35 @@
+/* Kop surat UPTD PPA untuk halaman cetak (BAP, laporan statistik). */
+.bap-kop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 3px double #000;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+.bap-logo {
+  width: 22mm;
+  height: auto;
+  flex-shrink: 0;
+}
+.bap-kop-teks {
+  flex: 1;
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
+  line-height: 1.2;
+}
+.bap-kop-1 {
+  font-size: 14pt;
+  font-weight: 700;
+}
+.bap-kop-2 {
+  font-size: 12pt;
+  font-weight: 700;
+}
+.bap-kop-3 {
+  font-size: 14pt;
+  font-weight: 700;
+}
+.bap-kop-4 {
+  font-size: 9.5pt;
+}

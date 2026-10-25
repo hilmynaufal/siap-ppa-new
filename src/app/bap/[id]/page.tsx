@@ -4,6 +4,7 @@ import { wajibPeran } from "@/lib/auth";
 import { muatBap, type DataBap, type DiriBap } from "@/lib/bap";
 import { bolehAksesKasus } from "@/lib/data-bap";
 import { db } from "@/lib/db";
+import { KopUptd } from "@/components/kop-uptd";
 import { LampiranPdf } from "./lampiran-pdf";
 import { TombolCetak } from "./tombol-cetak";
 import "./bap.css";
@@ -31,23 +32,6 @@ function Isian({ label, nilai }: { label: string; nilai: string }) {
       <span className="bap-titik">:</span>
       <span className="bap-nilai">{nilai}</span>
     </div>
-  );
-}
-
-function Kop() {
-  return (
-    <header className="bap-kop">
-      {/* eslint-disable-next-line @next/next/no-img-element -- dicetak apa adanya, tanpa optimasi gambar */}
-      <img src="/brand/logo-kabupaten-bandung.jpg" alt="Lambang Kabupaten Bandung" className="bap-logo" />
-      <div className="bap-kop-teks">
-        <p className="bap-kop-1">PEMERINTAH KABUPATEN BANDUNG</p>
-        <p className="bap-kop-2">DINAS PENGENDALIAN PENDUDUK, KELUARGA BERENCANA,</p>
-        <p className="bap-kop-2">PEMBERDAYAAN PEREMPUAN DAN PERLINDUNGAN ANAK</p>
-        <p className="bap-kop-3">UPTD PERLINDUNGAN PEREMPUAN DAN ANAK</p>
-        <p className="bap-kop-4">Jl. Raya Soreang KM. 17 Telp. (022) 5897180 Soreang 40911</p>
-        <p className="bap-kop-4">Kabupaten Bandung Provinsi Jawa Barat</p>
-      </div>
-    </header>
   );
 }
 
@@ -102,7 +86,7 @@ export default async function HalamanBap({ params }: { params: Promise<{ id: str
       </div>
 
       <article className="bap-kertas" aria-label={`Berita Acara Pelaporan ${b.kode}`}>
-        <Kop />
+        <KopUptd />
         <h1 className="bap-judul">BERITA ACARA PELAPORAN</h1>
         <p className="bap-noreg">No. Registrasi : {b.kode}</p>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenText, BriefcaseBusiness, CalendarDays, ContactRound, Handshake, HeartHandshake, Inbox, LayoutDashboard, Landmark, MapPinned, Shapes, Ticket, ScanLine, Settings, Signpost, Trash2, UserRoundCog, type LucideIcon } from "lucide-react";
+import { BookOpenText, BriefcaseBusiness, CalendarDays, ChartColumn, ContactRound, Handshake, HeartHandshake, Inbox, LayoutDashboard, Landmark, MapPinned, Shapes, Ticket, ScanLine, Settings, Signpost, Trash2, UserRoundCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -15,6 +15,7 @@ const GRUP: { judul?: string; item: Item[] }[] = [
       { href: "/admin/laporan", label: "Laporan masuk", ikon: Inbox, lencana: "baru" },
       { href: "/admin/jadwal", label: "Jadwal pendampingan", ikon: CalendarDays },
       { href: "/admin/antrean", label: "Antrean hari ini", ikon: Ticket },
+      { href: "/admin/statistik", label: "Laporan & statistik", ikon: ChartColumn },
       { href: "/admin/sampah", label: "Sampah", ikon: Trash2 },
     ],
   },

@@ -97,30 +97,44 @@ function zip(berkas: { nama: string; isi: Uint8Array }[]): Uint8Array {
   return hasil;
 }
 
+const sel = (v: SelExcel, c: number, r: number, gaya: number) => {
+  const rujukan = `${namaKolom(c)}${r}`;
+  if (v === null || v === undefined || v === "") return gaya ? `<c r="${rujukan}" s="${gaya}"/>` : "";
+  if (typeof v === "number" && Number.isFinite(v)) return `<c r="${rujukan}"${gaya ? ` s="${gaya}"` : ""}><v>${v}</v></c>`;
+  return `<c r="${rujukan}" t="inlineStr"${gaya ? ` s="${gaya}"` : ""}><is><t xml:space="preserve">${xml(String(v))}</t></is></c>`;
+};
+const barisXml = (isi: SelExcel[], r: number, gaya: number) => `<row r="${r}">${isi.map((v, c) => sel(v, c, r, gaya)).join("")}</row>`;
+const kolomXml = (lebar: number[]) => `<cols>${lebar.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>`;
+const AWAL_LEMBAR = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`;
+
 /** Membuat berkas .xlsx satu lembar. Baris pertama (`judul`) ditebalkan dan dibekukan; teks selalu disimpan sebagai teks. */
 export function buatXlsx(namaLembar: string, judul: string[], baris: SelExcel[][]): Uint8Array {
-  const enc = new TextEncoder();
   const lebar = judul.map((j, c) => {
     const terpanjang = Math.max(j.length, ...baris.slice(0, 200).map((r) => String(r[c] ?? "").split("\n")[0].length));
     return Math.min(Math.max(terpanjang + 2, 10), 50);
   });
-
-  const sel = (v: SelExcel, c: number, r: number, gaya: number) => {
-    const rujukan = `${namaKolom(c)}${r}`;
-    if (v === null || v === undefined || v === "") return gaya ? `<c r="${rujukan}" s="${gaya}"/>` : "";
-    if (typeof v === "number" && Number.isFinite(v)) return `<c r="${rujukan}"${gaya ? ` s="${gaya}"` : ""}><v>${v}</v></c>`;
-    return `<c r="${rujukan}" t="inlineStr"${gaya ? ` s="${gaya}"` : ""}><is><t xml:space="preserve">${xml(String(v))}</t></is></c>`;
-  };
-  const barisXml = (isi: SelExcel[], r: number, gaya: number) => `<row r="${r}">${isi.map((v, c) => sel(v, c, r, gaya)).join("")}</row>`;
-
   const lembar =
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
-    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+    AWAL_LEMBAR +
     `<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>` +
-    `<cols>${lebar.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` +
+    kolomXml(lebar) +
     `<sheetData>${barisXml(judul, 1, 1)}${baris.map((b, i) => barisXml(b, i + 2, 0)).join("")}</sheetData>` +
     `</worksheet>`;
+  return paket(namaLembar, lembar);
+}
 
+/**
+ * Lembar bebas bentuk untuk laporan bertabel (beberapa tabel bertumpuk dalam satu lembar).
+ * `tebal` berisi nomor baris (mulai 0) yang ditebalkan, mis. judul dan baris jumlah.
+ */
+export function buatXlsxLaporan(namaLembar: string, baris: SelExcel[][], opsi: { lebar: number[]; tebal: number[] }): Uint8Array {
+  const tebal = new Set(opsi.tebal);
+  const lembar = AWAL_LEMBAR + kolomXml(opsi.lebar) + `<sheetData>${baris.map((b, i) => barisXml(b, i + 1, tebal.has(i) ? 1 : 0)).join("")}</sheetData></worksheet>`;
+  return paket(namaLembar, lembar);
+}
+
+/** Lembar dan berkas pendukung dibungkus menjadi arsip .xlsx. */
+function paket(namaLembar: string, lembar: string): Uint8Array {
+  const enc = new TextEncoder();
   const berkas = [
     {
       nama: "[Content_Types].xml",

@@ -7,6 +7,8 @@ const AREA: { prefix: string; peran: Peran[] }[] = [
   { prefix: "/petugas", peran: ["PETUGAS"] },
   // BAP dicetak Admin atau Pendamping kasus; halaman memeriksa kepemilikan kasusnya.
   { prefix: "/bap", peran: ["ADMIN", "PENDAMPING"] },
+  // Halaman cetak tanpa kerangka Admin (laporan statistik bulanan).
+  { prefix: "/cetak", peran: ["ADMIN"] },
 ];
 
 export function areaUntukPath(pathname: string) {
