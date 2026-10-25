@@ -1,10 +1,11 @@
 import { LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { keluar } from "@/app/masuk/actions";
 import { LogoSiap } from "./logo-siap";
 
 /** Kepala area masuk. Nama pengguna menuju halaman Profil (`profilHref`); di layar sempit tampil sebagai ikon. */
-export function KepalaArea({ nama, peran, profilHref }: { nama: string; peran: string; profilHref: string }) {
+export function KepalaArea({ nama, peran, profilHref, ekstra }: { nama: string; peran: string; profilHref: string; ekstra?: ReactNode }) {
   return (
     <header className="sticky top-0 z-30 flex h-[4.5rem] items-center justify-between gap-4 border-b border-line bg-surface px-4 md:px-8">
       <div className="flex items-center gap-3">
@@ -15,6 +16,7 @@ export function KepalaArea({ nama, peran, profilHref }: { nama: string; peran: s
         </div>
       </div>
       <div className="flex items-center gap-3">
+        {ekstra}
         <Link
           href={profilHref}
           aria-label={`Profil: ${nama}`}

@@ -116,3 +116,14 @@ export type RingkasanDasbor = Awaited<ReturnType<typeof ringkasanDasbor>>;
 
 /** Jumlah laporan yang menunggu verifikasi (lencana pada menu Laporan masuk). */
 export const jumlahLaporanBaru = (db: PrismaClient) => db.laporan.count({ where: { ...LAPORAN_AKTIF, status: "BARU" } });
+
+export type StatusLaporanBaru = { jumlah: number; terbaru: string | null };
+
+/** Jumlah laporan menunggu verifikasi dan waktu laporan baru terakhir, untuk notifikasi di browser Admin. */
+export async function statusLaporanBaru(db: PrismaClient): Promise<StatusLaporanBaru> {
+  const [jumlah, akhir] = await Promise.all([
+    jumlahLaporanBaru(db),
+    db.laporan.findFirst({ where: { ...LAPORAN_AKTIF, status: "BARU" }, orderBy: { dibuatPada: "desc" }, select: { dibuatPada: true } }),
+  ]);
+  return { jumlah, terbaru: akhir?.dibuatPada.toISOString() ?? null };
+}
