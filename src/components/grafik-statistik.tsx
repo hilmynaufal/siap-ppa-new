@@ -190,3 +190,108 @@ function bulatAtas(x: number, y: number, w: number, h: number, r: number) {
 function Kosong() {
   return <p className="rounded-xl border border-dashed border-line-strong p-4 text-sm text-ink-soft">Belum ada kasus pada periode ini.</p>;
 }
+
+export type ModeGrafik = "batang" | "garis";
+
+/** Tampilan grafik dari parameter alamat `grafik`; bawaannya batang. */
+export const bacaModeGrafik = (v: string | undefined | null): ModeGrafik => (v === "garis" ? "garis" : "batang");
+
+/**
+ * Pilihan tampilan Batang/Garis sebagai tautan (tanpa JavaScript), mempertahankan parameter lain.
+ * Disembunyikan saat dicetak.
+ */
+export function PilihGrafik({ mode, dasar, param }: { mode: ModeGrafik; dasar: string; param: Record<string, string> }) {
+  const tautan = (m: ModeGrafik) => `${dasar}?${new URLSearchParams({ ...param, grafik: m })}`;
+  return (
+    <div role="group" aria-label="Tampilan grafik" className="inline-flex print:hidden rounded-xl border border-line-strong bg-surface p-1 text-sm font-bold">
+      {(["batang", "garis"] as const).map((m) => (
+        <a
+          key={m}
+          href={tautan(m)}
+          aria-current={mode === m ? "true" : undefined}
+          className={`rounded-lg px-4 py-2 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${mode === m ? "bg-brand-600 text-white" : "text-ink-soft hover:bg-brand-50"}`}
+        >
+          {m === "batang" ? "Batang" : "Garis"}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Grafik garis per kategori (format laporan UPTD): satu seri jumlah korban, titik dan angka di tiap kategori.
+ * Label sumbu X dimiringkan bila kategorinya banyak; di layar sempit grafik dapat digulir ke samping.
+ */
+export function GarisKategori({ data, label, warna = "#2a78d6" }: { data: { nama: string; jumlah: number }[]; label: string; warna?: string }) {
+  if (data.length === 0 || data.every((d) => d.jumlah === 0)) return <Kosong />;
+  const panjang = Math.max(...data.map((d) => d.nama.length));
+  const miring = data.length > 6;
+  // Kategori sedikit: label datar selebar nama terpanjang. Kategori banyak (kecamatan): rapat dan miring agar tetap terbaca saat dicetak.
+  const langkah = miring ? 32 : Math.max(110, panjang * 7 + 16);
+  // Label miring menjorok ke kiri; beri ruang agar label pertama tidak terpotong.
+  const kiri = miring ? 64 : 36;
+  const W = Math.max(640, kiri + 24 + data.length * langkah);
+  const bawah = miring ? 30 + Math.min(18, panjang) * 4.6 : 34;
+  const H = 230 + bawah;
+  const ATAS_G = 24;
+  const tinggi = H - ATAS_G - bawah;
+  const atas = batasAtas(Math.max(1, ...data.map((d) => d.jumlah)));
+  const lebar = (W - kiri - 24) / data.length;
+  const x = (i: number) => kiri + 12 + lebar * i + lebar / 2;
+  const y = (n: number) => ATAS_G + tinggi - (n / atas) * tinggi;
+  const garis = data.map((d, i) => `${i ? "L" : "M"}${x(i)},${y(d.jumlah)}`).join("");
+  return (
+    <figure className="m-0 overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%"
+        // Di layar sempit grafik tetap terbaca (gulir ke samping); saat dicetak mengecil agar muat satu kertas.
+        style={{ "--lebar-min": `${Math.min(W, data.length * 26)}px` } as React.CSSProperties}
+        role="img"
+        aria-label={label}
+        className="block min-w-(--lebar-min) print:min-w-0"
+      >
+        {[0, 1, 2, 3, 4].map((i) => {
+          const n = (atas / 4) * i;
+          return (
+            <g key={i}>
+              <line x1={kiri} x2={W - 4} y1={y(n)} y2={y(n)} stroke={i === 0 ? "#b9d0c0" : "#E6F0E9"} strokeWidth="1" />
+              <text x={kiri - 8} y={y(n) + 4} textAnchor="end" fontSize="11" fill="#566A5D">
+                {n}
+              </text>
+            </g>
+          );
+        })}
+        <path d={garis} fill="none" stroke={warna} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {data.map((d, i) => (
+          <g key={d.nama}>
+            <circle cx={x(i)} cy={y(d.jumlah)} r="5" fill={warna} stroke="#fbfdfb" strokeWidth="2">
+              <title>{`${d.nama}: ${d.jumlah}`}</title>
+            </circle>
+            <text x={x(i)} y={y(d.jumlah) - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="#1A2B22">
+              {d.jumlah}
+            </text>
+            {miring ? (
+              <text x={x(i)} y={ATAS_G + tinggi + 14} textAnchor="end" fontSize="11" fill="#455a4d" transform={`rotate(-35 ${x(i)} ${ATAS_G + tinggi + 14})`}>
+                {d.nama}
+              </text>
+            ) : (
+              <text x={x(i)} y={ATAS_G + tinggi + 20} textAnchor="middle" fontSize="12" fill="#455a4d">
+                {d.nama}
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
+      <table className="sr-only">
+        <caption>{label}</caption>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.nama}>
+              <th scope="row">{d.nama}</th>
+              <td>{d.jumlah}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </figure>
+  );
+}

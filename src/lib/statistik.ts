@@ -98,7 +98,8 @@ export type BarisStatistik = {
 };
 
 export type Hitungan = { nama: string; jumlah: number };
-export type BarisUsia = { kunci: string; label: string; jumlah: number };
+/** `pendek` dipakai sebagai label sumbu grafik. */
+export type BarisUsia = { kunci: string; label: string; pendek: string; jumlah: number };
 export type BarisKecamatan = { nama: string; anakL: number; dewasaL: number; anakP: number; dewasaP: number; lain: number; jumlah: number };
 export type BarisJenis = { nama: string; anak: number; dewasa: number; lain: number; jumlah: number };
 export type TitikTren = { bulan: string; label: string; anak: number; dewasa: number; lain: number };
@@ -136,11 +137,11 @@ export function rangkumStatistik(
 
   // Tabel 1 mengikuti format resmi: Dewasa, Anak perempuan, Anak laki-laki; baris lain hanya bila ada.
   const usia: BarisUsia[] = [
-    { kunci: "DEWASA", label: `Dewasa (${USIA_DEWASA} tahun ke atas)`, jumlah: dewasa },
-    { kunci: "ANAK_P", label: `Anak perempuan (0-${USIA_DEWASA - 1} tahun)`, jumlah: anakP },
-    { kunci: "ANAK_L", label: `Anak laki-laki (0-${USIA_DEWASA - 1} tahun)`, jumlah: anakL },
-    ...(anakLain ? [{ kunci: "ANAK_LAIN", label: "Anak, jenis kelamin lainnya/tidak diisi", jumlah: anakLain }] : []),
-    ...(tidakDiketahui ? [{ kunci: "TIDAK_DIKETAHUI", label: "Usia tidak diketahui", jumlah: tidakDiketahui }] : []),
+    { kunci: "DEWASA", label: `Dewasa (${USIA_DEWASA} tahun ke atas)`, pendek: `Dewasa (${USIA_DEWASA}+)`, jumlah: dewasa },
+    { kunci: "ANAK_P", label: `Anak perempuan (0-${USIA_DEWASA - 1} tahun)`, pendek: "Anak perempuan", jumlah: anakP },
+    { kunci: "ANAK_L", label: `Anak laki-laki (0-${USIA_DEWASA - 1} tahun)`, pendek: "Anak laki-laki", jumlah: anakL },
+    ...(anakLain ? [{ kunci: "ANAK_LAIN", label: "Anak, jenis kelamin lainnya/tidak diisi", pendek: "Anak lainnya", jumlah: anakLain }] : []),
+    ...(tidakDiketahui ? [{ kunci: "TIDAK_DIKETAHUI", label: "Usia tidak diketahui", pendek: "Usia tak diketahui", jumlah: tidakDiketahui }] : []),
   ];
 
   const namaKec = new Map(master.kecamatan.map((k) => [k.id, k.nama]));

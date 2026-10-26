@@ -1,6 +1,6 @@
 import { Baby, ChartColumn, Clock, Download, Printer, UsersRound, Venus } from "lucide-react";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { BatangTunggal, BatangUsia, TrenBulanan } from "@/components/grafik-statistik";
+import { BatangTunggal, BatangUsia, GarisKategori, PilihGrafik, TrenBulanan, bacaModeGrafik } from "@/components/grafik-statistik";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { StripKpi } from "@/components/strip-kpi";
 import { fokus, tombolUtama } from "@/components/ui-form";
@@ -33,11 +33,15 @@ function Panel({ id, judul, ket, children, kelas = "" }: { id: string; judul: st
 const th = "px-2 py-2 text-right font-bold";
 const td = "px-2 py-2.5 text-right tabular-nums";
 
-export default async function HalamanStatistik({ searchParams }: { searchParams: Promise<{ tahun?: string; bulan?: string }> }) {
+export default async function HalamanStatistik({ searchParams }: { searchParams: Promise<{ tahun?: string; bulan?: string; grafik?: string }> }) {
   const q = await searchParams;
   const periode = bacaPeriode(q);
+  const mode = bacaModeGrafik(q.grafik);
+  const garis = mode === "garis";
   const s = await statistikKasus(db, periode);
-  const param = new URLSearchParams({ tahun: String(periode.tahun), bulan: periode.bulan ? String(periode.bulan) : "semua" });
+  const dasarParam = { tahun: String(periode.tahun), bulan: periode.bulan ? String(periode.bulan) : "semua" };
+  const param = new URLSearchParams(dasarParam);
+  const paramCetak = new URLSearchParams({ ...dasarParam, grafik: mode });
   const selisih = s.total - s.sebelumnya.jumlah;
   const jumlahKec = jumlahKecamatan(s);
   const adaLain = jumlahKec.lain > 0;
@@ -55,7 +59,7 @@ export default async function HalamanStatistik({ searchParams }: { searchParams:
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href={`/cetak/statistik?${param}`} target="_blank" rel="noopener" className={tombolUtama}>
+          <a href={`/cetak/statistik?${paramCetak}`} target="_blank" rel="noopener" className={tombolUtama}>
             <Printer size={18} aria-hidden="true" />
             Cetak laporan
           </a>
@@ -91,6 +95,7 @@ export default async function HalamanStatistik({ searchParams }: { searchParams:
             ))}
           </select>
         </label>
+        <input type="hidden" name="grafik" value={mode} />
         <button type="submit" className={`h-11 rounded-xl bg-brand-600 px-5 font-bold text-white hover:bg-brand-700 ${fokus}`}>
           Tampilkan
         </button>
@@ -121,12 +126,24 @@ export default async function HalamanStatistik({ searchParams }: { searchParams:
         ]}
       />
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+        <span className="text-sm font-semibold text-ink-soft">Tampilan grafik</span>
+        <PilihGrafik mode={mode} dasar="/admin/statistik" param={dasarParam} />
+      </div>
+
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         <Panel id="h-tren" judul="Tren korban per bulan" ket={`${s.tren[0].label} sampai ${s.tren[s.tren.length - 1].label}`} kelas="xl:col-span-2">
           <TrenBulanan data={s.tren} sorot={s.periode.bulan ? s.periode.kunci : undefined} />
         </Panel>
 
         <Panel id="h-usia" judul="1. Berdasarkan usia korban" ket="Usia pada tanggal kejadian">
+          <div className="mb-4">
+            {garis ? (
+              <GarisKategori data={s.usia.map((u) => ({ nama: u.pendek, jumlah: u.jumlah }))} label="Grafik korban berdasarkan usia" />
+            ) : (
+              <BatangTunggal data={s.usia.map((u) => ({ nama: u.label, jumlah: u.jumlah }))} total={s.total} />
+            )}
+          </div>
           <table className="w-full text-left">
             <thead className="text-sm text-ink-soft">
               <tr className="border-b border-line">
@@ -159,12 +176,16 @@ export default async function HalamanStatistik({ searchParams }: { searchParams:
         </Panel>
 
         <Panel id="h-jenis" judul="3. Berdasarkan jenis kasus" ket="Dari master Jenis Kekerasan">
-          <BatangUsia data={s.jenis} label="Korban per jenis kasus" />
+          {garis ? <GarisKategori data={s.jenis} label="Grafik korban berdasarkan jenis kasus" /> : <BatangUsia data={s.jenis} label="Korban per jenis kasus" />}
         </Panel>
 
         <Panel id="h-kec" judul="2. Per kecamatan" ket={`${s.kecamatan.filter((k) => k.nama !== TANPA_KECAMATAN).length} kecamatan dengan kasus`} kelas="xl:col-span-2">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <BatangUsia data={kecUrut.map((k) => ({ nama: k.nama, jumlah: k.jumlah, anak: k.anakL + k.anakP, dewasa: k.dewasaL + k.dewasaP, lain: k.lain }))} label="Korban per kecamatan" />
+          <div className={garis ? "grid gap-6" : "grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"}>
+            {garis ? (
+              <GarisKategori data={s.kecamatan} label="Grafik korban per kecamatan" />
+            ) : (
+              <BatangUsia data={kecUrut.map((k) => ({ nama: k.nama, jumlah: k.jumlah, anak: k.anakL + k.anakP, dewasa: k.dewasaL + k.dewasaP, lain: k.lain }))} label="Korban per kecamatan" />
+            )}
             {s.kecamatan.length > 0 && (
               <div className="-mx-2 overflow-x-auto">
                 <table className="w-full min-w-[30rem] text-left text-sm">

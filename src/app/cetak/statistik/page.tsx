@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { BatangUsia, TrenBulanan } from "@/components/grafik-statistik";
+import { BatangTunggal, BatangUsia, GarisKategori, PilihGrafik, TrenBulanan, bacaModeGrafik } from "@/components/grafik-statistik";
 import { KopUptd } from "@/components/kop-uptd";
 import { wajibPeran } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -14,16 +14,19 @@ export const metadata = { title: "Laporan Kasus Bulanan | SIAP PPA" };
 export const dynamic = "force-dynamic";
 
 /** Laporan statistik siap cetak (format laporan KTP/KTA UPTD PPA). Hanya Admin (lihat akses.ts). */
-export default async function CetakStatistik({ searchParams }: { searchParams: Promise<{ tahun?: string; bulan?: string }> }) {
+export default async function CetakStatistik({ searchParams }: { searchParams: Promise<{ tahun?: string; bulan?: string; grafik?: string }> }) {
   await wajibPeran("ADMIN");
   const q = await searchParams;
   const periode = bacaPeriode(q);
+  const garis = bacaModeGrafik(q.grafik) === "garis";
+  const dasarParam = { tahun: String(periode.tahun), bulan: periode.bulan ? String(periode.bulan) : "semua" };
   const [s, ttd] = await Promise.all([statistikKasus(db, periode), bacaPengaturanBap(db)]);
   const j = judulLaporan(s);
   const k = jumlahKecamatan(s);
   const adaLain = k.lain > 0;
   const tanggal = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
-  const kembali = `/admin/statistik?tahun=${periode.tahun}&bulan=${periode.bulan ?? "semua"}`;
+  const kembali = `/admin/statistik?${new URLSearchParams({ ...dasarParam, grafik: garis ? "garis" : "batang" })}`;
+  const bulanJudul = s.periode.label;
 
   return (
     <div className="lst-latar">
@@ -33,6 +36,7 @@ export default async function CetakStatistik({ searchParams }: { searchParams: P
           Kembali
         </Link>
         <p>Kolom Keterangan pada tabel jenis kasus dapat diketik langsung sebelum dicetak (tidak disimpan).</p>
+        <PilihGrafik mode={garis ? "garis" : "batang"} dasar="/cetak/statistik" param={dasarParam} />
         <TombolCetak />
       </div>
 
@@ -162,14 +166,39 @@ export default async function CetakStatistik({ searchParams }: { searchParams: P
         </section>
 
         <section className="lst-bagian">
-          <h2>4. GRAFIK KORBAN BERDASARKAN JENIS KASUS</h2>
+          <h2>4. GRAFIK KORBAN BERDASARKAN USIA</h2>
+          <p className="lst-sub">{bulanJudul}</p>
           <div className="lst-grafik">
-            <BatangUsia data={s.jenis} label="Korban per jenis kasus" />
+            {garis ? (
+              <GarisKategori data={s.usia.map((u) => ({ nama: u.pendek, jumlah: u.jumlah }))} label="Grafik korban berdasarkan usia" />
+            ) : (
+              <BatangTunggal data={s.usia.map((u) => ({ nama: u.label, jumlah: u.jumlah }))} total={s.total} />
+            )}
           </div>
         </section>
 
         <section className="lst-bagian">
-          <h2>5. GRAFIK KORBAN PER BULAN ({s.tren[0].label} - {s.tren[s.tren.length - 1].label})</h2>
+          <h2>5. GRAFIK KORBAN PER KECAMATAN</h2>
+          <p className="lst-sub">{bulanJudul}</p>
+          <div className="lst-grafik">
+            {garis ? (
+              <GarisKategori data={s.kecamatan} label="Grafik korban per kecamatan" />
+            ) : (
+              <BatangUsia data={s.kecamatan.map((k) => ({ nama: k.nama, jumlah: k.jumlah, anak: k.anakL + k.anakP, dewasa: k.dewasaL + k.dewasaP, lain: k.lain }))} label="Korban per kecamatan" />
+            )}
+          </div>
+        </section>
+
+        <section className="lst-bagian">
+          <h2>6. GRAFIK KORBAN BERDASARKAN JENIS KASUS</h2>
+          <p className="lst-sub">{bulanJudul}</p>
+          <div className="lst-grafik">
+            {garis ? <GarisKategori data={s.jenis} label="Grafik korban berdasarkan jenis kasus" /> : <BatangUsia data={s.jenis} label="Korban per jenis kasus" />}
+          </div>
+        </section>
+
+        <section className="lst-bagian">
+          <h2>7. GRAFIK KORBAN PER BULAN ({s.tren[0].label} - {s.tren[s.tren.length - 1].label})</h2>
           <div className="lst-grafik">
             <TrenBulanan data={s.tren} sorot={s.periode.bulan ? s.periode.kunci : undefined} />
           </div>
