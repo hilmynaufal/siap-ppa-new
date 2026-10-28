@@ -24,6 +24,7 @@ let lokasiId = "";
 let agamaId = "";
 let pekerjaanId = "";
 let hubunganId = "";
+let rujukanId = "";
 const laporanIds: string[] = [];
 let urut = 0;
 let pengaturanAwal: { kunci: string; nilai: string; diubahOlehId: string | null }[] = [];
@@ -70,6 +71,7 @@ beforeAll(async () => {
   agamaId = (await db.agama.findFirstOrThrow({ where: { aktif: true } })).id;
   pekerjaanId = (await db.pekerjaan.findFirstOrThrow({ where: { aktif: true } })).id;
   hubunganId = (await db.hubunganKorban.findFirstOrThrow({ where: { aktif: true } })).id;
+  rujukanId = (await db.asalRujukan.findFirstOrThrow({ where: { nama: "Kepolisian" } })).id;
   const mk = (nama: string) => db.pengguna.create({ data: { nama, email: `${nama.toLowerCase()}${awalan.toLowerCase()}@contoh.test`, kataSandiHash: "x", peran: "PENDAMPING" } });
   pendA = (await mk("PendA")).id;
   pendB = (await mk("PendB")).id;
@@ -136,14 +138,15 @@ describe("simpanDataBap", () => {
       terlaporNik: NIK_PELAKU,
       terlaporAgamaId: agamaId,
       terlaporHubunganId: hubunganId,
-      alasanKebutuhan: "Korban trauma.",
-      lembagaRujukan: "RSUD Soreang",
+      asalRujukanId: rujukanId,
+      alasanRujukan: "Perlu pendampingan hukum.",
+      lembagaRujukan: "Unit PPA Polresta",
     };
     const h = await simpanDataBap(db, id, v, pendA);
     expect(h.ok).toBe(true);
 
     const l = await db.laporan.findUniqueOrThrow({ where: { id }, include: { pelapor: true, korban: true, terlapor: true } });
-    expect(l).toMatchObject({ alasanKebutuhan: "Korban trauma.", lembagaRujukan: "RSUD Soreang", tempatKejadian: "Rumah korban" });
+    expect(l).toMatchObject({ asalRujukanId: rujukanId, alasanRujukan: "Perlu pendampingan hukum.", lembagaRujukan: "Unit PPA Polresta", tempatKejadian: "Rumah korban" });
     expect(l.pelapor).toMatchObject({ jenisKelamin: "LAKI_LAKI", pekerjaanId, alamatKtp: "Jl. KTP Pelapor" });
     expect(l.pelapor?.tanggalLahir?.toISOString().slice(0, 10)).toBe("1980-01-01");
     expect(l.korban).toMatchObject({ namaPanggilan: "Nengsih", noBpjs: "0001234567890", statusBpjs: "AKTIF", alamatKtp: "Jl. KTP Korban", agamaId });
@@ -161,7 +164,7 @@ describe("simpanDataBap", () => {
     const awal = (await isianBapAwal(db, id))!;
     expect(awal.isian.terlaporNik).toBe("");
     expect(awal.nikTerlapor).not.toContain(NIK_PELAKU.slice(4, 12));
-    expect((await simpanDataBap(db, id, { ...awal.isian, lembagaRujukan: "Unit PPA Polresta" }, adminId)).ok).toBe(true);
+    expect((await simpanDataBap(db, id, { ...awal.isian, lembagaRujukan: "Unit PPA Polres Bandung" }, adminId)).ok).toBe(true);
     const t = await db.terlapor.findFirstOrThrow({ where: { laporanId: id } });
     expect(dekripsiNik(t.nikCipher!)).toBe(NIK_PELAKU);
   });
@@ -171,9 +174,19 @@ describe("simpanDataBap", () => {
     const awal = (await isianBapAwal(db, id))!;
     expect(await simpanDataBap(db, id, awal.isian, adminId)).toEqual({ ok: true, berubah: [] });
     expect(await db.logAudit.count({ where: { entitasId: id, aksi: "LENGKAPI_DATA_BAP" } })).toBe(0);
-    const h = await simpanDataBap(db, id, { ...awal.isian, korbanAgamaId: "tidak-ada", terlaporPekerjaanId: "tidak-ada" }, adminId);
+    const h = await simpanDataBap(db, id, { ...awal.isian, korbanAgamaId: "tidak-ada", terlaporPekerjaanId: "tidak-ada", asalRujukanId: "tidak-ada" }, adminId);
     expect(h.ok).toBe(false);
-    expect(!h.ok && h.galat).toMatchObject({ korbanAgamaId: expect.any(String), terlaporPekerjaanId: expect.any(String) });
+    expect(!h.ok && h.galat).toMatchObject({ korbanAgamaId: expect.any(String), terlaporPekerjaanId: expect.any(String), asalRujukanId: expect.any(String) });
+  });
+
+  it("BAP mencetak Datang langsung hanya bila asal rujukan dan lembaga perujuk sama-sama kosong", async () => {
+    const id = await laporanBaru();
+    expect((await muatBap(db, id, adminId))!.asalRujukan).toBe("Datang/lapor langsung");
+    // Laporan lama: petugas mengisi lembaga tanpa asal rujukan; jangan dicetak "Datang langsung".
+    await db.laporan.update({ where: { id }, data: { lembagaRujukan: "Unit PPA Polresta" } });
+    expect((await muatBap(db, id, adminId))!.asalRujukan).toBe("");
+    await db.laporan.update({ where: { id }, data: { asalRujukanId: rujukanId } });
+    expect((await muatBap(db, id, adminId))!).toMatchObject({ asalRujukan: "Kepolisian", lembagaRujukan: "Unit PPA Polresta" });
   });
 
   it("bila korban sendiri yang melapor, bidang pelapor diabaikan dan pelaku tidak dibuat tanpa isian", async () => {

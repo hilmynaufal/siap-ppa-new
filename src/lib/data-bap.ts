@@ -53,14 +53,15 @@ export const BIDANG_BAP = [
   "terlaporHubunganId",
   "terlaporAlamat",
   "tempatKejadian",
-  "alasanKebutuhan",
+  "asalRujukanId",
   "lembagaRujukan",
+  "alasanRujukan",
 ] as const;
 export type BidangBap = (typeof BIDANG_BAP)[number];
 export type IsianBap = Record<BidangBap, string>;
 export type GalatBap = Partial<Record<BidangBap, string>>;
 
-const MAKS: Partial<Record<BidangBap, number>> = { alasanKebutuhan: 1000, lembagaRujukan: 500, tempatKejadian: 300, pelaporAlamatKtp: 300, korbanAlamatKtp: 300, terlaporAlamat: 300 };
+const MAKS: Partial<Record<BidangBap, number>> = { alasanRujukan: 500, lembagaRujukan: 150, asalRujukanId: 60, tempatKejadian: 300, pelaporAlamatKtp: 300, korbanAlamatKtp: 300, terlaporAlamat: 300 };
 const nilaiOpsi = (o: readonly { nilai: string }[]) => new Set<string>(o.map((x) => x.nilai));
 const OPSI: Partial<Record<BidangBap, Set<string>>> = {
   pelaporJenisKelamin: nilaiOpsi(OPSI_JENIS_KELAMIN),
@@ -107,7 +108,8 @@ export async function isianBapAwal(db: PrismaClient, laporanId: string) {
       kodePendaftaran: true,
       pelaporAdalahKorban: true,
       tempatKejadian: true,
-      alasanKebutuhan: true,
+      asalRujukanId: true,
+      alasanRujukan: true,
       lembagaRujukan: true,
       pelapor: true,
       korban: true,
@@ -145,7 +147,8 @@ export async function isianBapAwal(db: PrismaClient, laporanId: string) {
     terlaporHubunganId: t?.hubunganId ?? "",
     terlaporAlamat: t?.alamat ?? "",
     tempatKejadian: l.tempatKejadian ?? "",
-    alasanKebutuhan: l.alasanKebutuhan ?? "",
+    asalRujukanId: l.asalRujukanId ?? "",
+    alasanRujukan: l.alasanRujukan ?? "",
     lembagaRujukan: l.lembagaRujukan ?? "",
   };
   return {
@@ -175,15 +178,17 @@ export async function simpanDataBap(db: PrismaClient, laporanId: string, v: Isia
 
   // Pilihan master harus ada (yang sudah nonaktif tetap boleh bila memang tersimpan sebelumnya).
   const ids = (daftar: string[]) => [...new Set(daftar.filter(Boolean))];
-  const [pekerjaan, agama, hubungan] = await Promise.all([
+  const [pekerjaan, agama, hubungan, rujukan] = await Promise.all([
     db.pekerjaan.findMany({ where: { id: { in: ids([v.pelaporPekerjaanId, v.terlaporPekerjaanId]) } }, select: { id: true } }),
     db.agama.findMany({ where: { id: { in: ids([v.pelaporAgamaId, v.korbanAgamaId, v.terlaporAgamaId]) } }, select: { id: true } }),
     db.hubunganKorban.findMany({ where: { id: { in: ids([v.terlaporHubunganId]) } }, select: { id: true } }),
+    db.asalRujukan.findMany({ where: { id: { in: ids([v.asalRujukanId]) } }, select: { id: true } }),
   ]);
   const ada = (daftar: { id: string }[], id: string) => !id || daftar.some((x) => x.id === id);
   for (const k of ["pelaporPekerjaanId", "terlaporPekerjaanId"] as const) if (!ada(pekerjaan, v[k])) galat[k] = "Pilih pekerjaan dari daftar.";
   for (const k of ["pelaporAgamaId", "korbanAgamaId", "terlaporAgamaId"] as const) if (!ada(agama, v[k])) galat[k] = "Pilih agama dari daftar.";
   if (!ada(hubungan, v.terlaporHubunganId)) galat.terlaporHubunganId = "Pilih hubungan dari daftar.";
+  if (!ada(rujukan, v.asalRujukanId)) galat.asalRujukanId = "Pilih asal rujukan dari daftar.";
   if (Object.keys(galat).length) return { ok: false, pesan: "Ada pilihan yang tidak sesuai.", galat };
 
   const berubah = BIDANG_BAP.filter((k) => {
@@ -214,7 +219,12 @@ export async function simpanDataBap(db: PrismaClient, laporanId: string, v: Isia
   await db.$transaction(async (tx) => {
     await tx.laporan.update({
       where: { id: laporanId },
-      data: { tempatKejadian: atau(v.tempatKejadian), alasanKebutuhan: atau(v.alasanKebutuhan), lembagaRujukan: atau(v.lembagaRujukan) },
+      data: {
+        tempatKejadian: atau(v.tempatKejadian),
+        asalRujukanId: atau(v.asalRujukanId),
+        alasanRujukan: atau(v.alasanRujukan),
+        lembagaRujukan: atau(v.lembagaRujukan),
+      },
     });
     if (awal.adaPelapor) {
       await tx.pelapor.update({

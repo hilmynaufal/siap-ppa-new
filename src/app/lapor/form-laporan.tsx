@@ -16,7 +16,9 @@ import {
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  ASAL_LANGSUNG,
   BIDANG_JEBAKAN,
+  LABEL_ASAL_LANGSUNG,
   DOKUMEN_LAPORAN,
   dokumenTampil,
   dokumenWajib,
@@ -292,10 +294,12 @@ export function FormLaporan({
   // Asal rujukan menentukan apakah slot surat rujukan tampil dan wajib.
   const [rujukanId, setRujukanId] = useState("");
   const wajibSurat = rujukan.find((r) => r.id === rujukanId)?.wajibSurat ?? false;
+  const dirujuk = rujukanId !== "" && rujukanId !== ASAL_LANGSUNG;
   const [terlaporTak, setTerlaporTak] = useState(false);
   const [kecKorban, setKecKorban] = useState("");
   const [kecPelapor, setKecPelapor] = useState("");
   const [tglLahir, setTglLahir] = useState("");
+  const [tglLahirPelapor, setTglLahirPelapor] = useState("");
 
   // Hasil dari server (galat validasi atau penyimpanan) menggantikan keadaan tampilan.
   if (state !== lihatState) {
@@ -314,6 +318,7 @@ export function FormLaporan({
 
   const nilaiAwal = (k: string) => state?.nilai?.[k] ?? "";
   const usia = tglLahir ? hitungUsia(tglLahir) : null;
+  const usiaPelapor = tglLahirPelapor ? hitungUsia(tglLahirPelapor) : null;
   const desaDi = (kecId: string) => desa.filter((d) => d.kecamatanId === kecId).map((d) => ({ nilai: d.id, label: d.nama }));
   const opsi = (daftar: Opsi[]) => daftar.map((o) => ({ nilai: o.id, label: o.nama }));
   const desaKorban = desaDi(kecKorban);
@@ -363,7 +368,7 @@ export function FormLaporan({
     const nilai = nilaiFormulir();
     const hasil = SkemaLaporan.safeParse(nilai);
     const gDesa = galatDesa(nilai);
-    const galatBerkas = DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, !!rujukanId)).flatMap((d) => {
+    const galatBerkas = DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, dirujuk)).flatMap((d) => {
       const item = berkas[d.jenis];
       if (item?.galat) return [`${d.label}: ${item.galat}`];
       return dokumenWajib(d, wajibSurat) && !item ? [`${d.label} wajib dilampirkan.`] : [];
@@ -459,6 +464,45 @@ export function FormLaporan({
               </Bidang>
               <Bidang id="pelaporKontak" label="Nomor HP / WhatsApp" wajib galat={galat.pelaporKontak}>
                 <Teks id="pelaporKontak" type="tel" inputMode="tel" autoComplete="tel" placeholder="Contoh: 0812 3456 7890" nilaiAwal={nilaiAwal("pelaporKontak")} galat={galat.pelaporKontak} />
+              </Bidang>
+              <p className="-mb-2 border-t border-line-soft pt-4 text-sm text-ink-soft">Data diri berikut dicatat dalam Berita Acara Pelaporan.</p>
+              <PilihanJenisKelamin nama="pelaporJenisKelamin" nilaiAwal={nilaiAwal("pelaporJenisKelamin")} wajib galat={galat.pelaporJenisKelamin} />
+              <Bidang id="pelaporTempatLahir" label="Tempat lahir" wajib galat={galat.pelaporTempatLahir}>
+                <Teks id="pelaporTempatLahir" autoComplete="off" nilaiAwal={nilaiAwal("pelaporTempatLahir")} galat={galat.pelaporTempatLahir} />
+              </Bidang>
+              <Bidang id="pelaporTanggalLahir" label="Tanggal lahir" wajib galat={galat.pelaporTanggalLahir}>
+                <div className="relative">
+                  <input
+                    id="pelaporTanggalLahir"
+                    name="pelaporTanggalLahir"
+                    type="date"
+                    max={hariIni}
+                    autoComplete="bday"
+                    defaultValue={nilaiAwal("pelaporTanggalLahir")}
+                    onChange={(e) => setTglLahirPelapor(e.target.value)}
+                    aria-invalid={!!galat.pelaporTanggalLahir}
+                    aria-describedby={describedBy("pelaporTanggalLahir", galat.pelaporTanggalLahir)}
+                    className={kontrol + " pr-12"}
+                  />
+                  <Calendar size={20} aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink-mute" />
+                </div>
+                {usiaPelapor !== null && usiaPelapor >= 0 && (
+                  <p className="text-sm font-semibold text-brand-800" aria-live="polite">
+                    Usia: {usiaPelapor} tahun
+                  </p>
+                )}
+              </Bidang>
+              <Bidang id="pelaporPekerjaanId" label="Pekerjaan" wajib galat={galat.pelaporPekerjaanId}>
+                <Pilih id="pelaporPekerjaanId" daftar={opsi(pekerjaan)} kosong="Pilih pekerjaan" nilaiAwal={nilaiAwal("pelaporPekerjaanId")} galat={galat.pelaporPekerjaanId} />
+              </Bidang>
+              <Bidang id="pelaporPendidikan" label="Pendidikan terakhir" wajib galat={galat.pelaporPendidikan}>
+                <Pilih id="pelaporPendidikan" daftar={OPSI_PENDIDIKAN.map((o) => ({ nilai: o.nilai, label: o.label }))} kosong="Pilih pendidikan" nilaiAwal={nilaiAwal("pelaporPendidikan")} galat={galat.pelaporPendidikan} />
+              </Bidang>
+              <Bidang id="pelaporAgamaId" label="Agama" wajib galat={galat.pelaporAgamaId}>
+                <Pilih id="pelaporAgamaId" daftar={opsi(agama)} kosong="Pilih agama" nilaiAwal={nilaiAwal("pelaporAgamaId")} galat={galat.pelaporAgamaId} />
+              </Bidang>
+              <Bidang id="pelaporStatusPerkawinan" label="Status perkawinan" wajib galat={galat.pelaporStatusPerkawinan}>
+                <Pilih id="pelaporStatusPerkawinan" daftar={OPSI_STATUS_PERKAWINAN.map((o) => ({ nilai: o.nilai, label: o.label }))} kosong="Pilih status" nilaiAwal={nilaiAwal("pelaporStatusPerkawinan")} galat={galat.pelaporStatusPerkawinan} />
               </Bidang>
               <Bidang id="pelaporAlamat" label="Alamat tempat tinggal (domisili)" galat={galat.pelaporAlamat}>
                 <Teks id="pelaporAlamat" autoComplete="street-address" placeholder="Jalan, nomor, RT/RW" nilaiAwal={nilaiAwal("pelaporAlamat")} galat={galat.pelaporAlamat} />
@@ -581,15 +625,45 @@ export function FormLaporan({
           <Bidang id="tempatKejadian" label="Tempat kejadian" petunjuk="Mis. rumah korban, sekolah, atau nama jalan dan desanya." galat={galat.tempatKejadian}>
             <Teks id="tempatKejadian" autoComplete="off" nilaiAwal={nilaiAwal("tempatKejadian")} galat={galat.tempatKejadian} petunjuk />
           </Bidang>
-          {rujukan.length > 0 && (
-            <Bidang
+          <Bidang
+            id="asalRujukanId"
+            label="Dirujuk dari"
+            wajib
+            petunjuk={
+              wajibSurat
+                ? "Asal rujukan ini memerlukan surat rujukan; lampirkan di langkah Dokumen."
+                : `Pilih "${LABEL_ASAL_LANGSUNG}" bila Anda melapor sendiri tanpa dirujuk pihak lain.`
+            }
+            galat={galat.asalRujukanId}
+          >
+            <Pilih
               id="asalRujukanId"
-              label="Dirujuk dari"
-              petunjuk={wajibSurat ? "Asal rujukan ini memerlukan surat rujukan; lampirkan di langkah Dokumen." : "Kosongkan bila Anda melapor langsung tanpa rujukan."}
+              daftar={[{ nilai: ASAL_LANGSUNG, label: LABEL_ASAL_LANGSUNG }, ...opsi(rujukan)]}
+              kosong="Pilih asal rujukan"
+              nilai={rujukanId}
+              onUbah={setRujukanId}
               galat={galat.asalRujukanId}
-            >
-              <Pilih id="asalRujukanId" daftar={opsi(rujukan)} kosong="Tidak dirujuk" nilai={rujukanId} onUbah={setRujukanId} galat={galat.asalRujukanId} petunjuk />
-            </Bidang>
+              petunjuk
+            />
+          </Bidang>
+          {dirujuk && (
+            <>
+              <Bidang id="lembagaRujukan" label="Nama lembaga/pihak yang merujuk" wajib petunjuk="Mis. Unit PPA Polresta Bandung, UPTD PPA Provinsi Jawa Barat, atau nama akun/petugas." galat={galat.lembagaRujukan}>
+                <Teks id="lembagaRujukan" autoComplete="organization" nilaiAwal={nilaiAwal("lembagaRujukan")} galat={galat.lembagaRujukan} petunjuk />
+              </Bidang>
+              <Bidang id="alasanRujukan" label="Alasan dirujuk" petunjuk="Mengapa Anda diarahkan ke layanan ini, bila diketahui." galat={galat.alasanRujukan}>
+                <textarea
+                  id="alasanRujukan"
+                  name="alasanRujukan"
+                  rows={3}
+                  maxLength={500}
+                  defaultValue={nilaiAwal("alasanRujukan")}
+                  aria-invalid={!!galat.alasanRujukan}
+                  aria-describedby={describedBy("alasanRujukan", galat.alasanRujukan, true)}
+                  className={kontrol + " h-auto min-h-24 py-3"}
+                />
+              </Bidang>
+            </>
           )}
           <Bidang id="kronologi" label="Kronologi kejadian" wajib petunjuk="Ceritakan sebisanya: apa yang terjadi, di mana, dan siapa yang terlibat." galat={galat.kronologi}>
             <textarea id="kronologi" name="kronologi" rows={7} maxLength={MAKS_KRONOLOGI} onInput={(e) => setPanjang(e.currentTarget.value.length)} defaultValue={nilaiAwal("kronologi")} aria-invalid={!!galat.kronologi} aria-describedby={describedBy("kronologi", galat.kronologi, true)} className={kontrol + " h-auto min-h-40 py-3"} />
@@ -669,7 +743,7 @@ export function FormLaporan({
             Lampirkan dokumen milik korban. {FORMAT_BERKAS}, maksimal 5 MB per berkas.
           </p>
           <ul className="flex flex-col gap-3">
-            {DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, !!rujukanId)).map((d) => (
+            {DOKUMEN_LAPORAN.filter((d) => dokumenTampil(d.jenis, dirujuk)).map((d) => (
               <SlotDokumen key={d.jenis} jenis={d.jenis} label={d.label} wajib={dokumenWajib(d, wajibSurat)} item={berkas[d.jenis]} onUbah={(item) => ubahBerkas(d.jenis, item)} />
             ))}
           </ul>

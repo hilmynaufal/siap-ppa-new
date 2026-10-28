@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { LAPORAN_AKTIF } from "./aktif";
 import { DOKUMEN_LAPORAN, labelDokumen } from "./laporan";
-import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia } from "./laporan-skema";
+import { LABEL_ASAL_LANGSUNG, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia } from "./laporan-skema";
 import { dekripsiNik } from "./nik";
 import { bacaPengaturanBap } from "./pengaturan";
 
@@ -136,11 +136,12 @@ export async function muatBap(db: PrismaClient, laporanId: string, penggunaId: s
     hubunganPelakuId: t?.hubunganId ?? null,
     jenisKekerasanId: r.jenisKekerasanId,
     tkp: r.tempatKejadian ?? "",
-    asalRujukan: r.asalRujukan?.nama ?? "",
+    // Datang langsung hanya bila asal rujukan dan lembaga perujuk sama-sama kosong (laporan lama bisa punya lembaga tanpa asal).
+    asalRujukan: r.asalRujukan?.nama ?? (r.lembagaRujukan ? "" : LABEL_ASAL_LANGSUNG),
     tanggalKejadian: tglPanjang(r.tanggalKejadian, ZONA),
     kronologi: r.kronologi,
     kebutuhan: r.pendampinganDiminta.map((p) => p.jenisPendamping.nama),
-    alasanKebutuhan: r.alasanKebutuhan ?? "",
+    alasanRujukan: r.alasanRujukan ?? "",
     lembagaRujukan: r.lembagaRujukan ?? "",
     pilihan: { hubungan, jenisKekerasan, jenisKelamin: OPSI_JENIS_KELAMIN },
     /** Dokumen pendukung untuk halaman lampiran, berurutan seperti di formulir (KK, KTP, akta, ...). */

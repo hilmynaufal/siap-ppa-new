@@ -66,6 +66,8 @@ export async function simpanLaporan(
           kronologi: data.kronologi,
           tempatKejadian: data.tempatKejadian,
           asalRujukanId: data.asalRujukanId,
+          lembagaRujukan: data.lembagaRujukan,
+          alasanRujukan: data.alasanRujukan,
           persetujuanData: true,
           persetujuanPada: new Date(),
           // NIK tidak pernah disimpan sebagai teks biasa: terenkripsi, ditambah indeks HMAC untuk pencarian.
@@ -77,6 +79,13 @@ export async function simpanLaporan(
                   nikIndeks: indeksNik(pelapor.nik),
                   hubunganId: pelapor.hubunganId,
                   kontak: pelapor.kontak,
+                  jenisKelamin: pelapor.jenisKelamin,
+                  tempatLahir: pelapor.tempatLahir,
+                  tanggalLahir: new Date(`${pelapor.tanggalLahir}T00:00:00Z`),
+                  pekerjaanId: pelapor.pekerjaanId,
+                  pendidikan: pelapor.pendidikan as Pendidikan,
+                  agamaId: pelapor.agamaId,
+                  statusPerkawinan: pelapor.statusPerkawinan as StatusPerkawinan,
                   alamat: pelapor.alamat,
                   kecamatanId: pelapor.kecamatanId,
                   desaId: pelapor.desaId,
@@ -158,16 +167,18 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
   const kec = [d.korban.kecamatanId, d.pelapor?.kecamatanId].filter((x): x is string => !!x);
   const desaId = [d.korban.desaId, d.pelapor?.desaId].filter((x): x is string => !!x);
   const hubunganId = [d.pelapor?.hubunganId, d.terlapor?.hubunganId].filter((x): x is string => !!x);
+  const pekerjaanId = [d.korban.pekerjaanId, d.pelapor?.pekerjaanId].filter((x): x is string => !!x);
+  const agamaId = [d.korban.agamaId, d.pelapor?.agamaId].filter((x): x is string => !!x);
 
   const [jenis, kecamatan, desa, hubungan, pekerjaan, jumlahDesa, pendampingan, agama, rujukan] = await Promise.all([
     db.jenisKekerasan.findFirst({ where: { id: d.jenisKekerasanId, aktif: true }, select: { id: true } }),
     db.kecamatan.findMany({ where: { id: { in: kec } }, select: { id: true } }),
     db.desa.findMany({ where: { id: { in: desaId } }, select: { id: true, kecamatanId: true } }),
     db.hubunganKorban.findMany({ where: { id: { in: hubunganId }, aktif: true }, select: { id: true } }),
-    d.korban.pekerjaanId ? db.pekerjaan.findFirst({ where: { id: d.korban.pekerjaanId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
+    db.pekerjaan.findMany({ where: { id: { in: pekerjaanId }, aktif: true }, select: { id: true } }),
     db.desa.groupBy({ by: ["kecamatanId"], where: { kecamatanId: { in: kec } }, _count: true }),
     d.jenisPendampinganId ? db.jenisPendampingan.findFirst({ where: { id: d.jenisPendampinganId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
-    d.korban.agamaId ? db.agama.findFirst({ where: { id: d.korban.agamaId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
+    db.agama.findMany({ where: { id: { in: agamaId }, aktif: true }, select: { id: true } }),
     d.asalRujukanId ? db.asalRujukan.findFirst({ where: { id: d.asalRujukanId, aktif: true }, select: { id: true } }) : Promise.resolve(true),
   ]);
   const ada = (daftar: { id: string }[], id: string | null | undefined) => !id || daftar.some((x) => x.id === id);
@@ -175,8 +186,10 @@ export async function periksaPilihanLaporan(db: PrismaClient, d: DataLaporan): P
 
   if (!jenis) galat.jenisKekerasanId = "Pilih jenis kekerasan dari daftar.";
   if (!ada(kecamatan, d.korban.kecamatanId)) galat.korbanKecamatanId = "Pilih kecamatan dari daftar.";
-  if (!pekerjaan) galat.korbanPekerjaanId = "Pilih pekerjaan dari daftar.";
-  if (!agama) galat.korbanAgamaId = "Pilih agama dari daftar.";
+  if (!ada(pekerjaan, d.korban.pekerjaanId)) galat.korbanPekerjaanId = "Pilih pekerjaan dari daftar.";
+  if (!ada(agama, d.korban.agamaId)) galat.korbanAgamaId = "Pilih agama dari daftar.";
+  if (d.pelapor && !ada(pekerjaan, d.pelapor.pekerjaanId)) galat.pelaporPekerjaanId = "Pilih pekerjaan dari daftar.";
+  if (d.pelapor && !ada(agama, d.pelapor.agamaId)) galat.pelaporAgamaId = "Pilih agama dari daftar.";
   if (!rujukan) galat.asalRujukanId = "Pilih asal rujukan dari daftar.";
   if (!pendampingan) galat.jenisPendampinganId = "Jenis pendampingan tidak tersedia. Pilih lagi dari daftar.";
   if (d.pelapor && !ada(hubungan, d.pelapor.hubunganId)) galat.pelaporHubunganId = "Pilih hubungan dari daftar.";
