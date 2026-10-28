@@ -99,6 +99,10 @@
   margin-top: 3px;
   font-size: 8.5pt;
 }
+.lst-sub {
+  margin: -2px 0 2px;
+  font-size: 9pt;
+}
 .lst-grafik {
   margin-top: 6px;
   font-size: 9pt;
