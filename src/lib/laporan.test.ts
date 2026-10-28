@@ -40,6 +40,13 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   pelaporNik: "3204 0101-0180.0001",
   pelaporHubunganId: "hub",
   pelaporKontak: "0812 3456 7890",
+  pelaporJenisKelamin: "LAKI_LAKI",
+  pelaporTempatLahir: "Soreang",
+  pelaporTanggalLahir: "1985-02-14",
+  pelaporPekerjaanId: "pkj",
+  pelaporPendidikan: "SMA",
+  pelaporAgamaId: "agm",
+  pelaporStatusPerkawinan: "KAWIN",
   pelaporAlamat: "",
   pelaporKecamatanId: "",
   pelaporDesaId: "",
@@ -64,7 +71,9 @@ const form = (ekstra: Record<string, string> = {}): Record<string, string> => ({
   tempatKejadian: "",
   kronologi: "Kronologi uji yang cukup panjang.",
   jenisPendampinganId: "",
-  asalRujukanId: "",
+  asalRujukanId: "LANGSUNG",
+  lembagaRujukan: "",
+  alasanRujukan: "",
   terlaporTidakDiketahui: "",
   terlaporNama: "",
   terlaporJenisKelamin: "",
@@ -97,8 +106,9 @@ describe("skema formulir", () => {
     expect(Object.keys(galatPerBidang(g.error!)).sort()).toEqual(
       [
         "pelaporNama", "pelaporNik", "pelaporHubunganId", "pelaporKontak",
+        "pelaporJenisKelamin", "pelaporTempatLahir", "pelaporTanggalLahir", "pelaporPekerjaanId", "pelaporPendidikan", "pelaporAgamaId", "pelaporStatusPerkawinan",
         "korbanNama", "korbanNik", "korbanJenisKelamin", "korbanTanggalLahir", "korbanAlamat", "korbanKecamatanId",
-        "jenisKekerasanId", "tanggalKejadian", "kronologi", "persetujuan",
+        "jenisKekerasanId", "tanggalKejadian", "kronologi", "asalRujukanId", "persetujuan",
       ].sort(),
     );
   });
@@ -193,8 +203,26 @@ describe("skema formulir", () => {
     expect(dokumenWajib(surat, false)).toBe(false);
     expect(dokumenWajib(surat, true)).toBe(true);
     expect(dokumenWajib(ktp, false)).toBe(true);
-    expect(bentukDataLaporan(SkemaLaporan.parse(form({ asalRujukanId: "rjk" }))).asalRujukanId).toBe("rjk");
-    expect(bentukDataLaporan(SkemaLaporan.parse(form())).asalRujukanId).toBeNull();
+  });
+
+  it("asal rujukan wajib dipilih; bila dirujuk, nama lembaga wajib dan alasan opsional", () => {
+    expect(galat(form({ asalRujukanId: "" })).asalRujukanId).toContain("Datang/lapor langsung");
+    expect(galat(form({ asalRujukanId: "rjk" })).lembagaRujukan).toBe("Tulis nama lembaga atau pihak yang merujuk Anda.");
+    const dirujuk = bentukDataLaporan(SkemaLaporan.parse(form({ asalRujukanId: "rjk", lembagaRujukan: "Unit PPA Polresta", alasanRujukan: "Perlu pendampingan psikologis" })));
+    expect(dirujuk).toMatchObject({ asalRujukanId: "rjk", lembagaRujukan: "Unit PPA Polresta", alasanRujukan: "Perlu pendampingan psikologis" });
+    expect(bentukDataLaporan(SkemaLaporan.parse(form({ asalRujukanId: "rjk", lembagaRujukan: "Polsek" }))).alasanRujukan).toBeNull();
+    // Datang langsung: disimpan kosong, isian lembaga yang tersisa diabaikan.
+    expect(bentukDataLaporan(SkemaLaporan.parse(form({ lembagaRujukan: "sisa isian" })))).toMatchObject({ asalRujukanId: null, lembagaRujukan: null, alasanRujukan: null });
+  });
+
+  it("data diri pelapor wajib untuk BAP, kecuali korban sendiri yang melapor", () => {
+    const g = galat(form({ pelaporJenisKelamin: "", pelaporTempatLahir: "", pelaporTanggalLahir: "", pelaporPekerjaanId: "", pelaporPendidikan: "", pelaporAgamaId: "", pelaporStatusPerkawinan: "" }));
+    expect(Object.keys(g).sort()).toEqual(
+      ["pelaporAgamaId", "pelaporJenisKelamin", "pelaporPekerjaanId", "pelaporPendidikan", "pelaporStatusPerkawinan", "pelaporTanggalLahir", "pelaporTempatLahir"].sort(),
+    );
+    expect(galat(form({ pelaporTanggalLahir: "2999-01-01" })).pelaporTanggalLahir).toContain("masa depan");
+    expect(galat(form({ pelaporPendidikan: "S9" })).pelaporPendidikan).toContain("tidak dikenal");
+    expect(bentukDataLaporan(SkemaLaporan.parse(form())).pelapor).toMatchObject({ jenisKelamin: "LAKI_LAKI", tempatLahir: "Soreang", tanggalLahir: "1985-02-14", pendidikan: "SMA", statusPerkawinan: "KAWIN" });
   });
 
   it("jenis pendampingan tidak wajib dan hanya satu pilihan", () => {
@@ -236,10 +264,14 @@ let hubunganId = "";
 let desaId = "";
 let pendampinganId = "";
 let pendampinganNonaktifId = "";
+let pekerjaanId = "";
+let agamaPelaporId = "";
 
 function data(ekstra: Partial<DataLaporan> = {}): DataLaporan {
   const d = bentukDataLaporan(
-    SkemaLaporan.parse(form({ pelaporHubunganId: hubunganId, korbanKecamatanId: kecamatanId, korbanDesaId: desaId, jenisKekerasanId: jenisId, terlaporNama: "Terlapor Uji", terlaporUsia: "40" })),
+    SkemaLaporan.parse(
+      form({ pelaporHubunganId: hubunganId, pelaporPekerjaanId: pekerjaanId, pelaporAgamaId: agamaPelaporId, korbanKecamatanId: kecamatanId, korbanDesaId: desaId, jenisKekerasanId: jenisId, terlaporNama: "Terlapor Uji", terlaporUsia: "40" }),
+    ),
   );
   return { ...d, ...ekstra };
 }
@@ -251,6 +283,8 @@ beforeAll(async () => {
   kecamatanId = kec.id;
   kecamatanLainId = lain.id;
   hubunganId = (await db.hubunganKorban.findFirstOrThrow({ where: { aktif: true } })).id;
+  pekerjaanId = (await db.pekerjaan.findFirstOrThrow({ where: { aktif: true } })).id;
+  agamaPelaporId = (await db.agama.findFirstOrThrow({ where: { aktif: true } })).id;
   desaId = (await db.desa.create({ data: { kecamatanId, nama: `${awalan} Desa` } })).id;
   const kode = Date.now().toString(36).toUpperCase();
   pendampinganId = (await db.jenisPendampingan.create({ data: { kode: `U${kode}`, nama: `${awalan} Psikologis` } })).id;
@@ -314,10 +348,17 @@ describe("simpanLaporan", () => {
 
   it("menyimpan asal rujukan; asal yang tidak ada atau nonaktif ditolak", async () => {
     const r = await db.asalRujukan.findFirstOrThrow({ where: { nama: "Kepolisian" } });
-    const hasil = await simpanLaporan(db, data({ asalRujukanId: r.id }), [], dir);
+    const hasil = await simpanLaporan(db, data({ asalRujukanId: r.id, lembagaRujukan: "Unit PPA Polresta", alasanRujukan: "Butuh visum" }), [], dir);
     expect(hasil.ok).toBe(true);
     if (!hasil.ok) return;
-    expect((await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode } })).asalRujukanId).toBe(r.id);
+    const l = await db.laporan.findUniqueOrThrow({ where: { kodePendaftaran: hasil.kode }, include: { pelapor: true } });
+    expect(l).toMatchObject({ asalRujukanId: r.id, lembagaRujukan: "Unit PPA Polresta", alasanRujukan: "Butuh visum" });
+    // Data diri pelapor untuk BAP ikut tersimpan.
+    expect(l.pelapor).toMatchObject({ jenisKelamin: "LAKI_LAKI", tempatLahir: "Soreang", pekerjaanId, agamaId: agamaPelaporId, pendidikan: "SMA", statusPerkawinan: "KAWIN" });
+    expect(l.pelapor?.tanggalLahir?.toISOString().slice(0, 10)).toBe("1985-02-14");
+    const salah = data();
+    salah.pelapor = { ...salah.pelapor!, pekerjaanId: "x", agamaId: "y" };
+    expect(await periksaPilihanLaporan(db, salah)).toMatchObject({ pelaporPekerjaanId: "Pilih pekerjaan dari daftar.", pelaporAgamaId: "Pilih agama dari daftar." });
     expect(await rujukanWajibSurat(db, r.id)).toBe(true);
     expect(await rujukanWajibSurat(db, null)).toBe(false);
     expect((await periksaPilihanLaporan(db, data({ asalRujukanId: "tidak-ada" }))).asalRujukanId).toBe("Pilih asal rujukan dari daftar.");

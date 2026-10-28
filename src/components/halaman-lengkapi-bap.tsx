@@ -7,11 +7,12 @@ import { FormLengkapiBap } from "./form-lengkapi-bap";
 
 /** Isi halaman "Lengkapi data BAP"; dipakai area Admin dan Pendamping. Mengembalikan null bila laporan tidak ada. */
 export async function HalamanLengkapiBap({ db, laporanId, kembali }: { db: PrismaClient; laporanId: string; kembali: { href: string; label: string } }) {
-  const [data, pekerjaan, agama, hubungan] = await Promise.all([
+  const [data, pekerjaan, agama, hubungan, rujukan] = await Promise.all([
     isianBapAwal(db, laporanId),
     pilihanReferensi(db, "pekerjaan"),
     pilihanReferensi(db, "agama"),
     pilihanReferensi(db, "hubungan"),
+    pilihanReferensi(db, "rujukan"),
   ]);
   if (!data) return null;
   // Pilihan yang sudah tersimpan tetap tampil walau master-nya kini nonaktif.
@@ -20,10 +21,11 @@ export async function HalamanLengkapiBap({ db, laporanId, kembali }: { db: Prism
     return kurang.length ? [...daftar, ...(await cari(kurang))] : daftar;
   };
   const i = data.isian;
-  const [pkj, agm, hub] = await Promise.all([
+  const [pkj, agm, hub, rjk] = await Promise.all([
     tambahTersimpan(pekerjaan, [i.pelaporPekerjaanId, i.terlaporPekerjaanId], (ids) => db.pekerjaan.findMany({ where: { id: { in: ids } }, select: { id: true, nama: true } })),
     tambahTersimpan(agama, [i.pelaporAgamaId, i.korbanAgamaId, i.terlaporAgamaId], (ids) => db.agama.findMany({ where: { id: { in: ids } }, select: { id: true, nama: true } })),
     tambahTersimpan(hubungan, [i.terlaporHubunganId], (ids) => db.hubunganKorban.findMany({ where: { id: { in: ids } }, select: { id: true, nama: true } })),
+    tambahTersimpan(rujukan, [i.asalRujukanId], (ids) => db.asalRujukan.findMany({ where: { id: { in: ids } }, select: { id: true, nama: true } })),
   ]);
 
   return (
@@ -37,7 +39,7 @@ export async function HalamanLengkapiBap({ db, laporanId, kembali }: { db: Prism
           </p>
         </div>
       </div>
-      <FormLengkapiBap data={data} opsi={{ pekerjaan: pkj, agama: agm, hubungan: hub }} kembali={kembali} />
+      <FormLengkapiBap data={data} opsi={{ pekerjaan: pkj, agama: agm, hubungan: hub, rujukan: rjk }} kembali={kembali} />
     </>
   );
 }

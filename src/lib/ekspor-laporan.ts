@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { LAPORAN_AKTIF } from "./aktif";
-import { DOKUMEN_LAPORAN, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "./laporan";
+import { DOKUMEN_LAPORAN, LABEL_ASAL_LANGSUNG, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "./laporan";
 import { buatXlsx, type SelExcel } from "./xlsx";
 
 export const STATUS_EKSPOR = ["BARU", "DITOLAK", "TERVERIFIKASI", "DALAM_PENDAMPINGAN", "DITUTUP"] as const;
@@ -31,10 +31,19 @@ export const KOLOM_EKSPOR = [
   "Tanggal kejadian",
   "Tempat kejadian",
   "Dirujuk dari",
+  "Lembaga yang merujuk",
+  "Alasan dirujuk",
   "Pelapor adalah korban",
   "Nama pelapor",
   "Hubungan pelapor dengan korban",
   "Kontak pelapor",
+  "Jenis kelamin pelapor",
+  "Tempat lahir pelapor",
+  "Tanggal lahir pelapor",
+  "Pendidikan pelapor",
+  "Pekerjaan pelapor",
+  "Agama pelapor",
+  "Status perkawinan pelapor",
   "Alamat pelapor",
   "Kecamatan pelapor",
   "Desa/kelurahan pelapor",
@@ -99,7 +108,15 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
       verifikator: { select: { nama: true } },
       asalRujukan: { select: { nama: true } },
       dokumen: { select: { jenis: true } },
-      pelapor: { include: { hubungan: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
+      pelapor: {
+        include: {
+          hubungan: { select: { nama: true } },
+          pekerjaan: { select: { nama: true } },
+          agama: { select: { nama: true } },
+          kecamatan: { select: { nama: true } },
+          desa: { select: { nama: true } },
+        },
+      },
       korban: { include: { pekerjaan: { select: { nama: true } }, agama: { select: { nama: true } }, kecamatan: { select: { nama: true } }, desa: { select: { nama: true } } } },
       terlapor: { include: { hubungan: { select: { nama: true } } } },
       pendampinganDiminta: { select: { jenisPendamping: { select: { nama: true } } } },
@@ -127,11 +144,20 @@ export async function barisEkspor(db: PrismaClient, filter: FilterEkspor): Promi
       r.jenisKekerasan.nama,
       r.tanggalKejadian ? hariJakarta(r.tanggalKejadian) : "",
       r.tempatKejadian,
-      r.asalRujukan?.nama,
+      r.asalRujukan?.nama ?? (r.lembagaRujukan ? "" : LABEL_ASAL_LANGSUNG),
+      r.lembagaRujukan,
+      r.alasanRujukan,
       r.pelaporAdalahKorban ? "Ya" : "Tidak",
       p?.nama,
       p?.hubungan?.nama,
       p?.kontak,
+      p?.jenisKelamin ? JK.get(p.jenisKelamin) : "",
+      p?.tempatLahir,
+      p?.tanggalLahir ? p.tanggalLahir.toISOString().slice(0, 10) : null,
+      p?.pendidikan ? PDD.get(p.pendidikan) : "",
+      p?.pekerjaan?.nama,
+      p?.agama?.nama,
+      p?.statusPerkawinan ? SPK.get(p.statusPerkawinan) : "",
       p?.alamat,
       p?.kecamatan?.nama,
       p?.desa?.nama,

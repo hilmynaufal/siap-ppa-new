@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { IkonKotak } from "@/components/ikon-kotak";
 import { LencanaLaporan } from "@/components/lencana-laporan";
 import { db } from "@/lib/db";
-import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "@/lib/laporan";
+import { LABEL_ASAL_LANGSUNG, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN, hitungUsia, labelDokumen } from "@/lib/laporan";
 import { daftarUsulan, laporanKasus } from "@/lib/laporan-pendampingan";
 import { laporanTerkait } from "@/lib/nik-akses";
 import { syaratTutupKasus } from "@/lib/sesi";
@@ -180,7 +180,17 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
               <Baris label="Jenis kekerasan">{l.jenis}</Baris>
               <Baris label="Tanggal kejadian">{l.tanggalKejadian ? fmt(l.tanggalKejadian, false) : "Tidak diisi"}</Baris>
               <Baris label="Tempat kejadian">{l.tempatKejadian ?? "Tidak diisi"}</Baris>
-              <Baris label="Dirujuk dari">{l.asalRujukan ?? "Tidak dirujuk"}</Baris>
+              <Baris label="Dirujuk dari">{l.asalRujukan ?? (l.lembagaRujukan ? "Tidak diisi" : LABEL_ASAL_LANGSUNG)}</Baris>
+              {l.lembagaRujukan && (
+                <Baris label="Lembaga yang merujuk">
+                  <p className="whitespace-pre-wrap break-words">{l.lembagaRujukan}</p>
+                </Baris>
+              )}
+              {l.alasanRujukan && (
+                <Baris label="Alasan dirujuk">
+                  <p className="whitespace-pre-wrap break-words">{l.alasanRujukan}</p>
+                </Baris>
+              )}
               <Baris label="Kronologi">
                 <p className="whitespace-pre-wrap break-words">{l.kronologi}</p>
               </Baris>
@@ -198,16 +208,6 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                   </ul>
                 )}
               </Baris>
-              {l.alasanKebutuhan && (
-                <Baris label="Alasan kebutuhan">
-                  <p className="whitespace-pre-wrap break-words">{l.alasanKebutuhan}</p>
-                </Baris>
-              )}
-              {l.lembagaRujukan && (
-                <Baris label="Lembaga rujukan">
-                  <p className="whitespace-pre-wrap break-words">{l.lembagaRujukan}</p>
-                </Baris>
-              )}
             </dl>
           </section>
 
@@ -231,6 +231,17 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                     {l.pelapor.kontak}
                   </span>
                 </Baris>
+                <Baris label="Jenis kelamin">{label(OPSI_JENIS_KELAMIN, l.pelapor.jenisKelamin)}</Baris>
+                <Baris label="Tempat, tanggal lahir">
+                  {l.pelapor.tempatLahir || l.pelapor.tanggalLahir
+                    ? [l.pelapor.tempatLahir, l.pelapor.tanggalLahir ? fmt(`${l.pelapor.tanggalLahir}T00:00:00+07:00`, false) : null].filter(Boolean).join(", ")
+                    : "Tidak diisi"}
+                </Baris>
+                {l.pelapor.tanggalLahir && <Baris label="Usia">{`${hitungUsia(l.pelapor.tanggalLahir)} tahun`}</Baris>}
+                <Baris label="Pekerjaan">{l.pelapor.pekerjaan ?? "Tidak diisi"}</Baris>
+                <Baris label="Pendidikan">{label(OPSI_PENDIDIKAN, l.pelapor.pendidikan)}</Baris>
+                <Baris label="Agama">{l.pelapor.agama ?? "Tidak diisi"}</Baris>
+                <Baris label="Status perkawinan">{label(OPSI_STATUS_PERKAWINAN, l.pelapor.statusPerkawinan)}</Baris>
                 <Baris label="Alamat">{[l.pelapor.alamat, l.pelapor.desa, l.pelapor.kecamatan].filter(Boolean).join(", ") || "Tidak diisi"}</Baris>
               </dl>
             )}

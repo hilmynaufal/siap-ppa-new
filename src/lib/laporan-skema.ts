@@ -59,12 +59,15 @@ export function hitungUsia(tanggalLahir: string, pada = new Date()): number | nu
 export type Langkah = 1 | 2 | 3 | 4 | 5;
 
 export const BIDANG_LANGKAH = {
-  1: ["pelaporAdalahKorban", "pelaporNama", "pelaporNik", "pelaporHubunganId", "pelaporKontak", "pelaporAlamat", "pelaporKecamatanId", "pelaporDesaId"],
+  1: [
+    "pelaporAdalahKorban", "pelaporNama", "pelaporNik", "pelaporHubunganId", "pelaporKontak", "pelaporJenisKelamin", "pelaporTempatLahir", "pelaporTanggalLahir",
+    "pelaporPekerjaanId", "pelaporPendidikan", "pelaporAgamaId", "pelaporStatusPerkawinan", "pelaporAlamat", "pelaporKecamatanId", "pelaporDesaId",
+  ],
   2: [
     "korbanNama", "korbanNamaPanggilan", "korbanNik", "korbanJenisKelamin", "korbanTempatLahir", "korbanTanggalLahir", "korbanPendidikan",
     "korbanPekerjaanId", "korbanAgamaId", "korbanStatusPerkawinan", "korbanNoBpjs", "korbanStatusBpjs", "korbanKontak", "korbanAlamat", "korbanKecamatanId", "korbanDesaId",
   ],
-  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "asalRujukanId", "jenisPendampinganId"],
+  3: ["jenisKekerasanId", "tanggalKejadian", "tempatKejadian", "kronologi", "asalRujukanId", "lembagaRujukan", "alasanRujukan", "jenisPendampinganId"],
   4: ["terlaporTidakDiketahui", "terlaporNama", "terlaporJenisKelamin", "terlaporUsia", "terlaporHubunganId", "terlaporAlamat"],
   5: ["persetujuan"],
 } as const satisfies Record<Langkah, readonly string[]>;
@@ -89,6 +92,10 @@ export function langkahDariBidang(b: string): Langkah {
   return 5;
 }
 
+/** Nilai pilihan "Datang/lapor langsung" pada asal rujukan; disimpan sebagai asal rujukan kosong. */
+export const ASAL_LANGSUNG = "LANGSUNG";
+export const LABEL_ASAL_LANGSUNG = "Datang/lapor langsung";
+
 const POLA_HP = /^\+?[\d\s-]{8,20}$/;
 const teks = (maks: number) => z.string().trim().max(maks, { error: `Terlalu panjang (maksimal ${maks} huruf).` });
 
@@ -111,6 +118,13 @@ const bentuk = {
   pelaporNik: teks(40),
   pelaporHubunganId: teks(60),
   pelaporKontak: teks(30),
+  pelaporJenisKelamin: teks(20),
+  pelaporTempatLahir: teks(100),
+  pelaporTanggalLahir: teks(10),
+  pelaporPekerjaanId: teks(60),
+  pelaporPendidikan: teks(20),
+  pelaporAgamaId: teks(60),
+  pelaporStatusPerkawinan: teks(20),
   pelaporAlamat: teks(300),
   pelaporKecamatanId: teks(60),
   pelaporDesaId: teks(60),
@@ -136,6 +150,8 @@ const bentuk = {
   kronologi: z.string().trim().max(2000, { error: "Kronologi maksimal 2000 karakter." }),
   jenisPendampinganId: teks(60),
   asalRujukanId: teks(60),
+  lembagaRujukan: teks(150),
+  alasanRujukan: teks(500),
   terlaporTidakDiketahui: z.string().trim(),
   terlaporNama: teks(120),
   terlaporJenisKelamin: teks(20),
@@ -159,6 +175,20 @@ export const SkemaLaporan = z.object(bentuk).superRefine((d, ctx) => {
     if (kosong(d.pelaporKontak)) tambah("pelaporKontak", "Nomor HP/WhatsApp wajib diisi agar petugas dapat menghubungi Anda.");
     else if (!POLA_HP.test(d.pelaporKontak)) tambah("pelaporKontak", "Nomor HP tidak valid. Contoh: 0812 3456 7890.");
     if (!kosong(d.pelaporDesaId) && kosong(d.pelaporKecamatanId)) tambah("pelaporDesaId", "Pilih kecamatan lebih dulu.");
+    // Data diri untuk Berita Acara Pelaporan.
+    if (kosong(d.pelaporJenisKelamin)) tambah("pelaporJenisKelamin", "Pilih jenis kelamin Anda.");
+    else if (!JK.has(d.pelaporJenisKelamin)) tambah("pelaporJenisKelamin", "Pilihan tidak dikenal.");
+    if (kosong(d.pelaporTempatLahir)) tambah("pelaporTempatLahir", "Tempat lahir wajib diisi.");
+    if (kosong(d.pelaporTanggalLahir)) tambah("pelaporTanggalLahir", "Tanggal lahir wajib diisi.");
+    else if (!tanggalValid(d.pelaporTanggalLahir)) tambah("pelaporTanggalLahir", "Tanggal lahir tidak valid.");
+    else if (!tidakDiMasaDepan(d.pelaporTanggalLahir)) tambah("pelaporTanggalLahir", "Tanggal lahir tidak boleh di masa depan.");
+    else if ((hitungUsia(d.pelaporTanggalLahir) ?? 0) > 120) tambah("pelaporTanggalLahir", "Tanggal lahir tidak masuk akal.");
+    if (kosong(d.pelaporPekerjaanId)) tambah("pelaporPekerjaanId", "Pilih pekerjaan Anda.");
+    if (kosong(d.pelaporPendidikan)) tambah("pelaporPendidikan", "Pilih pendidikan terakhir Anda.");
+    else if (!PDD.has(d.pelaporPendidikan)) tambah("pelaporPendidikan", "Pilihan tidak dikenal.");
+    if (kosong(d.pelaporAgamaId)) tambah("pelaporAgamaId", "Pilih agama Anda.");
+    if (kosong(d.pelaporStatusPerkawinan)) tambah("pelaporStatusPerkawinan", "Pilih status perkawinan Anda.");
+    else if (!SPK.has(d.pelaporStatusPerkawinan)) tambah("pelaporStatusPerkawinan", "Pilihan tidak dikenal.");
   }
 
   // Langkah 2: Korban
@@ -192,6 +222,8 @@ export const SkemaLaporan = z.object(bentuk).superRefine((d, ctx) => {
   else if (!tidakDiMasaDepan(d.tanggalKejadian)) tambah("tanggalKejadian", "Tanggal tidak boleh di masa depan.");
   if (kosong(d.kronologi)) tambah("kronologi", "Kronologi wajib diisi.");
   else if (d.kronologi.length < 10) tambah("kronologi", "Kronologi wajib diisi. Ceritakan sebisanya (minimal 10 huruf).");
+  if (kosong(d.asalRujukanId)) tambah("asalRujukanId", `Pilih asal rujukan, atau "${LABEL_ASAL_LANGSUNG}" bila tidak dirujuk.`);
+  else if (d.asalRujukanId !== ASAL_LANGSUNG && kosong(d.lembagaRujukan)) tambah("lembagaRujukan", "Tulis nama lembaga atau pihak yang merujuk Anda.");
 
   // Langkah 4: Terlapor (semua opsional; dilewati bila belum diketahui)
   if (d.terlaporTidakDiketahui !== "on") {
@@ -228,7 +260,22 @@ type StatusBpjsKode = (typeof OPSI_STATUS_BPJS)[number]["nilai"];
 /** Data laporan yang sudah bersih dan terstruktur, siap disimpan. NIK sudah dibersihkan tetapi belum dienkripsi. */
 export type DataLaporan = {
   pelaporAdalahKorban: boolean;
-  pelapor: { nama: string; nik: string; hubunganId: string; kontak: string; alamat: string | null; kecamatanId: string | null; desaId: string | null } | null;
+  pelapor: {
+    nama: string;
+    nik: string;
+    hubunganId: string;
+    kontak: string;
+    jenisKelamin: JenisKelaminKode;
+    tempatLahir: string;
+    tanggalLahir: string;
+    pekerjaanId: string;
+    pendidikan: string;
+    agamaId: string;
+    statusPerkawinan: string;
+    alamat: string | null;
+    kecamatanId: string | null;
+    desaId: string | null;
+  } | null;
   korban: {
     nama: string;
     namaPanggilan: string | null;
@@ -253,8 +300,11 @@ export type DataLaporan = {
   kronologi: string;
   /** Satu jenis pendampingan yang diminta Pelapor; null bila diserahkan kepada petugas. */
   jenisPendampinganId: string | null;
-  /** Dirujuk dari mana; null bila tidak dirujuk atau tidak diisi. */
+  /** Dirujuk dari mana; null bila datang/lapor langsung. */
   asalRujukanId: string | null;
+  /** Lembaga/pihak yang merujuk dan alasannya; null bila datang langsung. */
+  lembagaRujukan: string | null;
+  alasanRujukan: string | null;
   terlapor: { nama: string | null; jenisKelamin: JenisKelaminKode | null; usia: number | null; hubunganId: string | null; alamat: string | null } | null;
 };
 
@@ -263,6 +313,7 @@ const atau = (v: string) => (v === "" ? null : v);
 /** Mengubah isian formulir yang sudah lolos SkemaLaporan menjadi DataLaporan. */
 export function bentukDataLaporan(d: FormLaporan): DataLaporan {
   const sendiri = d.pelaporAdalahKorban === "on";
+  const langsung = d.asalRujukanId === ASAL_LANGSUNG || d.asalRujukanId === "";
   const adaTerlapor =
     d.terlaporTidakDiketahui !== "on" &&
     [d.terlaporNama, d.terlaporJenisKelamin, d.terlaporUsia, d.terlaporHubunganId, d.terlaporAlamat].some((v) => v !== "");
@@ -275,6 +326,13 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
           nik: bersihkanNik(d.pelaporNik),
           hubunganId: d.pelaporHubunganId,
           kontak: d.pelaporKontak,
+          jenisKelamin: d.pelaporJenisKelamin as JenisKelaminKode,
+          tempatLahir: d.pelaporTempatLahir,
+          tanggalLahir: d.pelaporTanggalLahir,
+          pekerjaanId: d.pelaporPekerjaanId,
+          pendidikan: d.pelaporPendidikan,
+          agamaId: d.pelaporAgamaId,
+          statusPerkawinan: d.pelaporStatusPerkawinan,
           alamat: atau(d.pelaporAlamat),
           kecamatanId: atau(d.pelaporKecamatanId),
           desaId: atau(d.pelaporDesaId),
@@ -303,7 +361,10 @@ export function bentukDataLaporan(d: FormLaporan): DataLaporan {
     kronologi: d.kronologi,
     // Tidak wajib: Pelapor yang belum tahu menyerahkannya kepada petugas.
     jenisPendampinganId: atau(d.jenisPendampinganId),
-    asalRujukanId: atau(d.asalRujukanId),
+    // "Datang langsung" disimpan sebagai asal rujukan kosong; lembaga dan alasannya diabaikan.
+    asalRujukanId: langsung ? null : atau(d.asalRujukanId),
+    lembagaRujukan: langsung ? null : atau(d.lembagaRujukan),
+    alasanRujukan: langsung ? null : atau(d.alasanRujukan),
     terlapor: adaTerlapor
       ? {
           nama: atau(d.terlaporNama),

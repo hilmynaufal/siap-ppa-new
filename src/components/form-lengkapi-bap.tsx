@@ -4,7 +4,7 @@ import { CheckCircle2, ClipboardList, FileText, Printer, ShieldAlert, User, User
 import { useActionState, useRef, type ReactNode } from "react";
 import { lengkapiBapAksi, type AksiBap } from "@/app/bap/actions";
 import type { BidangBap, IsianBap } from "@/lib/data-bap";
-import { OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN } from "@/lib/laporan-skema";
+import { LABEL_ASAL_LANGSUNG, OPSI_JENIS_KELAMIN, OPSI_PENDIDIKAN, OPSI_STATUS_BPJS, OPSI_STATUS_PERKAWINAN } from "@/lib/laporan-skema";
 import { IkonKotak, type WarnaIkon } from "./ikon-kotak";
 import { BidangForm } from "./master-ui";
 import { Galat, fokus, input, tombolNetral, tombolUtama } from "./ui-form";
@@ -42,7 +42,7 @@ function Bagian({ id, judul, ikon, warna, keterangan, children }: { id: string; 
  * Melengkapi data BAP yang tidak ditanyakan formulir publik. Dipakai Admin (detail laporan)
  * dan Pendamping (kasus yang ditanganinya). Semua isian tidak wajib.
  */
-export function FormLengkapiBap({ data, opsi, kembali }: { data: DataFormBap; opsi: { pekerjaan: Opsi[]; agama: Opsi[]; hubungan: Opsi[] }; kembali: { href: string; label: string } }) {
+export function FormLengkapiBap({ data, opsi, kembali }: { data: DataFormBap; opsi: { pekerjaan: Opsi[]; agama: Opsi[]; hubungan: Opsi[]; rujukan: Opsi[] }; kembali: { href: string; label: string } }) {
   const [state, aksi, pending] = useActionState(lengkapiBapAksi, undefined as AksiBap);
   const form = useRef<HTMLFormElement>(null);
   const g = state?.galat ?? {};
@@ -146,10 +146,11 @@ export function FormLengkapiBap({ data, opsi, kembali }: { data: DataFormBap; op
         <div className="md:col-span-2">{teks("terlaporAlamat", "Alamat sesuai KTP")}</div>
       </Bagian>
 
-      <Bagian id="h-bap-kejadian" judul="Kejadian dan tindak lanjut" ikon={ClipboardList} warna="amber">
+      <Bagian id="h-bap-kejadian" judul="Kejadian dan rujukan" ikon={ClipboardList} warna="amber" keterangan="Rujukan berarti pihak yang merujuk pelapor ke SIAP PPA.">
         <div className="md:col-span-2">{teks("tempatKejadian", "Tempat kejadian (TKP)")}</div>
-        {area("alasanKebutuhan", "Alasan kebutuhan korban/pengadu")}
-        {area("lembagaRujukan", "Lembaga rujukan", "Mis. rumah sakit, unit PPA Polres, atau lembaga bantuan hukum.")}
+        <div className="md:col-span-2">{pilih("asalRujukanId", "Dirujuk dari", opsi.rujukan, LABEL_ASAL_LANGSUNG)}</div>
+        {area("lembagaRujukan", "Lembaga/pihak yang merujuk", "Mis. Unit PPA Polresta Bandung atau UPTD PPA Provinsi Jawa Barat.")}
+        {area("alasanRujukan", "Alasan dirujuk")}
       </Bagian>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-surface px-4 py-3 md:-mx-8 md:px-8">

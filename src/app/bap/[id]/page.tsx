@@ -226,7 +226,7 @@ export default async function HalamanBap({ params }: { params: Promise<{ id: str
               </td>
               <td>
                 <p className="bap-judul-kecil">ALASAN</p>
-                <p className="bap-kronologi">{b.alasanKebutuhan}</p>
+                <p className="bap-kronologi">{b.alasanRujukan}</p>
               </td>
             </tr>
             {/* Tanda tangan ikut dalam tabel, mengikuti format BAP. */}

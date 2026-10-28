@@ -325,9 +325,10 @@ model Laporan {
   asalRujukanId       String?       @map("asal_rujukan_id")
   /// Tempat kejadian perkara (TKP), diisi Pelapor.
   tempatKejadian      String?       @map("tempat_kejadian")
-  /// Data tindak lanjut untuk BAP, dilengkapi Admin atau Pendamping.
-  alasanKebutuhan     String?       @map("alasan_kebutuhan")
+  /// Lembaga/pihak yang merujuk pelapor ke SIAP PPA dan alasannya. Diisi Pelapor bila dirujuk;
+  /// Admin atau Pendamping dapat mengoreksinya lewat Lengkapi BAP.
   lembagaRujukan      String?       @map("lembaga_rujukan")
+  alasanRujukan       String?       @map("alasan_rujukan")
   persetujuanData     Boolean       @map("persetujuan_data")
   persetujuanPada     DateTime      @map("persetujuan_pada")
   status              StatusLaporan @default(BARU)
