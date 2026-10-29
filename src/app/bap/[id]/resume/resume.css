@@ -1,0 +1,138 @@
+/* Resume pendampingan: kertas A4 tegak tanpa kop, mengikuti format UPTD. Semua kelas berawalan rsm-. */
+@page {
+  size: A4;
+  margin: 14mm 16mm;
+}
+
+.rsm-latar {
+  min-height: 100vh;
+  background: #e5e7eb;
+  padding: 16px;
+  color: #000;
+  overflow-x: auto;
+}
+.rsm-alat {
+  margin: 0 auto 16px;
+  max-width: 210mm;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 16px;
+  background: #fff;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+}
+.rsm-alat p {
+  flex: 1 1 18rem;
+}
+.rsm-jenis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rsm-jenis a {
+  border: 1px solid #b9d0c0;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 700;
+  color: #0f5a32;
+}
+.rsm-jenis a[aria-current="true"] {
+  background: #048842;
+  border-color: #048842;
+  color: #fff;
+}
+.rsm-kertas {
+  margin: 0 auto;
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  background: #fff;
+  padding: 14mm 16mm;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.35;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}
+.rsm-judul {
+  margin: 4mm 0 6mm;
+  text-align: center;
+  font-size: 12pt;
+  font-weight: 700;
+}
+.rsm-identitas {
+  display: grid;
+  grid-template-columns: 52mm 4mm 1fr;
+  row-gap: 1.5mm;
+  margin-bottom: 7mm;
+  font-weight: 700;
+}
+.rsm-identitas dd {
+  margin: 0;
+  font-weight: 400;
+}
+.rsm-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.rsm-tabel th,
+.rsm-tabel td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.rsm-tabel th {
+  text-align: center;
+  font-weight: 700;
+}
+.rsm-tabel tr {
+  break-inside: avoid;
+}
+.rsm-no {
+  width: 10mm;
+  text-align: center;
+}
+.rsm-tanggal {
+  width: 32mm;
+}
+.rsm-paraf {
+  width: 24mm;
+}
+.rsm-uraian p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.rsm-uraian p + p {
+  margin-top: 2mm;
+}
+.rsm-sub {
+  font-weight: 700;
+}
+/* Baris kosong di akhir tabel: ruang catatan tangan seperti format kertas. */
+.rsm-sisa td {
+  height: 70mm;
+}
+.rsm-kosong td {
+  height: 150mm;
+}
+
+@media print {
+  .rsm-latar {
+    background: none;
+    padding: 0;
+  }
+  .rsm-alat {
+    display: none;
+  }
+  .rsm-kertas {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}

@@ -101,6 +101,10 @@ export default async function HalamanDetailLaporan({ params }: { params: Promise
                 <Printer size={18} aria-hidden="true" />
                 Cetak BAP
               </a>
+              <a href={`/bap/${l.id}/resume`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
+                <FileText size={18} aria-hidden="true" />
+                Cetak resume pendampingan
+              </a>
               <TombolHapusLaporan id={l.id} kode={l.kode} />
             </>
           )}
