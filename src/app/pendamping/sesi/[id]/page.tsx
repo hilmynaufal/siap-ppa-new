@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, ClipboardPen, Info, MapPin, Printer, ShieldAlert, Ticket } from "lucide-react";
+import { ArrowLeft, CalendarClock, ClipboardPen, FileText, Info, MapPin, Printer, ShieldAlert, Ticket } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IkonKotak } from "@/components/ikon-kotak";
@@ -79,6 +79,10 @@ export default async function HalamanSesi({ params }: { params: Promise<{ id: st
               <a href={`/bap/${s.laporanId}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
                 <Printer size={18} aria-hidden="true" />
                 Cetak BAP
+              </a>
+              <a href={`/bap/${s.laporanId}/resume?jenis=${s.jenisPendampingId}`} target="_blank" rel="noopener noreferrer" className={tautanTombol}>
+                <FileText size={18} aria-hidden="true" />
+                Cetak resume
               </a>
             </>
           )}
