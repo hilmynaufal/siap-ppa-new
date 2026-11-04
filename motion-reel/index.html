@@ -96,7 +96,7 @@ async function init(){
   // potretan asli aplikasi (data dummy); ukurannya dibaca agar tinggi halaman mengikuti gambar
   const SHOTS = ['berhasil', ...[1,2,3,4,5].flatMap(k => ['kosong','isi'].map(v => `lapor-${k}-${v}`))].map(n => `layar/${n}.jpg`);
   const DIM = {};
-  await Promise.all([IMG_SIMBOL, IMG_LENGKAP, ...SHOTS, ...['kabupaten-bandung','daldukppa','berakhlak','bandung-lebih-bedas'].map(n => `logo/${n}.png`)].map(async src => { const i = new Image(); i.src = src; await i.decode().catch(()=>{}); DIM[src] = [i.naturalWidth, i.naturalHeight]; }));
+  await Promise.all([IMG_SIMBOL, IMG_LENGKAP, ...SHOTS, ...['kabupaten-bandung','daldukppa','uptdppa','berakhlak','bandung-lebih-bedas'].map(n => `logo/${n}.png`)].map(async src => { const i = new Image(); i.src = src; await i.decode().catch(()=>{}); DIM[src] = [i.naturalWidth, i.naturalHeight]; }));
 
   /* ===== defs ===== */
   const defs = el('defs', null, svg);
@@ -419,11 +419,11 @@ async function init(){
   const back6 = el('rect',{x:-50,y:-50,width:2020,height:1180,fill:C.canvas}, s6);
   const kick6 = txt(s6, 'SIAP PPA · KABUPATEN BANDUNG', 960, 410, 24, 800, C.b700, {'text-anchor':'middle','letter-spacing':5});
   const rule6 = el('rect',{y:446,height:6,rx:3,fill:C.b600}, s6);
-  const LOGOS = [['kabupaten-bandung',191,165],['daldukppa',383,91],['berakhlak',512,200],['bandung-lebih-bedas',900,321]];
+  const LOGOS = [['kabupaten-bandung',191,165],['daldukppa',383,91],['uptdppa',978,495],['berakhlak',512,200],['bandung-lebih-bedas',900,321]];
   const logos6 = LOGOS.map(([n,w,h],i) => {
-    const cx = 300 + i*440, s = Math.min(330/w, 150/h), W = w*s, H = h*s;
+    const cx = 230 + i*365, s = Math.min(290/w, 150/h), W = w*s, H = h*s;
     const img = el('image',{href:`logo/${n}.png`,x:cx-W/2,y:610-H/2,width:W,height:H,style:'mix-blend-mode:multiply'}, s6);
-    const div = i ? el('rect',{x:cx-220-1.5,y:550,width:3,height:120,rx:1.5,fill:C.line}, s6) : null;
+    const div = i ? el('rect',{x:cx-182.5-1.5,y:550,width:3,height:120,rx:1.5,fill:C.line}, s6) : null;
     return {img, div};
   });
 
