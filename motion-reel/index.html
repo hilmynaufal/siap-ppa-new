@@ -23,13 +23,27 @@
 <body>
 <div id="wrap">
   <svg id="stage" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="ctl"><button id="pp">Jeda</button><input id="scrub" type="range" min="0" max="46" step="0.001" value="0"><span id="tc">00.00</span></div>
+  <div id="ctl"><button id="pp">Jeda</button><input id="scrub" type="range" min="0" max="90" step="0.001" value="0"><span id="tc">00.00</span></div>
 </div>
 <script>
 (() => {
 const NS = 'http://www.w3.org/2000/svg';
 const SH = 22;            // S4 dan S5 digeser sebesar ini karena adegan 3 diperpanjang
-const T = 24 + SH, FPS = 30;
+const TI = 24 + SH + 6, FPS = 30;   // lama linimasa animasi (detik internal), termasuk adegan logo penutup
+/* Jeda untuk voice over: [waktu internal, lama jeda dalam detik]. Animasi berhenti di keadaan "sudah lengkap"
+ * selama jeda (kamera tetap bernapas pelan), lalu lanjut. Ubah lama jeda di sini bila narasi lebih panjang atau pendek. */
+const HOLDS = [
+  [5.85, 2.0],                                   // 02 pesan: "Anda tidak sendiri"
+  [9.75, 1.2],                                   // QR selesai dipindai
+  [12.3, 2.2], [14.8, 2.2], [17.3, 2.2], [19.8, 2.2], [22.3, 2.4],  // lima langkah formulir
+  [25.75, 2.0],                                  // kode pendaftaran dan tiket
+  [29.3, 2.0], [30.7, 2.0], [32.1, 2.0], [34.15, 2.6],              // empat langkah offline di UPTD
+  [16.38+SH, 3.5],                               // empat peran
+  [18.48+SH, 2.2],                               // skala desa dan kelurahan
+  [23.1+SH, 2.0]                                 // identitas
+];
+const TT = TI + HOLDS.reduce((s,[,d]) => s+d, 0);   // lama video sebenarnya
+function toInt(r){ let acc = 0; for (const [h,d] of HOLDS){ if (r < h+acc) break; if (r < h+acc+d) return h; acc += d; } return r - acc; }
 const CAPTURE = /capture/.test(location.search);
 if (CAPTURE) document.documentElement.classList.add('capture');
 
@@ -82,13 +96,12 @@ async function init(){
   // potretan asli aplikasi (data dummy); ukurannya dibaca agar tinggi halaman mengikuti gambar
   const SHOTS = ['berhasil', ...[1,2,3,4,5].flatMap(k => ['kosong','isi'].map(v => `lapor-${k}-${v}`))].map(n => `layar/${n}.jpg`);
   const DIM = {};
-  await Promise.all([IMG_SIMBOL, IMG_LENGKAP, ...SHOTS].map(async src => { const i = new Image(); i.src = src; await i.decode().catch(()=>{}); DIM[src] = [i.naturalWidth, i.naturalHeight]; }));
+  await Promise.all([IMG_SIMBOL, IMG_LENGKAP, ...SHOTS, ...['kabupaten-bandung','daldukppa','berakhlak','bandung-lebih-bedas'].map(n => `logo/${n}.png`)].map(async src => { const i = new Image(); i.src = src; await i.decode().catch(()=>{}); DIM[src] = [i.naturalWidth, i.naturalHeight]; }));
 
   /* ===== defs ===== */
   const defs = el('defs', null, svg);
   defs.innerHTML = `
     <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence id="turb" type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="1"/><feColorMatrix type="saturate" values="0"/></filter>
-    <radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".55"/></radialGradient>
     <linearGradient id="scanGlow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.b600}" stop-opacity="0"/><stop offset="1" stop-color="${C.b600}" stop-opacity=".35"/></linearGradient>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#062f1a" flood-opacity=".28"/></filter>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
@@ -400,35 +413,35 @@ async function init(){
 
   const tag2 = tagWords('DALDUK PPA · KABUPATEN BANDUNG', 846, 22, 800, C.b700, {'letter-spacing':5});
 
+  /* ================= S6 — LOGO PENUTUP ================= */
+  // Logo berlatar putih dipasang dengan mix-blend-mode:multiply di atas kanvas berwarna, jadi latar putihnya lenyap.
+  const s6 = el('g', null, cam);
+  const back6 = el('rect',{x:-50,y:-50,width:2020,height:1180,fill:C.canvas}, s6);
+  const kick6 = txt(s6, 'SIAP PPA · KABUPATEN BANDUNG', 960, 410, 24, 800, C.b700, {'text-anchor':'middle','letter-spacing':5});
+  const rule6 = el('rect',{y:446,height:6,rx:3,fill:C.b600}, s6);
+  const LOGOS = [['kabupaten-bandung',191,165],['daldukppa',383,91],['berakhlak',512,200],['bandung-lebih-bedas',900,321]];
+  const logos6 = LOGOS.map(([n,w,h],i) => {
+    const cx = 300 + i*440, s = Math.min(330/w, 150/h), W = w*s, H = h*s;
+    const img = el('image',{href:`logo/${n}.png`,x:cx-W/2,y:610-H/2,width:W,height:H,style:'mix-blend-mode:multiply'}, s6);
+    const div = i ? el('rect',{x:cx-220-1.5,y:550,width:3,height:120,rx:1.5,fill:C.line}, s6) : null;
+    return {img, div};
+  });
+
   /* ================= overlays ================= */
   const grain = el('rect',{x:0,y:0,width:1920,height:1080,filter:'url(#grain)',opacity:.05,style:'mix-blend-mode:overlay;pointer-events:none'}, svg);
   const turb = defs.querySelector('#turb');
-  const vig = el('rect',{x:0,y:0,width:1920,height:1080,fill:'url(#vig)','pointer-events':'none'}, svg);
-  const hud = el('g',{'font-family':'JetBrains Mono, monospace','font-size':17,'font-weight':500,'letter-spacing':2,'pointer-events':'none'}, svg);
-  const hudB = el('g',{fill:'none','stroke-width':2.5}, hud);
-  ['M40 76V40H76','M1844 40H1880V76','M1880 1004V1040H1844','M76 1040H40V1004'].forEach(d=>el('path',{d},hudB));
-  const hTL = txt(hud, 'SIAP PPA — MOTION REEL 2026', 96, 66, 17, 500, '#fff');
-  const hTR = txt(hud, '00:00:00:00', 1824, 66, 17, 500, '#fff', {'text-anchor':'end'});
-  const hBL = txt(hud, '01 / NAUNGAN', 96, 1026, 17, 500, '#fff');
-  const hBR = txt(hud, '1920×1080 · 30 FPS', 1824, 1026, 17, 500, '#fff', {'text-anchor':'end'});
-  const hBarBg = el('rect',{x:96,y:1000,width:1728,height:2}, hud);
-  const hBar = el('rect',{x:96,y:1000,width:0,height:2}, hud);
   const fade = el('rect',{x:-50,y:-50,width:2020,height:1180,fill:C.b950,opacity:0,'pointer-events':'none'}, svg);
-
-  const SCENES = [[0,'01 / NAUNGAN'],[3.2,'02 / PESAN'],[7.3,'03 / LAPOR ONLINE'],[26.3,'04 / DATANG KE UPTD'],[14.7+SH,'05 / PERAN'],[16.9+SH,'06 / SKALA'],[19.2+SH,'07 / IDENTITAS']];
 
   /* ================= RENDER =================
    * Bahasa gerak: hangat dan lembut. Masuk dengan outCubic/outSine (melambat halus), berpindah dengan inOutSine,
    * tanpa pantulan, pegas, guncangan kamera, atau blur gerak. Antaradegan memakai lebur warna dan mekar,
    * bukan sapuan cepat. Setiap gerakan diberi jendela 0,5 sampai 1,2 detik agar sempat bernapas.
    */
-  // Seberapa terang latar (0 gelap, 1 terang): dipakai untuk vinyet dan warna HUD.
-  const terang = t => t<3.0 ? 0 : t<3.4 ? E.inOutSine(P(t,3.0,3.4)) : t<14.3+SH ? 1 : t<15.1+SH ? 1-E.inOutSine(P(t,14.3+SH,15.1+SH))
-    : t<19.5+SH ? 0 : t<20.1+SH ? E.inOutSine(P(t,19.5+SH,20.1+SH)) : 1;
-
   render = (tt) => {
-    const t = ((tt % T) + T) % T; tt = t;
-    const frame = Math.floor(t*FPS + 1e-6);
+    const rt = ((tt % TT) + TT) % TT;      // waktu nyata video
+    const t = toInt(rt); tt = t;           // waktu internal animasi (berhenti saat jeda)
+    // kamera bernapas sangat pelan agar layar tidak mati saat jeda narasi
+    cam.setAttribute('transform', `translate(960 540) scale(${1 + .006*(1+Math.sin(rt*.9))/2}) translate(-960 -540)`);
 
     // latar: lebur warna, bukan pergantian mendadak
     let bgc = C.b950;
@@ -610,7 +623,7 @@ async function init(){
 
     /* ---- S5 IDENTITAS ---- */
     { const t = tt - SH;
-    const on5 = t>=19.2; show(s5, on5);
+    const on5 = t>=19.2 && t<24.2; show(s5, on5);
     if (on5){
       wipe5.setAttribute('r', 1150*E.inOutCubic(P(t,19.2,20.2)));
       // titik kuning meluncur pelan dari tengah ke titik di huruf "A"
@@ -635,20 +648,24 @@ async function init(){
 
     }
 
-    /* ---- overlays ---- */
-    const lt = terang(t), light = lt > .5;
-    vig.setAttribute('opacity', lerp(1, .25, lt));
-    const hc = light ? C.ink : '#fff';
-    hud.setAttribute('fill', hc); hudB.setAttribute('stroke', hc); hud.setAttribute('opacity', light ? .55 : .5);
-    hBarBg.setAttribute('fill-opacity', .25); hBar.setAttribute('width', 1728*t/T); hBar.setAttribute('fill', light ? C.b600 : C.sun);
-    const ff = frame % FPS, ss = Math.floor(t);
-    hTR.textContent = `00:00:${String(ss).padStart(2,'0')}:${String(ff).padStart(2,'0')}`;
-    let lbl = SCENES[0][1]; for (const [a,l] of SCENES) if (t>=a) lbl = l; hBL.textContent = lbl;
-    fade.setAttribute('opacity', E.inOutSine(P(t,T-.6,T)));
+    /* ---- S6 LOGO PENUTUP: empat logo masuk satu per satu ---- */
+    const on6 = t>=45.3; show(s6, on6);
+    if (on6){
+      back6.setAttribute('opacity', E.inOutSine(P(t,45.3,46.0)));
+      const k = E.outCubic(P(t,46.2,46.8));
+      kick6.setAttribute('opacity', k); kick6.setAttribute('transform', `translate(0 ${16*(1-k)})`);
+      const rl = E.outCubic(P(t,46.5,47.1)); set(rule6,{x:960-70*rl, width:140*rl});
+      logos6.forEach((l,i) => { const p = E.outCubic(P(t,46.5+i*.3,47.3+i*.3));
+        l.img.setAttribute('opacity', p); l.img.setAttribute('transform', `translate(0 ${24*(1-p)})`);
+        if (l.div) l.div.setAttribute('opacity', p); });
+    }
+
+    /* ---- penutup ---- */
+    fade.setAttribute('opacity', E.inOutSine(P(t,TI-.6,TI)));
   };
 
   window.render = render;
-  window.__T = T;
+  window.__T = TT;
   render(0);
   window.__ready = true;
 }
@@ -657,12 +674,13 @@ async function init(){
 init().then(() => {
   if (CAPTURE) return;
   const pp = document.getElementById('pp'), scrub = document.getElementById('scrub'), tc = document.getElementById('tc');
+  scrub.max = TT;
   let playing = true, t0 = performance.now(), cur = 0;
   const toggle = () => { playing = !playing; pp.textContent = playing ? 'Jeda' : 'Putar'; if (playing) t0 = performance.now() - cur*1000; };
   pp.onclick = toggle; svg.onclick = toggle;
   addEventListener('keydown', e => { if (e.code==='Space'){ e.preventDefault(); toggle(); } });
   scrub.oninput = () => { cur = +scrub.value; t0 = performance.now() - cur*1000; render(cur); tc.textContent = cur.toFixed(2); };
-  (function loop(now){ if (playing){ cur = ((now - t0)/1000) % T; render(cur); scrub.value = cur; tc.textContent = cur.toFixed(2); } requestAnimationFrame(loop); })(performance.now());
+  (function loop(now){ if (playing){ cur = ((now - t0)/1000) % TT; render(cur); scrub.value = cur; tc.textContent = cur.toFixed(2); } requestAnimationFrame(loop); })(performance.now());
 });
 })();
 </script>
