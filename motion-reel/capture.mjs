@@ -1,24 +1,31 @@
 // Render index.html frame by frame with headless Edge (CDP), write PNGs.
 // Usage: node capture.mjs <outDir | file.mp4> [fps=30] [times=comma list, optional]
 // Tujuan .mp4: frame dialirkan langsung ke ffmpeg tanpa disimpan ke disk.
+// Variabel lingkungan (opsional): CHROME (peramban Chromium/Edge), FFMPEG, AUDIO (berkas musik untuk digabung ke .mp4;
+// bawaan musik/siap-ppa-reel.m4a bila ada, isi AUDIO=none untuk tanpa musik).
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const [, , outDir, fpsArg, timesArg] = process.argv;
 const fps = +(fpsArg || 30);
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const page = pathToFileURL(path.resolve(path.dirname(new URL(import.meta.url).pathname.slice(1)), 'index.html')).href + '?capture=1';
+const EDGE = process.env.CHROME || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const FFMPEG = process.env.FFMPEG || 'C:/ffmpeg/bin/ffmpeg.exe';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const audioDefault = path.join(here, 'musik', 'siap-ppa-reel.m4a');
+const AUDIO = process.env.AUDIO === 'none' ? null : (process.env.AUDIO || (existsSync(audioDefault) ? audioDefault : null));
+const page = pathToFileURL(path.join(here, 'index.html')).href + '?capture=1';
 const toMp4 = outDir.endsWith('.mp4');
 const workDir = toMp4 ? path.dirname(path.resolve(outDir)) : outDir;
 mkdirSync(workDir, { recursive: true });
-const ff = toMp4 ? spawn('C:/ffmpeg/bin/ffmpeg.exe', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
+const ff = toMp4 ? spawn(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
+  ...(AUDIO ? ['-i', AUDIO, '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
   '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.resolve(outDir)], { stdio: ['pipe', 'inherit', 'inherit'] }) : null;
 const port = 9333;
 const prof = path.join(process.env.TEMP || workDir, 'siap-reel-edge-profile');
 const edge = spawn(EDGE, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${prof}`,
-  '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', 'about:blank'], { stdio: 'ignore' });
+  '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', '--allow-file-access-from-files', ...(process.env.CHROME ? ['--no-sandbox'] : []), 'about:blank'], { stdio: 'ignore' });
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let targets;

@@ -23,12 +23,13 @@
 <body>
 <div id="wrap">
   <svg id="stage" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="ctl"><button id="pp">Jeda</button><input id="scrub" type="range" min="0" max="24" step="0.001" value="0"><span id="tc">00.00</span></div>
+  <div id="ctl"><button id="pp">Jeda</button><input id="scrub" type="range" min="0" max="46" step="0.001" value="0"><span id="tc">00.00</span></div>
 </div>
 <script>
 (() => {
 const NS = 'http://www.w3.org/2000/svg';
-const T = 24, FPS = 30;
+const SH = 22;            // S4 dan S5 digeser sebesar ini karena adegan 3 diperpanjang
+const T = 24 + SH, FPS = 30;
 const CAPTURE = /capture/.test(location.search);
 if (CAPTURE) document.documentElement.classList.add('capture');
 
@@ -78,7 +79,10 @@ async function init(){
     document.fonts.load('800 100px "Plus Jakarta Sans"'), document.fonts.load('700 100px "Plus Jakarta Sans"'),
     document.fonts.load('400 100px "Plus Jakarta Sans"'), document.fonts.load('500 20px "JetBrains Mono"')]);
     await document.fonts.ready; } catch(e){}
-  await Promise.all([IMG_SIMBOL, IMG_LENGKAP].map(src => { const i = new Image(); i.src = src; return i.decode().catch(()=>{}); }));
+  // potretan asli aplikasi (data dummy); ukurannya dibaca agar tinggi halaman mengikuti gambar
+  const SHOTS = ['berhasil', ...[1,2,3,4,5].flatMap(k => ['kosong','isi'].map(v => `lapor-${k}-${v}`))].map(n => `layar/${n}.jpg`);
+  const DIM = {};
+  await Promise.all([IMG_SIMBOL, IMG_LENGKAP, ...SHOTS].map(async src => { const i = new Image(); i.src = src; await i.decode().catch(()=>{}); DIM[src] = [i.naturalWidth, i.naturalHeight]; }));
 
   /* ===== defs ===== */
   const defs = el('defs', null, svg);
@@ -151,38 +155,41 @@ async function init(){
   const bloomG = el('g', null, cam);
   const blooms = [C.sun50, C.b100, C.canvas].map(c => el('circle',{cx:960,cy:1500,r:0,fill:c}, bloomG));
 
-  /* ================= S3 — ALUR ================= */
+  /* ================= S3 — LAPOR ONLINE (tampilan asli aplikasi, data dummy) ================= */
   const s3 = el('g', null, cam);
   const s3inner = el('g', null, s3);
-  const kick3 = txt(s3inner, 'ALUR PELAPOR', 150, 230, 24, 800, C.b700, {'letter-spacing':5});
-  const head3 = ['Dari QR', 'sampai tiket.'].map((s,i) => {
-    const y = 330 + i*96;
-    const cp = el('clipPath',{id:'h3c'+i}, defs); el('rect',{x:0,y:y-90,width:1000,height:116}, cp);
+  const kick3 = txt(s3inner, 'LANGKAH ONLINE · DARI PONSEL', 150, 190, 24, 800, C.b700, {'letter-spacing':5});
+  const head3 = ['Lima langkah,', 'tanpa akun.'].map((s,i) => {
+    const y = 282 + i*88;
+    const cp = el('clipPath',{id:'h3c'+i}, defs); el('rect',{x:0,y:y-84,width:1000,height:112}, cp);
     const g = el('g',{'clip-path':`url(#h3c${i})`}, s3inner); const inner = el('g', null, g);
-    txt(inner, s, 146, y, 92, 800, C.b900, {'letter-spacing':-3});
+    txt(inner, s, 146, y, 84, 800, C.b900, {'letter-spacing':-3});
     return inner;
   });
-  const stepTrack = el('rect',{x:177,y:540,width:6,height:240,rx:3,fill:C.line}, s3inner);
-  const stepFill = el('rect',{x:177,y:540,width:6,height:0,rx:3,fill:C.b600}, s3inner);
-  const stepLabels = ['Pindai QR Code','Isi formulir laporan','Diverifikasi Admin','Terima tiket & jadwal'];
+  const LY0 = 470, LSP = 66;
+  const stepTrack = el('rect',{x:177,y:LY0,width:6,height:6*LSP,rx:3,fill:C.line}, s3inner);
+  const stepFill = el('rect',{x:177,y:LY0,width:6,height:0,rx:3,fill:C.b600}, s3inner);
+  const stepLabels = ['Pindai QR Code','Data pelapor','Data korban','Tentang kejadian','Data terlapor','Dokumen & persetujuan','Kode & tiket'];
   const steps = stepLabels.map((s,i) => {
-    const y = 540 + i*80;
+    const y = LY0 + i*LSP;
     const g = el('g', null, s3inner);
-    const c = el('circle',{cx:180,cy:y,r:26,'stroke-width':3}, g);
-    const n = txt(g, String(i+1).padStart(2,'0'), 180, y+8, 20, 800, C.inkMute, {'text-anchor':'middle'});
-    const l = txt(g, s, 232, y+13, 38, 800, C.ink);
+    const c = el('circle',{cx:180,cy:y,r:24,'stroke-width':3}, g);
+    const n = txt(g, String(i+1).padStart(2,'0'), 180, y+7, 18, 800, C.inkMute, {'text-anchor':'middle'});
+    const l = txt(g, s, 228, y+12, 34, 800, C.ink);
     return {g,c,n,l,y};
   });
+  // detik mulai tiap butir daftar (tengah geser halaman di ponsel)
+  const STEP_AT = [8.2, 10.1, 12.625, 15.125, 17.625, 20.125, 23.2];
 
-  // phone
+  // ponsel
   const phone = el('g', null, s3inner);
   el('rect',{x:-210,y:-410,width:420,height:820,rx:64,fill:C.b950}, phone);
   el('rect',{x:-196,y:-396,width:392,height:792,rx:52,fill:C.surface}, phone);
   const scr = el('g',{'clip-path':'url(#screenClip)'}, phone);
   const scrIn = el('g',{transform:'translate(-196 -396)'}, scr);
-  el('rect',{x:-60,y:-386,width:120,height:28,rx:14,fill:C.b950}, phone);
+  el('rect',{x:-40,y:-390,width:80,height:16,rx:8,fill:C.b950}, phone);
 
-  // page: QR
+  // halaman 0: QR (gambar sendiri)
   const pgQR = el('g', null, scrIn);
   txt(pgQR, 'Pindai untuk melapor', 196, 150, 27, 800, C.ink, {'text-anchor':'middle'});
   txt(pgQR, 'Arahkan kamera ke QR Code', 196, 184, 18, 400, C.inkMute, {'text-anchor':'middle'});
@@ -214,43 +221,43 @@ async function init(){
   txt(pgQR, 'SIAP PPA · Lapor aman', 196, 620, 20, 700, C.b900, {'text-anchor':'middle'});
   txt(pgQR, 'Tanpa akun, tanpa biaya', 196, 650, 17, 400, C.inkMute, {'text-anchor':'middle'});
 
-  // page: form
-  const pgForm = el('g', null, scrIn);
-  el('rect',{x:0,y:0,width:392,height:120,fill:C.b900}, pgForm);
-  txt(pgForm, 'Lapor Kasus', 28, 96, 28, 800, '#fff');
-  const field = (label, y) => { txt(pgForm, label, 28, y, 15, 700, C.inkMute);
-    el('rect',{x:28,y:y+12,width:336,height:52,rx:12,fill:'#fff',stroke:C.line,'stroke-width':2}, pgForm);
-    const v = txt(pgForm, '', 44, y+45, 19, 700, C.ink); const caret = el('rect',{x:44,y:y+26,width:2.5,height:24,fill:C.b600}, pgForm);
-    return {v, caret}; };
-  const f1 = field('Nama (boleh samaran)', 166), f2 = field('Desa / Kelurahan', 256);
-  txt(pgForm, 'Jenis kekerasan', 28, 352, 15, 700, C.inkMute);
-  let cxp = 28; const chips = ['Fisik','Psikis','Seksual','Lainnya'].map(s => {
-    const g = el('g', null, pgForm); const tt = txt(g, s, 0, 0, 16, 700, C.ink); const w = tt.getComputedTextLength()+30;
-    const r = el('rect',{x:0,y:0,width:w,height:40,rx:20,fill:C.b50,stroke:C.line,'stroke-width':2}, g); g.insertBefore(r, tt);
-    set(tt,{x:w/2,y:26,'text-anchor':'middle'}); const ch = {g,r,tt,x:cxp,w}; cxp += w+8; return ch; });
-  txt(pgForm, 'Ceritakan singkat', 28, 446, 15, 700, C.inkMute);
-  el('rect',{x:28,y:458,width:336,height:140,rx:12,fill:'#fff',stroke:C.line,'stroke-width':2}, pgForm);
-  const lines = [282,300,246,170].map((w,i)=>({w, e: el('rect',{x:46,y:482+i*24,width:0,height:10,rx:5,fill:C.lineStrong}, pgForm)}));
-  txt(pgForm, 'Identitas Anda dirahasiakan.', 196, 648, 15, 700, C.teal, {'text-anchor':'middle'});
-  const btn = el('g', null, pgForm);
-  el('rect',{x:28,y:690,width:336,height:60,rx:14,fill:C.b600}, btn);
-  const ripple = el('circle',{cx:196,cy:720,r:0,fill:'#fff','fill-opacity':.35,'clip-path':'url(#btnClip)'}, btn);
-  txt(btn, 'Kirim Laporan', 196, 727, 21, 800, '#fff', {'text-anchor':'middle'});
+  // halaman 1-5: potretan asli formulir /lapor (kosong -> terisi), digulir pelan
+  const SHOT_PAN = [380, 520, 560, 140, 1e5];
+  const pgs = [1,2,3,4,5].map((k,idx) => {
+    const g = el('g', null, scrIn), inner = el('g', null, g);
+    const mk = v => { const src = `layar/lapor-${k}-${v}.jpg`, [w,h] = DIM[src];
+      return {e: el('image',{href:src,x:0,y:0,width:392,height:h*392/w}, inner), h: h*392/w}; };
+    const a = mk('kosong'), b = mk('isi');
+    return {g, inner, a, b, pan: Math.min(SHOT_PAN[idx], Math.max(0, b.h-792))};
+  });
+  const btnH = pgs[4].b.h;
+  const rpClip = el('clipPath',{id:'btnClip5'}, defs); el('rect',{x:146,y:btnH-64,width:230,height:52,rx:12}, rpClip);
+  const ripple = el('circle',{cx:262,cy:btnH-38,r:0,fill:'#fff','fill-opacity':.35,'clip-path':'url(#btnClip5)'}, pgs[4].inner);
+  // halaman 6: laporan diterima (potretan asli, dengan kode pendaftaran)
+  const pgOK = el('g', null, scrIn);
+  el('image',{href:'layar/berhasil.jpg',x:0,y:0,width:392,height:792}, pgOK);
+  const PG = [pgQR, ...pgs.map(p=>p.g), pgOK];
 
-  // page: verify
-  const pgVer = el('g', null, scrIn);
-  el('rect',{x:0,y:0,width:392,height:792,fill:C.success50}, pgVer);
-  const vRings = [0,1,2].map(()=>el('circle',{cx:196,cy:300,fill:'none',stroke:C.green}, pgVer));
-  const vCircle = el('circle',{cx:196,cy:300,r:92,fill:C.green}, pgVer);
-  const vCheck = el('path',{d:'M152 302 L184 334 L242 270',fill:'none',stroke:'#fff','stroke-width':18,'stroke-linecap':'round','stroke-linejoin':'round'}, pgVer);
-  const chkLen = vCheck.getTotalLength(); vCheck.setAttribute('stroke-dasharray', chkLen+' '+chkLen);
-  const vTxt = el('g', null, pgVer);
-  txt(vTxt, 'Laporan diverifikasi', 196, 470, 27, 800, C.ink, {'text-anchor':'middle'});
-  txt(vTxt, 'Tiket & jadwal segera terbit', 196, 506, 18, 400, C.inkMute, {'text-anchor':'middle'});
-  el('rect',{x:116,y:540,width:160,height:40,rx:20,fill:'#fff',stroke:C.green,'stroke-width':2}, vTxt);
-  txt(vTxt, 'TERVERIFIKASI', 196, 566, 15, 800, C.green, {'text-anchor':'middle','letter-spacing':2});
+  // panduan per halaman (di kanan ponsel)
+  const CALL = [
+    {tag:'LANGKAH 1 / 5', t:['Siapa yang','melapor?'], d:['Korbannya Anda sendiri?','Centang "Saya sendiri','korbannya".']},
+    {tag:'LANGKAH 2 / 5', t:['Data korban'], d:['NIK 16 digit disimpan','terenkripsi. Alamat','domisili wajib diisi.']},
+    {tag:'LANGKAH 3 / 5', t:['Tentang kejadian'], d:['Pilih jenis kekerasan.','Tanggal perkiraan boleh','bila tak ingat pasti.']},
+    {tag:'LANGKAH 4 / 5', t:['Data terlapor','(tidak wajib)'], d:['Belum diketahui? Centang','"Pelaku belum diketahui"','dan lewati bagian ini.']},
+    {tag:'LANGKAH 5 / 5', t:['Dokumen &','persetujuan'], d:['KK, KTP, dan akta','kelahiran wajib diunggah.','Lalu centang persetujuan.']}
+  ];
+  const callG = el('g', null, s3inner);
+  const calls = CALL.map(c => {
+    const g = el('g', null, callG);
+    el('rect',{x:1500,y:400,width:360,height:276,rx:28,fill:'#fff',stroke:C.line,'stroke-width':2}, g);
+    el('rect',{x:1500,y:430,width:8,height:216,rx:4,fill:C.b600}, g);
+    txt(g, c.tag, 1536, 448, 17, 800, C.b700, {'letter-spacing':3});
+    c.t.forEach((s,i)=>txt(g, s, 1536, 494+i*38, 32, 800, C.b900, {'letter-spacing':-.5}));
+    c.d.forEach((s,i)=>txt(g, s, 1536, 494+(c.t.length-1)*38+44+i*30, 22, 500, C.inkMute));
+    return g;
+  });
 
-  // ticket
+  // tiket
   const ticket = el('g', null, s3inner);
   const tk = el('g',{filter:'url(#shadow)'}, ticket);
   el('rect',{x:-290,y:-165,width:580,height:330,rx:26,fill:C.b600}, tk);
@@ -261,7 +268,6 @@ async function init(){
   txt(ticket, 'TIKET', -220, 0, 34, 800, '#fff', {'text-anchor':'middle','letter-spacing':8,transform:'rotate(-90 -220 0) translate(0 12)'});
   txt(ticket, 'NOMOR ANTREAN', -112, -98, 16, 800, C.inkMute, {'letter-spacing':3});
   txt(ticket, 'A-0', -116, 32, 104, 800, C.b900, {'letter-spacing':-4});
-  // posisi kolom diukur dari teks akhir "A-017" agar jarak antarangka sama dengan teks biasa
   const measure = s => { const m = txt(ticket, s, 0, 0, 104, 800, 'none', {'letter-spacing':-4}); const w = m.getComputedTextLength(); m.remove(); return w; };
   const odo = ['A-0','A-01'].map((prefix,k) => {
     const x = -116 + measure(prefix);
@@ -281,7 +287,52 @@ async function init(){
   const hearts = Array.from({length:14}, (_,i) => {
     const g = el('g', null, heartsG), sz = 16+r3()*18;
     el('path',{d:HEART_D,fill:HEART_COLS[i%HEART_COLS.length],transform:`scale(${sz/100}) translate(-50 -44)`}, g);
-    return {g, x:1150+(r3()-.5)*620, y:700+r3()*120, rise:110+r3()*90, sway:10+r3()*16, ph:r3()*6, delay:i*.07}; });
+    return {g, x:1120+(r3()-.5)*620, y:700+r3()*120, rise:110+r3()*90, sway:10+r3()*16, ph:r3()*6, delay:i*.07}; });
+
+  /* ================= S3b — LANGKAH OFFLINE (datang ke UPTD) ================= */
+  const s3b = el('g', null, cam);
+  const s3bi = el('g', null, s3b);
+  const kickB = txt(s3bi, 'LANGKAH OFFLINE · DI UPTD PPA', 150, 190, 24, 800, C.b700, {'letter-spacing':5});
+  const headB = ['Dapat jadwal?', 'Datang ke UPTD.'].map((s,i) => {
+    const y = 282 + i*88;
+    const cp = el('clipPath',{id:'hBc'+i}, defs); el('rect',{x:0,y:y-84,width:1400,height:112}, cp);
+    const g = el('g',{'clip-path':`url(#hBc${i})`}, s3bi); const inner = el('g', null, g);
+    txt(inner, s, 146, y, 84, 800, C.b900, {'letter-spacing':-3});
+    return inner;
+  });
+  const subB = txt(s3bi, 'Pendampingan berlangsung tatap muka, tanpa biaya.', 150, 436, 32, 700, C.inkMute);
+  const RY = 620, RX0 = 270, RDX = 440;
+  el('line',{x1:RX0,y1:RY,x2:RX0+3*RDX,y2:RY,stroke:C.lineStrong,'stroke-width':6,'stroke-dasharray':'2 14','stroke-linecap':'round'}, s3bi);
+  const routeFill = el('line',{x1:RX0,y1:RY,x2:RX0+3*RDX,y2:RY,stroke:C.b600,'stroke-width':6,'stroke-linecap':'round'}, s3bi);
+  routeFill.setAttribute('stroke-dasharray', 3*RDX+' '+3*RDX);
+  const ICON = {
+    pin:'<path d="M0 -36 C-20 -36 -32 -21 -32 -5 C-32 17 0 42 0 42 C0 42 32 17 32 -5 C32 -21 20 -36 0 -36 Z"/><circle cx="0" cy="-5" r="10"/>',
+    qr:'<rect x="-34" y="-34" width="26" height="26" rx="4"/><rect x="8" y="-34" width="26" height="26" rx="4"/><rect x="-34" y="8" width="26" height="26" rx="4"/><path d="M10 14 H20 M30 14 H34 M10 26 V34 M22 22 V34 M34 24 V34"/>',
+    screen:'<rect x="-40" y="-32" width="80" height="54" rx="8"/><path d="M-16 38 H16 M0 22 V38"/><path d="M-20 -14 H20 M-20 0 H4"/>',
+    chat:'<g transform="translate(-70 -81)"><path d="M52 56 H88 A8 8 0 0 1 96 64 V88 A8 8 0 0 1 88 96 H66 L54 106 V96 H52 A8 8 0 0 1 44 88 V64 A8 8 0 0 1 52 56 Z"/><path d="M58 72 H82 M58 82 H74"/></g>'
+  };
+  const OFF = [
+    {t:'Datang ke UPTD', d:['Sesuai tanggal dan jam di','tiket. Lokasi tertera jelas.'], c:C.b600, fg:'#fff', icon:'pin'},
+    {t:'Check-in di loket', d:['Tunjukkan QR tiket','ke petugas.'], c:C.sky, fg:'#fff', icon:'qr'},
+    {t:'Tunggu dipanggil', d:['Nomor antrean muncul','di layar, tanpa berdiri.'], c:C.sun, fg:C.b950, icon:'screen'},
+    {t:'Bertemu pendamping', d:['Sesi pendampingan tatap','muka bersama pendamping.'], c:C.teal, fg:'#fff', icon:'chat'}
+  ];
+  const offN = OFF.map((o,i) => {
+    const g = el('g', null, s3bi), x = RX0 + i*RDX;
+    const disc = el('g',{transform:`translate(${x} ${RY})`}, g), body = el('g', null, disc);
+    el('circle',{r:78,fill:C.canvas}, body);
+    el('circle',{r:64,fill:o.c}, body);
+    const ic = el('g',{fill:'none',stroke:o.fg,'stroke-width':6,'stroke-linecap':'round','stroke-linejoin':'round'}, body); ic.innerHTML = ICON[o.icon];
+    el('circle',{cx:-52,cy:-52,r:22,fill:'#fff',stroke:o.c,'stroke-width':4}, body);
+    txt(body, String(i+1), -52, -44, 24, 800, C.b900, {'text-anchor':'middle'});
+    const tx = el('g', null, g);
+    txt(tx, o.t, x, RY+148, 38, 800, C.b900, {'text-anchor':'middle','letter-spacing':-.5});
+    o.d.forEach((s,k)=>txt(tx, s, x, RY+194+k*32, 25, 500, C.inkMute, {'text-anchor':'middle'}));
+    return {disc, body, tx, x, at: 28.4 + i*1.4};
+  });
+  const noteB = el('g', null, s3bi);
+  el('rect',{x:500,y:880,width:920,height:68,rx:34,fill:C.sun50,stroke:C.sun,'stroke-width':2}, noteB);
+  txt(noteB, 'Jadwal berubah? Cek Tiket kapan saja dari ponsel Anda.', 960, 923, 27, 700, C.b900, {'text-anchor':'middle'});
 
   /* ================= S4 — PERAN + SKALA ================= */
   const s4 = el('g', null, cam);
@@ -364,7 +415,7 @@ async function init(){
   const hBar = el('rect',{x:96,y:1000,width:0,height:2}, hud);
   const fade = el('rect',{x:-50,y:-50,width:2020,height:1180,fill:C.b950,opacity:0,'pointer-events':'none'}, svg);
 
-  const SCENES = [[0,'01 / NAUNGAN'],[3.2,'02 / PESAN'],[7.3,'03 / ALUR'],[14.7,'04 / PERAN'],[16.9,'05 / SKALA'],[19.2,'06 / IDENTITAS']];
+  const SCENES = [[0,'01 / NAUNGAN'],[3.2,'02 / PESAN'],[7.3,'03 / LAPOR ONLINE'],[26.3,'04 / DATANG KE UPTD'],[14.7+SH,'05 / PERAN'],[16.9+SH,'06 / SKALA'],[19.2+SH,'07 / IDENTITAS']];
 
   /* ================= RENDER =================
    * Bahasa gerak: hangat dan lembut. Masuk dengan outCubic/outSine (melambat halus), berpindah dengan inOutSine,
@@ -372,20 +423,20 @@ async function init(){
    * bukan sapuan cepat. Setiap gerakan diberi jendela 0,5 sampai 1,2 detik agar sempat bernapas.
    */
   // Seberapa terang latar (0 gelap, 1 terang): dipakai untuk vinyet dan warna HUD.
-  const terang = t => t<3.0 ? 0 : t<3.4 ? E.inOutSine(P(t,3.0,3.4)) : t<14.3 ? 1 : t<15.1 ? 1-E.inOutSine(P(t,14.3,15.1))
-    : t<19.5 ? 0 : t<20.1 ? E.inOutSine(P(t,19.5,20.1)) : 1;
+  const terang = t => t<3.0 ? 0 : t<3.4 ? E.inOutSine(P(t,3.0,3.4)) : t<14.3+SH ? 1 : t<15.1+SH ? 1-E.inOutSine(P(t,14.3+SH,15.1+SH))
+    : t<19.5+SH ? 0 : t<20.1+SH ? E.inOutSine(P(t,19.5+SH,20.1+SH)) : 1;
 
-  render = (t) => {
-    t = ((t % T) + T) % T;
+  render = (tt) => {
+    const t = ((tt % T) + T) % T; tt = t;
     const frame = Math.floor(t*FPS + 1e-6);
 
     // latar: lebur warna, bukan pergantian mendadak
     let bgc = C.b950;
     if (t>=3.0 && t<3.4) bgc = mix(C.b950, C.sun, E.inOutSine(P(t,3.0,3.4)));
     else if (t>=3.4 && t<7.65) bgc = C.sun;
-    else if (t>=7.65 && t<14.3) bgc = C.canvas;
-    else if (t>=14.3 && t<15.1) bgc = mix(C.canvas, C.b950, E.inOutSine(P(t,14.3,15.1)));
-    else if (t>=20.2) bgc = C.canvas;
+    else if (t>=7.65 && t<14.3+SH) bgc = C.canvas;
+    else if (t>=14.3+SH && t<15.1+SH) bgc = mix(C.canvas, C.b950, E.inOutSine(P(t,14.3+SH,15.1+SH)));
+    else if (t>=20.2+SH) bgc = C.canvas;
     bg.setAttribute('fill', bgc);
 
     /* ---- S1 NAUNGAN: hati turun pelan, riak lembut, simbol tumbuh, lalu masuk ke hati ---- */
@@ -435,37 +486,40 @@ async function init(){
     const onB = t>=6.3 && t<7.7; show(bloomG, onB);
     if (onB) blooms.forEach((b,i) => b.setAttribute('r', 1900*E.inOutSine(P(t,6.35+i*.22,7.25+i*.22))));
 
-    /* ---- S3 ALUR ---- */
-    const on3 = t>=7.3 && t<14.7; show(s3, on3);
+    /* ---- S3 LAPOR ONLINE ---- */
+    const on3 = t>=7.3 && t<26.6; show(s3, on3);
     if (on3){
-      const ex = E.inOutSine(P(t,14.0,14.65));
+      const ex = E.inOutSine(P(t,25.9,26.55));
       s3inner.setAttribute('transform', `translate(${-80*ex} 0)`);
       s3.setAttribute('opacity', 1-ex);
       kick3.setAttribute('opacity', E.outCubic(P(t,7.5,8.1)));
       kick3.setAttribute('transform', `translate(${-20*(1-E.outCubic(P(t,7.5,8.1)))} 0)`);
       head3.forEach((h,i) => { const p = E.outCubic(P(t,7.6+i*.15,8.5+i*.15));
         h.setAttribute('transform', `translate(0 ${60*(1-p)})`); h.setAttribute('opacity', p); });
-      const act = [P(t,8.2,8.6), P(t,9.7,10.1), P(t,11.6,12.0), P(t,12.6,13.0)].map(E.inOutSine);
-      steps.forEach((s,i) => { const ent = E.outCubic(P(t,7.8+i*.1,8.6+i*.1));
-        const a = act[i] * (i<3 ? 1-act[i+1] : 1), done = i<3 ? act[i+1] : 0;
+      const act = STEP_AT.map(a => E.inOutSine(P(t,a-.2,a+.2)));
+      steps.forEach((s,i) => { const ent = E.outCubic(P(t,7.8+i*.08,8.6+i*.08));
+        const last = i === steps.length-1;
+        const a = act[i] * (last ? 1 : 1-act[i+1]), done = last ? 0 : act[i+1];
         s.g.setAttribute('transform', `translate(${-30*(1-ent)+14*a} 0)`); s.g.setAttribute('opacity', ent);
         set(s.c,{fill: a>0.01 ? mix(C.canvas,C.b600,a) : done>0 ? mix(C.canvas,C.b900,done) : C.canvas,
-          stroke: a>0.01 ? C.b600 : done>0 ? C.b900 : C.lineStrong, r: 26});
+          stroke: a>0.01 ? C.b600 : done>0 ? C.b900 : C.lineStrong, r: 24});
         s.n.setAttribute('fill', (a>.5||done>.5) ? '#fff' : C.inkMute);
         set(s.l,{fill: a>.5 ? C.ink : C.inkMute, 'fill-opacity': .5 + .5*a}); });
-      stepFill.setAttribute('height', act[1]*80 + act[2]*80 + act[3]*80);
+      stepFill.setAttribute('height', LSP*act.slice(1).reduce((x,v)=>x+v,0));
       [stepTrack, stepFill].forEach(e=>e.setAttribute('opacity', E.outCubic(P(t,7.8,8.4))));
 
-      // ponsel: naik pelan sambil muncul, lalu bergeser memberi ruang bagi tiket
+      // ponsel: naik pelan, lalu bergeser memberi ruang bagi tiket
       const pe = E.outCubic(P(t,7.6,8.8));
-      const tStep = E.inOutCubic(P(t,12.6,13.5));
-      phone.setAttribute('transform', TF(1300 + 150*tStep, 560 + 140*(1-pe) - 20*tStep, 1 - .08*tStep, -4*(1-pe) + 4*tStep));
+      const tStep = E.inOutCubic(P(t,24.3,25.2));
+      phone.setAttribute('transform', TF(1260 + 240*tStep, 556 + 140*(1-pe) - 20*tStep, .96 - .06*tStep, -4*(1-pe) + 4*tStep));
       phone.setAttribute('opacity', pe);
-      const pg1 = E.inOutCubic(P(t,9.8,10.5)), pg2 = E.inOutCubic(P(t,11.7,12.35));
-      pgQR.setAttribute('transform', `translate(${-392*pg1} 0)`); show(pgQR, pg1<1);
-      pgForm.setAttribute('transform', `translate(${392*(1-pg1) - 392*pg2} 0)`); show(pgForm, pg1>0 && pg2<1);
-      pgVer.setAttribute('transform', `translate(${392*(1-pg2)} 0)`); show(pgVer, pg2>0);
-      if (pg1<1){
+
+      // geser antarhalaman: QR -> 5 langkah formulir -> laporan diterima
+      const FK = [10.4, 12.9, 15.4, 17.9, 20.4];
+      const TR = [[9.8,10.4],[12.35,12.9],[14.85,15.4],[17.35,17.9],[19.85,20.4],[22.9,23.45]];
+      const pos = TR.reduce((s,[a,b]) => s + E.inOutCubic(P(t,a,b)), 0);
+      PG.forEach((g,i) => { const d = i-pos; g.setAttribute('transform', `translate(${392*d} 0)`); show(g, Math.abs(d) < 1); });
+      if (pos < 1){
         for (const m of qrMods){ const a = 8.3 + m.d*.6; const s = E.outCubic(P(t,a,a+.5));
           m.e.setAttribute('transform', `translate(${m.cx} ${m.cy}) scale(${.6+.4*s}) translate(${-m.cx} ${-m.cy})`); m.e.setAttribute('opacity', s); }
         qrLogo.setAttribute('opacity', E.outCubic(P(t,8.8,9.2)));
@@ -476,40 +530,52 @@ async function init(){
         scanG.setAttribute('transform', `translate(0 ${qy-6 + (N*cell+12)*E.inOutSine(sc)})`);
         scanG.setAttribute('opacity', Math.sin(Math.PI*sc));
       }
-      if (pg1>0 && pg2<1){
-        const type = (el_, s, a, b) => { const p=P(t,a,b), n=Math.round(s.length*p); el_.v.textContent = s.slice(0,n);
-          const w = n ? el_.v.getComputedTextLength() : 0; set(el_.caret,{x:44+w+2, opacity: (p>0&&p<1)||(p>=1&&t<b+.4&&Math.floor(t*4)%2===0) ? 1 : 0}); };
-        type(f1, 'Mawar', 10.4, 10.75); type(f2, 'Cileunyi Kulon', 10.65, 11.1);
-        chips.forEach((c,i) => { const s = E.outCubic(P(t,10.7+i*.07,11.2+i*.07)); const sel = i===1 ? E.inOutSine(P(t,11.05,11.3)) : 0;
-          c.g.setAttribute('transform', `translate(${c.x+c.w/2} 388) scale(${.85+.15*s}) translate(${-c.w/2} -20)`); c.g.setAttribute('opacity', s);
-          set(c.r,{fill: mix(C.b50,C.b600,sel), stroke: sel>.5?C.b600:C.line}); c.tt.setAttribute('fill', sel>.5?'#fff':C.ink); });
-        lines.forEach((l,i) => l.e.setAttribute('width', l.w*E.outCubic(P(t,10.9+i*.07,11.3+i*.07))));
-        const tekan = P(t,11.35,11.6);
-        btn.setAttribute('transform', `translate(196 720) scale(${1 - .03*Math.sin(Math.PI*tekan)}) translate(-196 -720)`);
-        const rp = P(t,11.38,12.0); set(ripple,{r: 260*E.outCubic(rp), 'fill-opacity': .3*(1-rp)});
-      }
-      if (pg2>0){
-        vCircle.setAttribute('r', 92*E.outCubic(P(t,12.0,12.7)));
-        vCheck.setAttribute('stroke-dashoffset', chkLen*(1-E.outCubic(P(t,12.25,12.8))));
-        vRings.forEach((r,i)=>{ const p=P(t,12.1+i*.25,13.3+i*.25); show(r,p>0&&p<1);
-          set(r,{r:92+150*E.outSine(p),'stroke-width':5*(1-p),'stroke-opacity':.7*(1-p)}); });
-        const vt = E.outCubic(P(t,12.4,12.9)); vTxt.setAttribute('transform', `translate(0 ${24*(1-vt)})`); vTxt.setAttribute('opacity', vt);
-      }
+      pgs.forEach((p,i) => {
+        const f = FK[i];
+        p.b.e.setAttribute('opacity', E.inOutSine(P(t,f+.4,f+.8)));
+        const w = i===4 ? [21.0,22.3] : [f+.8,f+1.9];
+        p.inner.setAttribute('transform', `translate(0 ${-p.pan*E.inOutSine(P(t,w[0],w[1]))})`);
+      });
+      const tekan = P(t,22.4,22.65), rp = P(t,22.42,23.0);
+      set(ripple,{r: 150*E.outCubic(rp), 'fill-opacity': .32*(1-rp)});
+      // panduan di kanan ponsel
+      const EXIT = [12.5, 15.0, 17.5, 20.0, 22.85];
+      calls.forEach((g,i) => { const f = FK[i];
+        const inn = E.outCubic(P(t,f+.15,f+.7)), out = E.inOutSine(P(t,EXIT[i],EXIT[i]+.35));
+        g.setAttribute('transform', `translate(${30*(1-inn) - 20*out} 0)`); g.setAttribute('opacity', inn*(1-out)); show(g, inn>0 && out<1); });
       // tiket: melayang masuk dan berhenti pelan
-      const te = E.outCubic(P(t,12.7,13.6)); show(ticket, t>12.7);
-      ticket.setAttribute('transform', TF(lerp(1380,1150,te), lerp(620,650,te), lerp(.85,1,te), lerp(4,-6,te)));
+      const te = E.outCubic(P(t,24.4,25.3)); show(ticket, t>24.4);
+      ticket.setAttribute('transform', TF(lerp(1360,1120,te), lerp(620,650,te), lerp(.85,1,te), lerp(4,-6,te)));
       ticket.setAttribute('opacity', te);
-      odo[0].setAttribute('transform', `translate(0 ${-130*E.outCubic(P(t,13.0,13.5))})`);
-      odo[1].setAttribute('transform', `translate(0 ${-130*7*E.inOutCubic(P(t,13.0,14.0))})`);
-      // hati kecil melayang naik dari tiket, pelan dan berayun
-      const onH = t>13.1 && t<14.7; show(heartsG, onH);
-      if (onH) hearts.forEach(h => { const ht = t-13.2-h.delay, life = P(ht,0,1.7);
+      odo[0].setAttribute('transform', `translate(0 ${-130*E.outCubic(P(t,24.7,25.2))})`);
+      odo[1].setAttribute('transform', `translate(0 ${-130*7*E.inOutCubic(P(t,24.7,25.7))})`);
+      const onH = t>24.9 && t<26.6; show(heartsG, onH);
+      if (onH) hearts.forEach(h => { const ht = t-25.0-h.delay, life = P(ht,0,1.7);
         const op = ht<=0 ? 0 : Math.min(E.outCubic(P(ht,0,.4)), 1-E.inOutSine(P(ht,1.1,1.7)));
         h.g.setAttribute('transform', `translate(${h.x + h.sway*Math.sin(h.ph+ht*2.4)} ${h.y - h.rise*Math.max(0,ht)}) rotate(${6*Math.sin(h.ph+ht*1.8)}) scale(${.7+.3*E.outCubic(life)})`);
         h.g.setAttribute('opacity', op); });
     }
 
+    /* ---- S3b LANGKAH OFFLINE: datang ke UPTD ---- */
+    const onB3 = t>=26.3 && t<36.7; show(s3b, onB3);
+    if (onB3){
+      const ex = E.inOutSine(P(t,36.0,36.65));
+      s3bi.setAttribute('transform', `translate(${-80*ex} 0)`);
+      s3b.setAttribute('opacity', E.inOutSine(P(t,26.3,26.8))*(1-ex));
+      kickB.setAttribute('opacity', E.outCubic(P(t,26.7,27.3)));
+      kickB.setAttribute('transform', `translate(${-20*(1-E.outCubic(P(t,26.7,27.3)))} 0)`);
+      headB.forEach((h,i) => { const p = E.outCubic(P(t,26.8+i*.15,27.7+i*.15));
+        h.setAttribute('transform', `translate(0 ${60*(1-p)})`); h.setAttribute('opacity', p); });
+      const sb = E.outCubic(P(t,27.6,28.2)); subB.setAttribute('opacity', sb); subB.setAttribute('transform', `translate(0 ${20*(1-sb)})`);
+      routeFill.setAttribute('stroke-dashoffset', 3*RDX*(1-P(t,28.4,32.6)));
+      offN.forEach(n => { const pop = E.outCubic(P(t,n.at-.3,n.at+.5)), tx = E.outCubic(P(t,n.at+.1,n.at+.8));
+        n.body.setAttribute('transform', `scale(${.6+.4*pop})`); n.body.setAttribute('opacity', pop);
+        n.tx.setAttribute('transform', `translate(0 ${24*(1-tx)})`); n.tx.setAttribute('opacity', tx); });
+      const nb = E.outCubic(P(t,33.4,34.1)); noteB.setAttribute('opacity', nb); noteB.setAttribute('transform', `translate(0 ${24*(1-nb)})`);
+    }
+
     /* ---- S4 PERAN + SKALA ---- */
+    { const t = tt - SH;
     const on4 = t>=14.7 && t<19.5; show(s4, on4);
     if (on4){
       const pin = E.inOutSine(P(t,14.75,15.5));
@@ -540,7 +606,10 @@ async function init(){
       show(coreDot, t>19.0); set(coreDot,{r: 48*E.outCubic(P(t,19.0,19.6))});
     }
 
+    }
+
     /* ---- S5 IDENTITAS ---- */
+    { const t = tt - SH;
     const on5 = t>=19.2; show(s5, on5);
     if (on5){
       wipe5.setAttribute('r', 1150*E.inOutCubic(P(t,19.2,20.2)));
@@ -548,7 +617,7 @@ async function init(){
       const m = E.inOutSine(P(t,19.4,20.3));
       set(dot5,{cx: lerp(960,ADOT.x,m), cy: lerp(540,ADOT.y,m) - 120*Math.sin(Math.PI*m), r: lerp(48,ADOT.r,E.inOutCubic(m))});
       const ls = .97 + .03*E.outCubic(P(t,20.2,21.2));
-      const drift = .015*P(t,21,T);
+      const drift = .015*P(t,21,24);
       const camT = `translate(960 450) scale(${ls+drift}) translate(-960 -450)`;
       [lock, dot5].forEach(e => e.setAttribute('transform', camT));
       const wp = E.outCubic(P(t,20.2,21.0));
@@ -564,6 +633,8 @@ async function init(){
       set(pulse5,{cx:ADOT.x, cy:ADOT.y, r: ADOT.r + 80*E.outSine(pp), 'stroke-width': 4*(1-pp), 'stroke-opacity': .7*(1-pp), transform:camT});
     }
 
+    }
+
     /* ---- overlays ---- */
     const lt = terang(t), light = lt > .5;
     vig.setAttribute('opacity', lerp(1, .25, lt));
@@ -573,7 +644,7 @@ async function init(){
     const ff = frame % FPS, ss = Math.floor(t);
     hTR.textContent = `00:00:${String(ss).padStart(2,'0')}:${String(ff).padStart(2,'0')}`;
     let lbl = SCENES[0][1]; for (const [a,l] of SCENES) if (t>=a) lbl = l; hBL.textContent = lbl;
-    fade.setAttribute('opacity', E.inOutSine(P(t,23.4,24)));
+    fade.setAttribute('opacity', E.inOutSine(P(t,T-.6,T)));
   };
 
   window.render = render;
