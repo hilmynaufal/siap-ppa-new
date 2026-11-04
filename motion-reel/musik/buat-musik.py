@@ -2,11 +2,14 @@
 
 Tidak memakai sampel atau rekaman pihak lain, jadi bebas hak cipta: dilepas CC0 (domain publik).
 Jalankan: python3 musik/buat-musik.py  ->  musik/siap-ppa-reel.wav  (lalu ffmpeg ke .m4a, lihat README)
-Durasi mengikuti linimasa reel (46 detik). Kunci C mayor, 96 BPM, progresi C - G - Am - F.
+Durasi mengikuti linimasa reel: argumen 1 = detik (bawaan 46), argumen 2 = nama berkas keluaran. Bagian lagu (intro, naik, penutup) ikut meregang. Kunci C mayor, 96 BPM, progresi C - G - Am - F.
 """
-import numpy as np, wave, os
+import numpy as np, wave, os, sys
 
-SR, DUR, BPM = 44100, 46.0, 96
+SR, BPM = 44100, 96
+DUR = float(sys.argv[1]) if len(sys.argv) > 1 else 46.0
+OUT = sys.argv[2] if len(sys.argv) > 2 else 'siap-ppa-reel.wav'
+K = DUR / 46.0   # peregang struktur lagu terhadap versi 46 detik
 N = int(SR * DUR)
 BEAT = 60 / BPM
 BAR = 4 * BEAT
@@ -50,24 +53,23 @@ CH = [  # (akor pad, bas, nada arpeggio)
 ]
 BELL = [76, 79, 81, 79, 76, 79, 83, 81]  # E5 G5 A5 ... pentatonik C
 
-def lvl(t, pts):  # interpolasi linear tingkat kekerasan menurut waktu
-    return float(np.interp(t, [p[0] for p in pts], [p[1] for p in pts]))
+def lvl(t, pts):  # interpolasi linear tingkat kekerasan menurut waktu (waktu titik ikut diregang oleh K)
+    return float(np.interp(t, [p[0] * K for p in pts], [p[1] for p in pts]))
 
 nbar = int(DUR / BAR) + 1
 for b in range(nbar):
     t0 = b * BAR
     pads, bass, arp = CH[b % 4]
-    last = t0 + BAR >= 42.0
-    # pad: selalu ada, makin penuh setelah 7 detik
+        # pad: selalu ada, makin penuh setelah 7 detik
     pv = lvl(t0, [(0, .5), (7, .75), (36, .9), (42, .8)])
     for m in pads:
         add(None, t0, pad(mtof(m), BAR + .6) * .05 * pv, pan=(m % 7 - 3) / 12)
     # bas lembut mulai ~15 detik
-    if t0 >= 14.5:
+    if t0 >= 14.5 * K:
         for k in (0, 2):
             add(None, t0 + k * BEAT, tone(mtof(bass), 2 * BEAT, a=.02, r=1.2, harm=(1, .25), curve=2.0) * .16)
     # arpeggio kalimba delapanan mulai ~7.4 detik
-    if 7.2 <= t0 < 44.0:
+    if 7.2 * K <= t0 < DUR - 2.0:
         av = lvl(t0, [(7, .5), (15, .8), (26, .7), (36.5, 1.0), (42, .6)])
         order = [0, 1, 2, 3, 2, 1, 2, 1]
         for k, o in enumerate(order):
@@ -75,14 +77,14 @@ for b in range(nbar):
             vel = (1.0 if k % 4 == 0 else .62) * av
             add(None, tt, tone(mtof(arp[o]), .9, a=.004, r=.35, harm=(1, .4, .15, .06), curve=4.5) * .09 * vel, pan=(-.35 if k % 2 else .35))
     # lonceng sparse: pembuka tiap 2 bar dan melodi setelah 15 detik
-    if b % 2 == 0 and t0 < 7.2:
+    if b % 2 == 0 and t0 < 7.2 * K:
         add(None, t0 + BEAT, tone(mtof(BELL[b // 2 % 8] + 12), 2.2, a=.005, r=1.0, harm=(1, .2, .05), curve=2.6) * .07, pan=.2)
-    if 15 <= t0 < 44:
+    if 15 * K <= t0 < DUR - 2.0:
         mel = [BELL[(b * 2) % 8], BELL[(b * 2 + 1) % 8]]
         for k, m in enumerate(mel):
             add(None, t0 + (1 + 2 * k) * BEAT, tone(mtof(m), 1.4, a=.006, r=.7, harm=(1, .25, .08), curve=3.2) * .08 * lvl(t0, [(15, .7), (36.5, 1.0), (42, .5)]), pan=-.2)
     # perkusi sangat halus: kick lembut + shaker mulai ~15 detik
-    if 14.5 <= t0 < 43.0:
+    if 14.5 * K <= t0 < DUR - 3.0:
         pv2 = lvl(t0, [(14.5, .6), (36.5, 1.0), (42, .5)])
         for k in (0, 2):
             n = int(.35 * SR); x = np.arange(n) / SR
@@ -95,8 +97,8 @@ for b in range(nbar):
 
 # akor penutup yang panjang (C mayor) sekitar detik 42
 for m in (48, 55, 64, 72, 76):
-    add(None, 41.8, pad(mtof(m), 4.4) * .05, pan=(m % 5 - 2) / 8)
-add(None, 41.9, tone(mtof(84), 3.5, a=.005, r=1.6, harm=(1, .2), curve=2.0) * .07, pan=.1)
+    add(None, DUR - 4.2, pad(mtof(m), 4.4) * .05, pan=(m % 5 - 2) / 8)
+add(None, DUR - 4.1, tone(mtof(84), 3.5, a=.005, r=1.6, harm=(1, .2), curve=2.0) * .07, pan=.1)
 
 # gaung ruangan sederhana (konvolusi dengan derau meluruh)
 def reverb(x, secs=2.2, wet=.28):
@@ -112,7 +114,7 @@ fade = np.minimum(1, t_all / 1.5) * np.minimum(1, (DUR - t_all) / 2.5)
 L *= fade; R *= fade
 peak = max(np.abs(L).max(), np.abs(R).max()); L *= .708 / peak; R *= .708 / peak
 out = (np.stack([L, R], 1) * 32767).astype('<i2')
-path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'siap-ppa-reel.wav')
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), OUT)
 with wave.open(path, 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(out.tobytes())
 print('ditulis', path)
