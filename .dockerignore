@@ -12,3 +12,4 @@ docker-compose.yml
 *.md
 !README.md
 npm-debug.log
+motion-reel

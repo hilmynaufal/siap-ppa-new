@@ -19,6 +19,7 @@
 
   /* Hijau muda logo (grafik, hiasan; bukan untuk teks putih) dan kuning hangat sebagai penyorot */
   --color-leaf-500: #60ae2d;
+  --color-sun-300: #f6c445;
   --color-sun-400: #f2b218;
   --color-sun-50: #fff3d1;
 
@@ -142,6 +143,44 @@ body {
   }
   .hero-senja {
     background: linear-gradient(180deg, var(--color-brand-100) 0%, var(--color-brand-50) 55%, var(--color-sun-50) 100%);
+  }
+  /* Latar hero landing page: hijau tua logo dengan cahaya daun muda dan matahari. Gradien hanya di latar. */
+  .hero-rimba {
+    background:
+      radial-gradient(55% 60% at 78% 45%, rgb(96 174 45 / 0.38), transparent 70%),
+      radial-gradient(45% 45% at 4% 0%, rgb(242 178 24 / 0.16), transparent 70%),
+      var(--color-brand-900);
+  }
+  .pola-titik {
+    background-image: radial-gradient(rgb(214 239 220 / 0.1) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+  }
+  .kursor {
+    animation: kedip 1s steps(1) infinite;
+  }
+}
+@keyframes kedip {
+  50% {
+    opacity: 0;
+  }
+}
+
+/*
+ * Landing page: keadaan awal elemen hero yang dimunculkan anime.js (GerakBeranda). Hanya berlaku bila JavaScript
+ * aktif dan pengguna tidak meminta gerak minimal, sehingga tanpa skrip semuanya tetap tampil.
+ */
+[data-putar] {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-hero-ponsel],
+  [data-hero-chip] {
+    opacity: 0;
+  }
+  [data-cincin] {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
   }
 }
 @keyframes napas {
